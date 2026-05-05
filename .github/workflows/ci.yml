@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify backend syntax (node --check)
+        working-directory: app/backend
+        run: |
+          for f in $(find src -name '*.js'); do
+            echo "→ $f"
+            node --check "$f"
+          done
+      - name: Verify frontend JS syntax
+        run: node --check app/frontend/app.js
+
+  smoke-test:
+    name: Smoke test (boot + endpoints)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install backend deps
+        working-directory: app/backend
+        run: npm install --no-audit --no-fund
+      - name: Seed database
+        working-directory: app/backend
+        run: node src/seed.js
+      - name: Start server in background
+        working-directory: app/backend
+        run: |
+          node src/server.js &
+          echo $! > /tmp/server.pid
+          # esperar arranque
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:3717/health > /dev/null; then
+              echo "✓ Server up"
+              break
+            fi
+            sleep 0.5
+          done
+      - name: Health check
+        run: curl -sf http://localhost:3717/health
+      - name: Public endpoint (no auth)
+        run: curl -sf http://localhost:3717/api/publico/fpl > /dev/null
+      - name: Login flow
+        run: |
+          curl -s -c /tmp/cookies.txt http://localhost:3717/api/auth/csrf > /dev/null
+          CSRF=$(grep fpl_csrf /tmp/cookies.txt | awk '{print $7}')
+          test -n "$CSRF"
+          echo "CSRF token obtido"
+          RESP=$(curl -s -b /tmp/cookies.txt -c /tmp/cookies.txt \
+            -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
+            -d '{"email":"maria.silva@gov.pt","password":"demo1234"}' \
+            http://localhost:3717/api/auth/login)
+          echo "$RESP" | grep -q '"email":"maria.silva@gov.pt"'
+          echo "✓ Login OK"
+      - name: CSRF protection
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -b /tmp/cookies.txt -X PATCH -H "Content-Type: application/json" \
+            -d '{}' http://localhost:3717/api/fpl/anything/bloco-b)
+          test "$STATUS" = "403" || (echo "Expected 403, got $STATUS" && exit 1)
+          echo "✓ CSRF a bloquear mutações sem token"
+      - name: Workflow bloqueante (M3 sem decisão D)
+        run: |
+          CSRF=$(grep fpl_csrf /tmp/cookies.txt | awk '{print $7}')
+          # Pegar FPL em RSE (já validada M3 no seed)
+          FID=$(curl -s -b /tmp/cookies.txt http://localhost:3717/api/fpl | \
+            node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const j=JSON.parse(d);const f=j.items.find(x=>x.estado_workflow==='EM_RSE');console.log(f?.id||'')})")
+          test -n "$FID" || (echo "Sem FPL em EM_RSE no seed" && exit 1)
+          # Tentar voltar a validar M3 (deve falhar — já não está em estado válido)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -b /tmp/cookies.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
+            -d '{"declaracao_assinada":true}' \
+            "http://localhost:3717/api/fpl/$FID/marcos/M3/validar")
+          test "$STATUS" = "422" || (echo "Expected 422, got $STATUS" && exit 1)
+          echo "✓ Validação bloqueante a funcionar"
+      - name: Stop server
+        if: always()
+        run: kill $(cat /tmp/server.pid) || true

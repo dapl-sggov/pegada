@@ -1,0 +1,144 @@
+name: Deploy mock to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mock/**'
+      - 'docs/**'
+      - 'README.md'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build site (mock + landing page)
+        run: |
+          mkdir -p _site
+          cp -r mock _site/mock
+          cp -r docs _site/docs
+          cp README.md _site/README.md
+          # Landing page que aponta para o mock
+          cat > _site/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="pt-PT">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>FPL — Pegada Legislativa do Governo · Demonstração</title>
+            <style>
+              :root{--gov-blue:#0a3161;--gov-blue-dark:#06203f;--gov-gold:#d4a418;--bg:#f5f6f8;--text:#1a1f2e;--muted:#475061}
+              *{box-sizing:border-box;margin:0;padding:0}
+              body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:var(--bg);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+              .hero{background:linear-gradient(135deg,var(--gov-blue) 0%,var(--gov-blue-dark) 100%);color:#fff;padding:60px 24px;border-bottom:4px solid var(--gov-gold)}
+              .hero-inner{max-width:920px;margin:0 auto}
+              .crest{display:inline-flex;width:54px;height:54px;border-radius:50%;background:var(--gov-gold);color:var(--gov-blue-dark);align-items:center;justify-content:center;font-weight:800;font-size:18px;margin-bottom:18px}
+              h1{font-size:32px;margin-bottom:12px;font-weight:600}
+              .sub{font-size:17px;opacity:.9;max-width:680px}
+              .demo-tag{display:inline-block;background:var(--gov-gold);color:var(--gov-blue-dark);padding:4px 12px;border-radius:14px;font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:14px}
+              main{max-width:920px;margin:48px auto;padding:0 24px;flex:1;width:100%}
+              .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:36px}
+              .card{background:#fff;border:1px solid #e1e4e8;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(10,49,97,.06);text-decoration:none;color:inherit;transition:all .15s}
+              .card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,49,97,.12);border-color:var(--gov-blue)}
+              .card .icon{width:40px;height:40px;border-radius:8px;background:var(--gov-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin-bottom:14px}
+              .card h2{font-size:18px;font-weight:600;margin-bottom:6px;color:var(--gov-blue-dark)}
+              .card p{font-size:13px;color:var(--muted)}
+              .card .btn{display:inline-block;margin-top:14px;color:var(--gov-blue);font-size:13px;font-weight:600}
+              .info{background:#fff;border:1px solid #e1e4e8;border-radius:8px;padding:24px;margin-top:24px}
+              .info h2{font-size:18px;font-weight:600;margin-bottom:12px;color:var(--gov-blue-dark)}
+              .info p{font-size:14px;color:var(--text);margin-bottom:8px}
+              .info ul{margin-left:20px;margin-bottom:12px}
+              .info li{font-size:14px;margin-bottom:4px}
+              footer{text-align:center;padding:24px;font-size:12px;color:var(--muted);border-top:1px solid #e1e4e8;background:#fff}
+              footer a{color:var(--gov-blue)}
+              code{background:#eef3fa;padding:2px 6px;border-radius:3px;font-size:12px}
+            </style>
+          </head>
+          <body>
+            <header class="hero">
+              <div class="hero-inner">
+                <div class="crest">RP</div>
+                <span class="demo-tag">Demonstração técnica</span>
+                <h1>FPL — Pegada Legislativa do Governo</h1>
+                <p class="sub">Sistema autónomo (FPL Ponte) para registo de interações com representantes de interesses na fase preparatória dos diplomas do Governo, em execução da Lei n.º 5-A/2026 e da RCM n.º [XX]/2026.</p>
+              </div>
+            </header>
+            <main>
+              <div class="grid">
+                <a href="mock/" class="card">
+                  <div class="icon">▶</div>
+                  <h2>Mock interativo</h2>
+                  <p>Demonstração visual completa para apresentação aos decisores políticos. Comutador de papéis (Ponto Focal / SGGOV / Cidadão), 3 dashboards, fluxo M0–M5 com bloqueio, portal público.</p>
+                  <span class="btn">Abrir o mock →</span>
+                </a>
+                <a href="docs/01_Analise_Critica.md" class="card">
+                  <div class="icon">📋</div>
+                  <h2>Análise crítica</h2>
+                  <p>Análise crítica do documento de especificações: cronograma, riscos de integração, recomendação de v1.0 minimalista para 27 de julho de 2026.</p>
+                  <span class="btn">Ler análise →</span>
+                </a>
+                <a href="docs/02_Arquitetura.md" class="card">
+                  <div class="icon">🏛</div>
+                  <h2>Arquitetura</h2>
+                  <p>Arquitetura modular monolith, máquina de estados M0–M5, modelo de dados, API REST, modelo de degradação graciosa, segurança e observabilidade.</p>
+                  <span class="btn">Ler arquitetura →</span>
+                </a>
+                <a href="docs/03_Plano_Implementacao.md" class="card">
+                  <div class="icon">🛠</div>
+                  <h2>Plano de implementação</h2>
+                  <p>17 marcos de engenharia (E1–E17) para chegar à v1.0 em 12 semanas. Equipa, riscos, evolução para v2.0 e v3.0 (federação SmartLegis).</p>
+                  <span class="btn">Ler plano →</span>
+                </a>
+                <a href="https://github.com/dapl-sggov/pegada" class="card">
+                  <div class="icon">⌥</div>
+                  <h2>Código-fonte</h2>
+                  <p>Repositório completo: backend Node.js + frontend SPA + mock + documentação. Licenciado sob EUPL-1.2.</p>
+                  <span class="btn">Abrir no GitHub →</span>
+                </a>
+                <a href="README.md" class="card">
+                  <div class="icon">📖</div>
+                  <h2>README técnico</h2>
+                  <p>Como executar o sistema funcional localmente, lista de utilizadores demo, endpoints REST, próximos passos.</p>
+                  <span class="btn">Ler README →</span>
+                </a>
+              </div>
+              <div class="info">
+                <h2>Sobre esta página</h2>
+                <p>Esta é uma página de demonstração técnica, hospedada em GitHub Pages a partir do repositório <code>dapl-sggov/pegada</code>. Não substitui qualquer comunicação oficial do Governo.</p>
+                <p>O <strong>mock interativo</strong> funciona inteiramente no seu navegador, sem servidor. Os dados exibidos são fictícios, criados para fins ilustrativos.</p>
+                <p>O <strong>sistema funcional completo</strong> (backend Node.js + SQLite) deve ser executado localmente seguindo as instruções do README — não está disponível online por razões de soberania de dados.</p>
+              </div>
+            </main>
+            <footer>
+              FPL Ponte v0.2 · Secretaria-Geral do Governo · Maio 2026 · Licenciado sob <a href="https://github.com/dapl-sggov/pegada/blob/main/LICENSE">EUPL-1.2</a>
+            </footer>
+          </body>
+          </html>
+          EOF
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
