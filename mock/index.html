@@ -3,1386 +3,1951 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FPL — Pegada Legislativa do Governo · Demonstração</title>
+<meta name="description" content="Pegada Legislativa do Governo — registo público das interações com representantes de interesses na fase preparatória dos diplomas, em execução da Lei n.º 5-A/2026.">
+<meta name="theme-color" content="#1d3461">
+<title>FPL · Pegada Legislativa do Governo</title>
+
 <style>
 :root{
-  --gov-blue:#0a3161;
-  --gov-blue-light:#1d4d8c;
-  --gov-blue-dark:#06203f;
-  --gov-red:#c8102e;
-  --gov-gold:#d4a418;
-  --bg:#f5f6f8;
+  /* Paleta institucional */
+  --gov:#1d3461;
+  --gov-dark:#11203f;
+  --gov-light:#e8eef7;
+  --gov-mid:#2f4f8a;
+  --accent:#c9a227;
+  --red:#a71728;
+  --green:#0f7858;
+  --warning:#a36507;
+  --ink:#11151c;
+  --ink-2:#3a4252;
+  --ink-3:#5e6573;
+  --ink-4:#8b919c;
+  --line:#d9dee5;
+  --line-2:#edf0f4;
+  --bg:#fbfbfa;
   --surface:#ffffff;
-  --border:#e1e4e8;
-  --text:#1a1f2e;
-  --text-muted:#5b6478;
-  --text-faint:#8a93a6;
-  --success:#1a7f3c;
-  --warning:#b86e00;
-  --danger:#b81e2d;
-  --info:#0a5fa8;
-  --radius:6px;
-  --shadow-sm:0 1px 2px rgba(10,49,97,.05);
-  --shadow:0 2px 8px rgba(10,49,97,.08);
-  --shadow-lg:0 8px 24px rgba(10,49,97,.12);
+  --surface-2:#f6f7f9;
+
+  /* Tipografia */
+  --serif: 'Source Serif Pro', 'Iowan Old Style', 'Charter', 'Georgia', 'Times New Roman', serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+
+  /* Geometria */
+  --r: 4px;
+  --r-lg: 8px;
+  --shadow-sm: 0 1px 2px rgba(17,32,63,.06);
+  --shadow: 0 4px 16px rgba(17,32,63,.08);
+  --shadow-lg: 0 16px 48px rgba(17,32,63,.14);
+  --max: 1200px;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --bg:#0e131c;
+    --surface:#161c28;
+    --surface-2:#1c2331;
+    --ink:#e7eaf0;
+    --ink-2:#c0c6d2;
+    --ink-3:#9aa1ae;
+    --ink-4:#6c7383;
+    --line:#26303f;
+    --line-2:#1c2331;
+    --gov-light:#1a2740;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0e131c;
+  --surface:#161c28;
+  --surface-2:#1c2331;
+  --ink:#e7eaf0;
+  --ink-2:#c0c6d2;
+  --ink-3:#9aa1ae;
+  --ink-4:#6c7383;
+  --line:#26303f;
+  --line-2:#1c2331;
+  --gov-light:#1a2740;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+html{scroll-behavior:smooth}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  font-size:14px;line-height:1.5;color:var(--text);background:var(--bg);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.6;
+  color:var(--ink);
+  background:var(--bg);
   -webkit-font-smoothing:antialiased;
-}
-button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
-a{color:var(--gov-blue);text-decoration:none}
-a:hover{text-decoration:underline}
-input,select,textarea{font-family:inherit;font-size:14px}
-
-/* ===== Top bar ===== */
-.topbar{
-  background:var(--gov-blue);color:#fff;
-  display:flex;align-items:center;height:64px;padding:0 24px;
-  border-bottom:3px solid var(--gov-gold);
-}
-.topbar .brand{display:flex;align-items:center;gap:14px;font-weight:600}
-.topbar .crest{
-  width:36px;height:36px;border-radius:50%;
-  background:var(--gov-gold);color:var(--gov-blue-dark);
-  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;
-}
-.topbar .brand-text{display:flex;flex-direction:column;line-height:1.15}
-.topbar .brand-text .t1{font-size:11px;opacity:.85;letter-spacing:.3px;text-transform:uppercase}
-.topbar .brand-text .t2{font-size:15px;font-weight:600}
-.topbar nav{margin-left:40px;display:flex;gap:6px}
-.topbar nav button{
-  color:rgba(255,255,255,.85);padding:8px 14px;border-radius:4px;font-size:13px;font-weight:500;
-}
-.topbar nav button:hover{background:rgba(255,255,255,.08);color:#fff}
-.topbar nav button.active{background:rgba(255,255,255,.14);color:#fff}
-.topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:13px}
-.topbar .user{display:flex;align-items:center;gap:10px;padding:6px 12px;background:rgba(255,255,255,.08);border-radius:18px}
-.topbar .user .avatar{
-  width:28px;height:28px;border-radius:50%;background:var(--gov-gold);color:var(--gov-blue-dark);
-  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;
-}
-.topbar .user .meta{display:flex;flex-direction:column;line-height:1.2}
-.topbar .user .meta .n{font-weight:600;font-size:12px}
-.topbar .user .meta .r{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.4px}
-
-/* ===== Layout ===== */
-.shell{display:flex;min-height:calc(100vh - 64px - 32px)}
-.sidebar{
-  width:240px;background:#fff;border-right:1px solid var(--border);
-  padding:18px 0;flex-shrink:0;
-}
-.side-section{margin-bottom:22px}
-.side-title{
-  font-size:10px;text-transform:uppercase;font-weight:700;color:var(--text-faint);
-  letter-spacing:.6px;padding:0 18px;margin-bottom:8px;
-}
-.side-link{
-  display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--text);
-  font-size:13px;border-left:3px solid transparent;cursor:pointer;
-}
-.side-link:hover{background:#f5f6f8}
-.side-link.active{background:#eef3fa;color:var(--gov-blue);border-left-color:var(--gov-blue);font-weight:600}
-.side-link .ico{width:18px;height:18px;display:inline-block;color:var(--text-muted)}
-.side-link.active .ico{color:var(--gov-blue)}
-.badge-count{
-  margin-left:auto;background:#eef3fa;color:var(--gov-blue);font-size:11px;
-  padding:1px 7px;border-radius:10px;font-weight:600;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
 }
 
-.main{flex:1;padding:28px 36px;max-width:calc(100% - 240px)}
-.footer{
-  text-align:center;padding:14px;font-size:11px;color:var(--text-faint);
-  background:#fff;border-top:1px solid var(--border);
+/* === Tipografia === */
+h1, h2, h3, h4 { font-family: var(--serif); font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 4.5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); line-height: 1.2; }
+h3 { font-size: 1.25rem; line-height: 1.3; }
+h4 { font-size: 1rem; line-height: 1.4; }
+p { line-height: 1.7; }
+.lead { font-size: 1.2rem; color: var(--ink-2); line-height: 1.6; font-weight: 400; }
+.eyebrow { font-family: var(--sans); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gov); }
+.mono { font-family: var(--mono); font-size: 0.92em; }
+a { color: var(--gov); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s; }
+a:hover { border-bottom-color: var(--gov); }
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+:focus-visible { outline: 2px solid var(--gov); outline-offset: 3px; border-radius: 2px; }
+
+/* === Skip link === */
+.skip { position:absolute; top:-40px; left:0; background:var(--gov); color:#fff; padding:10px 16px; z-index:1000; font-weight:600; }
+.skip:focus { top:0; }
+
+/* === Demo strip === */
+.demo-strip {
+  background: var(--accent);
+  color: #2a1f00;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 16px;
 }
 
-/* ===== Page header ===== */
-.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.page-title{font-size:22px;font-weight:600;color:var(--gov-blue-dark);margin-bottom:4px}
-.page-sub{font-size:13px;color:var(--text-muted)}
-.btn{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;
-  border:1px solid var(--border);background:#fff;color:var(--text);transition:all .15s;
+/* === Top bar === */
+.topbar {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  z-index: 100;
+  backdrop-filter: saturate(180%) blur(12px);
 }
-.btn:hover{background:#f5f6f8;border-color:#cfd6df}
-.btn.primary{background:var(--gov-blue);color:#fff;border-color:var(--gov-blue)}
-.btn.primary:hover{background:var(--gov-blue-light);border-color:var(--gov-blue-light)}
-.btn.danger{color:var(--danger);border-color:#f5c2c8}
-.btn.danger:hover{background:#fff5f6}
-.btn.success{background:var(--success);color:#fff;border-color:var(--success)}
-.btn.ghost{border-color:transparent;color:var(--text-muted)}
-.btn.ghost:hover{background:#f5f6f8;color:var(--text)}
-.btn.sm{padding:5px 10px;font-size:12px}
-
-/* ===== KPI cards ===== */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.kpi{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm)}
-.kpi .lbl{font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.4px;font-weight:600;margin-bottom:6px}
-.kpi .val{font-size:28px;font-weight:700;color:var(--gov-blue-dark)}
-.kpi .delta{font-size:12px;margin-top:6px;color:var(--success)}
-.kpi .delta.down{color:var(--danger)}
-.kpi .delta.flat{color:var(--text-muted)}
-
-/* ===== Card grid ===== */
-.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:20px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
-.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.card-head h3{font-size:14px;font-weight:600;color:var(--text)}
-.card-head .actions{display:flex;gap:8px}
-.card-body{padding:16px 18px}
-.card-empty{padding:40px 20px;text-align:center;color:var(--text-faint);font-size:13px}
-
-/* ===== Table ===== */
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{text-align:left;padding:10px 14px;font-weight:600;color:var(--text-muted);font-size:11px;
-  text-transform:uppercase;letter-spacing:.4px;background:#fafbfc;border-bottom:1px solid var(--border)}
-.tbl td{padding:12px 14px;border-bottom:1px solid #eef0f3;vertical-align:top}
-.tbl tr:hover td{background:#fafbfc;cursor:pointer}
-.tbl tr:last-child td{border-bottom:none}
-.tbl .cell-titulo{font-weight:500;color:var(--text)}
-.tbl .cell-titulo .num{display:block;font-size:11px;color:var(--text-faint);font-weight:400;margin-top:2px}
-
-/* ===== Badges ===== */
-.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:11px;font-size:11px;font-weight:600;line-height:1.6;white-space:nowrap}
-.badge.criado{background:#eaeef5;color:#5b6478}
-.badge.elaboracao{background:#fff4dc;color:#86610a}
-.badge.consulta{background:#dbeafe;color:#1e3a8a}
-.badge.rse{background:#e9d5ff;color:#5b21b6}
-.badge.cm{background:#fde0e0;color:#891f1f}
-.badge.aprovado{background:#d1fae5;color:#0e6b34}
-.badge.publicado{background:#0a3161;color:#fff}
-.badge.revisao{background:#fed7aa;color:#9a3412}
-.badge.arquivado{background:#e5e7eb;color:#4b5563}
-.badge.dot::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px}
-.tag{display:inline-block;padding:2px 7px;background:#f5f6f8;border:1px solid var(--border);border-radius:3px;font-size:11px;color:var(--text-muted)}
-.tag.tipo-DL{background:#eef3fa;color:var(--gov-blue);border-color:#cfdbed}
-.tag.tipo-PL{background:#fce7f3;color:#9d174d;border-color:#f9a8d4}
-.tag.tipo-RCM{background:#dcfce7;color:#166534;border-color:#86efac}
-.tag.tipo-DR{background:#fef3c7;color:#854d0e;border-color:#fde68a}
-
-/* ===== Filters ===== */
-.filters{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;
-  background:#fff;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
-.filters input[type=text],.filters select{
-  padding:6px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;
+.topbar-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
 }
-.filters input[type=text]{min-width:240px}
-.filters .sep{flex:1}
-
-/* ===== FPL detail ===== */
-.fpl-head{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:18px;box-shadow:var(--shadow-sm)}
-.fpl-head .breadcrumb{font-size:12px;color:var(--text-muted);margin-bottom:8px}
-.fpl-head .breadcrumb a{color:var(--text-muted)}
-.fpl-head h1{font-size:20px;color:var(--gov-blue-dark);margin-bottom:8px;line-height:1.4;font-weight:600}
-.fpl-head .meta{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--text-muted);margin-top:10px}
-.fpl-head .meta strong{color:var(--text)}
-.fpl-head .actions{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
-
-/* ===== Marcos progress ===== */
-.marcos{display:flex;align-items:center;justify-content:space-between;margin:20px 0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;box-shadow:var(--shadow-sm)}
-.marco{flex:1;text-align:center;position:relative}
-.marco:not(:last-child)::after{
-  content:"";position:absolute;top:18px;left:60%;right:-40%;height:2px;background:var(--border);z-index:0;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+  border: none !important;
 }
-.marco.done:not(:last-child)::after{background:var(--success)}
-.marco .dot{
-  width:36px;height:36px;border-radius:50%;background:#fff;border:2px solid var(--border);
-  margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;
-  color:var(--text-faint);position:relative;z-index:1;
+.crest {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: var(--gov);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.marco.done .dot{background:var(--success);border-color:var(--success);color:#fff}
-.marco.current .dot{background:#fff;border-color:var(--gov-blue);color:var(--gov-blue);box-shadow:0 0 0 4px rgba(10,49,97,.12)}
-.marco .lbl{font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.4px}
-.marco .sub{font-size:10px;color:var(--text-faint);margin-top:2px}
-.marco.done .lbl{color:var(--success)}
-.marco.current .lbl{color:var(--gov-blue)}
-
-/* ===== Tabs / blocos ===== */
-.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:18px;gap:2px;background:#fff;border-radius:6px 6px 0 0;padding:0 8px}
-.tab{padding:12px 18px;font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer}
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--gov-blue);border-bottom-color:var(--gov-blue);font-weight:600}
-.tab .pill{margin-left:6px;background:#f5f6f8;color:var(--text-muted);font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600}
-.tab.active .pill{background:#eef3fa;color:var(--gov-blue)}
-
-.bloco-section{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:18px}
-.bloco-head{padding:16px 22px;border-bottom:1px solid var(--border);background:#fafbfc;display:flex;align-items:center;justify-content:space-between}
-.bloco-head .ttl{display:flex;align-items:center;gap:10px}
-.bloco-head .letra{
-  width:30px;height:30px;border-radius:6px;background:var(--gov-blue);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-weight:700;
+.crest svg { width: 22px; height: 22px; }
+.brand .meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
 }
-.bloco-head h3{font-size:15px;font-weight:600;color:var(--text)}
-.bloco-head .desc{font-size:12px;color:var(--text-muted);margin-top:2px}
-.bloco-body{padding:20px 22px}
-
-.field-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 24px}
-.field{display:flex;flex-direction:column;gap:4px}
-.field.full{grid-column:1/-1}
-.field label{font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:600;color:var(--text-muted)}
-.field .val{font-size:13px;color:var(--text);word-break:break-word}
-.field .val.empty{color:var(--text-faint);font-style:italic}
-.field input,.field select,.field textarea{
-  border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:13px;
+.brand .meta .top {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
-.field textarea{min-height:80px;resize:vertical}
-
-/* Entradas Bloco D / C */
-.entrada{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;background:#fff}
-.entrada-head{padding:12px 16px;background:#fafbfc;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.entrada-head:hover{background:#f3f5f7}
-.entrada-head .ttl{display:flex;align-items:center;gap:10px;font-weight:500}
-.entrada-head .data{font-size:12px;color:var(--text-muted)}
-.entrada-body{padding:16px;display:none;border-top:1px solid var(--border)}
-.entrada.open .entrada-body{display:block}
-.entrada-body .row{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin-bottom:10px;font-size:13px}
-.entrada-body .row .lbl{color:var(--text-muted);font-weight:500}
-
-.rtri-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
-.rtri-status.validado{background:#d1fae5;color:#0e6b34}
-.rtri-status.pendente{background:#fef3c7;color:#92400e}
-.rtri-status.invalido{background:#fee2e2;color:#991b1b}
-.rtri-status.na{background:#e5e7eb;color:#4b5563}
-
-/* ===== Validação modal ===== */
-.modal-overlay{position:fixed;inset:0;background:rgba(6,32,63,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:8px;max-width:580px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
-.modal-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.modal-head h3{font-size:16px;font-weight:600}
-.modal-body{padding:20px 24px}
-.modal-foot{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#fafbfc}
-
-.alert{padding:12px 16px;border-radius:var(--radius);font-size:13px;margin-bottom:12px;border-left:4px solid;display:flex;gap:10px;align-items:flex-start}
-.alert.warning{background:#fff8e6;border-color:var(--warning);color:#7a4a00}
-.alert.danger{background:#fef2f3;border-color:var(--danger);color:#7a1421}
-.alert.success{background:#e6fcf0;border-color:var(--success);color:#0a4520}
-.alert.info{background:#e6f1ff;border-color:var(--info);color:#063a6a}
-.alert .ttl{font-weight:600;display:block;margin-bottom:2px}
-
-.checklist{list-style:none;margin:8px 0}
-.checklist li{padding:6px 0;display:flex;gap:10px;align-items:flex-start;font-size:13px}
-.checklist li::before{content:"";display:inline-block;width:16px;height:16px;border-radius:3px;flex-shrink:0;margin-top:2px}
-.checklist li.ok::before{background:var(--success);box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 8px var(--success)}
-.checklist li.fail::before{background:var(--danger)}
-.checklist li.fail{color:var(--danger)}
-.checklist li.fail .det{color:#7a1421;font-size:12px;margin-top:2px}
-
-.declaration-box{background:#fafbfc;border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:13px;font-style:italic;color:var(--text-muted);margin:12px 0}
-
-/* ===== Versão / auditoria timeline ===== */
-.timeline{position:relative;padding-left:22px}
-.timeline::before{content:"";position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--border)}
-.timeline-item{position:relative;padding-bottom:18px}
-.timeline-item::before{content:"";position:absolute;left:-22px;top:4px;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--gov-blue)}
-.timeline-item.marco::before{background:var(--success);border-color:var(--success)}
-.timeline-item .ts{font-size:11px;color:var(--text-faint);margin-bottom:2px}
-.timeline-item .desc{font-size:13px}
-.timeline-item .desc strong{color:var(--gov-blue)}
-.timeline-item .author{font-size:12px;color:var(--text-muted);margin-top:2px}
-
-/* ===== Portal público ===== */
-.public-hero{
-  background:linear-gradient(135deg,var(--gov-blue) 0%,var(--gov-blue-dark) 100%);
-  color:#fff;padding:50px 36px;border-radius:var(--radius);margin-bottom:24px;
-  position:relative;overflow:hidden;
+.topbar nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
 }
-.public-hero::before{
-  content:"";position:absolute;top:0;right:0;width:300px;height:100%;
-  background:radial-gradient(circle at top right,rgba(212,164,24,.2),transparent 70%);
+.topbar nav a {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  border-radius: var(--r);
+  border: none !important;
 }
-.public-hero h1{font-size:28px;margin-bottom:10px;position:relative}
-.public-hero p{font-size:15px;opacity:.92;max-width:680px;position:relative;line-height:1.6}
-.public-hero .stats{display:flex;gap:30px;margin-top:24px;position:relative}
-.public-hero .stats .it{font-size:13px;opacity:.85}
-.public-hero .stats .it strong{display:block;font-size:24px;font-weight:700;color:var(--gov-gold)}
-
-.public-search{
-  background:#fff;border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-  box-shadow:var(--shadow-sm);
+.topbar nav a:hover {
+  background: var(--surface-2);
+  color: var(--ink);
 }
-.public-search input{flex:1;min-width:280px;padding:10px 14px;border:1px solid var(--border);border-radius:4px;font-size:14px}
-
-/* ===== Misc ===== */
-.muted{color:var(--text-muted)}
-.small{font-size:12px}
-.txt-right{text-align:right}
-.mt-12{margin-top:12px}
-.mb-12{margin-bottom:12px}
-.flex{display:flex}
-.gap-8{gap:8px}
-.gap-12{gap:12px}
-.spacer{flex:1}
-.divider{height:1px;background:var(--border);margin:14px 0}
-
-.spinner{width:14px;height:14px;border:2px solid #cfd6df;border-top-color:var(--gov-blue);border-radius:50%;animation:spin 1s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.demo-banner{
-  background:var(--gov-gold);color:var(--gov-blue-dark);text-align:center;
-  padding:6px 12px;font-size:12px;font-weight:600;letter-spacing:.3px;
+.topbar .right-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
 }
-.role-switch{
-  display:inline-flex;background:rgba(0,0,0,.2);border-radius:14px;padding:2px;font-size:11px;
+.theme-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-3);
 }
-.role-switch button{padding:4px 10px;border-radius:12px;color:rgba(255,255,255,.85)}
-.role-switch button.active{background:rgba(255,255,255,.95);color:var(--gov-blue-dark);font-weight:600}
+.theme-btn:hover { background: var(--surface-2); color: var(--ink); }
 
-@media (max-width:1100px){
-  .kpis{grid-template-columns:repeat(2,1fr)}
-  .grid-2{grid-template-columns:1fr}
-  .field-grid{grid-template-columns:1fr}
+/* === Layout === */
+.section {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 88px 24px;
 }
+.section-narrow {
+  max-width: 820px;
+  margin: 0 auto;
+}
+.section + .section { padding-top: 0; }
+
+/* === Hero === */
+.hero {
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+  padding-top: 96px;
+  padding-bottom: 96px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.hero-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+.hero h1 {
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+.hero h1 strong {
+  font-weight: 600;
+  color: var(--gov);
+  font-style: italic;
+}
+.hero .lead {
+  margin-bottom: 32px;
+  max-width: 36em;
+}
+.hero .ctas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  transition: all 0.15s;
+  border-bottom: 1px solid var(--line) !important;
+}
+.btn:hover { background: var(--surface-2); border-color: var(--ink-4) !important; }
+.btn.primary {
+  background: var(--gov);
+  color: #fff;
+  border-color: var(--gov) !important;
+}
+.btn.primary:hover { background: var(--gov-dark); border-color: var(--gov-dark) !important; }
+.btn svg { width: 16px; height: 16px; }
+
+.hero-illustration {
+  position: relative;
+  aspect-ratio: 4/5;
+  background: linear-gradient(135deg, var(--gov) 0%, var(--gov-dark) 100%);
+  border-radius: var(--r-lg);
+  padding: 40px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.hero-illustration::before {
+  content: "";
+  position: absolute;
+  top: -50%; right: -30%;
+  width: 80%; height: 100%;
+  background: radial-gradient(circle, rgba(201,162,39,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-illustration .top {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+.hero-illustration .quote {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-style: italic;
+  line-height: 1.4;
+  position: relative;
+  z-index: 1;
+}
+.hero-illustration .quote::before {
+  content: "“";
+  font-size: 4rem;
+  font-family: var(--serif);
+  opacity: 0.3;
+  position: absolute;
+  top: -32px;
+  left: -10px;
+}
+.hero-illustration .source {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  margin-top: 16px;
+}
+.hero-illustration .stamp {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 4px 10px;
+  align-self: flex-start;
+  border-radius: 2px;
+  margin-bottom: 16px;
+}
+
+/* === Stats bar === */
+.stats {
+  background: var(--gov-dark);
+  color: #fff;
+  padding: 48px 24px;
+}
+.stats-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+.stat {
+  border-left: 2px solid var(--accent);
+  padding-left: 18px;
+}
+.stat .num {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+}
+.stat .lbl {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* === Section header === */
+.section-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 64px;
+}
+.section-header h2 { margin: 14px 0 16px; }
+.section-header p { color: var(--ink-2); font-size: 1.1rem; line-height: 1.6; }
+
+/* === Cards (Porquê) === */
+.cards-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+.card-why {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 32px 28px;
+  position: relative;
+  transition: all 0.2s;
+}
+.card-why:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.card-why .icon {
+  width: 44px; height: 44px;
+  background: var(--gov-light);
+  color: var(--gov);
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.card-why .icon svg { width: 22px; height: 22px; }
+.card-why h3 { margin-bottom: 10px; }
+.card-why p { color: var(--ink-2); font-size: 0.95rem; }
+.card-why .ref {
+  margin-top: 16px;
+  font-size: 0.78rem;
+  color: var(--ink-4);
+  font-family: var(--mono);
+}
+
+/* === Pipeline M0-M5 === */
+.pipeline-block {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 56px 48px;
+  margin-top: 48px;
+  box-shadow: var(--shadow-sm);
+}
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  position: relative;
+  margin-bottom: 32px;
+}
+.pipeline::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 8.33%;
+  right: 8.33%;
+  height: 2px;
+  background: var(--line);
+  z-index: 0;
+}
+.pl-step {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.pl-step .dot {
+  width: 44px; height: 44px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  margin: 0 auto 12px;
+  transition: all 0.2s;
+}
+.pl-step.bloqueante .dot {
+  background: var(--gov);
+  border-color: var(--gov);
+  color: #fff;
+}
+.pl-step .lbl {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pl-step .sub {
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+.pl-step.bloqueante .lbl { color: var(--gov); }
+.pl-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.pl-legend .item { display: flex; align-items: center; gap: 8px; }
+.pl-legend .swatch { width: 12px; height: 12px; border-radius: 50%; }
+
+/* === Demo viva === */
+.demo-app {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-top: 48px;
+}
+.demo-tabbar {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  padding: 0 8px;
+}
+.demo-tab {
+  padding: 16px 22px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.demo-tab svg { width: 16px; height: 16px; }
+.demo-tab:hover { color: var(--ink); }
+.demo-tab.active {
+  color: var(--gov);
+  border-bottom-color: var(--gov);
+  background: var(--surface);
+  font-weight: 600;
+}
+.demo-content { padding: 0; min-height: 600px; }
+
+/* === Mini-app inside demo === */
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 620px;
+}
+.app-side {
+  background: var(--surface-2);
+  border-right: 1px solid var(--line);
+  padding: 24px 0;
+}
+.app-side .section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-4);
+  padding: 0 20px;
+  margin-bottom: 8px;
+}
+.app-side .section-title:not(:first-child) { margin-top: 24px; }
+.app-side a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  border-left: 3px solid transparent;
+  border-bottom: none !important;
+}
+.app-side a:hover { background: var(--surface); color: var(--ink); }
+.app-side a.active {
+  background: var(--surface);
+  color: var(--gov);
+  border-left-color: var(--gov);
+  font-weight: 600;
+}
+.app-side a svg { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
+.app-side a .badge-num {
+  margin-left: auto;
+  background: var(--gov);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-family: var(--mono);
+}
+
+.app-main {
+  padding: 28px 32px;
+  overflow-y: auto;
+  max-height: 620px;
+}
+.app-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.app-head h3 { font-family: var(--sans); font-size: 1.4rem; font-weight: 600; }
+.app-head .subt { color: var(--ink-3); font-size: 0.9rem; margin-top: 4px; }
+
+/* === Tabela === */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.tbl th {
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.tbl td {
+  padding: 14px;
+  border-bottom: 1px solid var(--line-2);
+  vertical-align: middle;
+}
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--surface-2); cursor: pointer; }
+.tbl .cel-num { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-3); }
+.tbl .cel-titulo { font-weight: 500; max-width: 360px; }
+.tbl .cel-titulo .sub { font-size: 0.78rem; color: var(--ink-4); margin-top: 2px; font-weight: 400; }
+
+/* === Badges === */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid;
+}
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
+.badge.elaboracao { color: #8a5a00; background: #fff7e0; border-color: #f3d997; }
+.badge.consulta   { color: #1e3a8a; background: #e0e9fb; border-color: #b9caf0; }
+.badge.rse        { color: #5a23a8; background: #f0e2ff; border-color: #d6bcf6; }
+.badge.cm         { color: #8a1c1c; background: #ffe2e2; border-color: #f0b8b8; }
+.badge.publicado  { color: #fff; background: var(--gov); border-color: var(--gov); }
+.badge.publicado::before { background: var(--accent); }
+.badge.aprovado   { color: #0a4520; background: #d8f5e3; border-color: #a8d6b8; }
+.badge.revisao    { color: #8a3a00; background: #ffe5d2; border-color: #f0bf95; }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 3px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+
+/* === FPL detail === */
+.fpl-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+.fpl-card .breadcrumb {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+}
+.fpl-card .breadcrumb a { color: var(--ink-3); border: none !important; }
+.fpl-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+.fpl-card .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-2);
+}
+.fpl-card .meta div { display: flex; flex-direction: column; gap: 2px; }
+.fpl-card .meta .l {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-4);
+}
+.fpl-card .meta .v { color: var(--ink-2); font-weight: 500; }
+
+/* Pequeno pipeline horizontal numa FPL */
+.fpl-pipe {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-2);
+  border-radius: var(--r);
+  padding: 12px;
+  margin: 16px 0;
+}
+.fpl-pipe .step {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--ink-4);
+  border: 1px solid var(--line);
+}
+.fpl-pipe .step.done { background: var(--gov); color: #fff; border-color: var(--gov); }
+.fpl-pipe .step.cur { background: var(--accent); color: #2a1f00; border-color: var(--accent); }
+
+/* === Bloco === */
+.bloco {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.bloco-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.bloco-h .ttl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.bloco-h .letra {
+  width: 32px; height: 32px;
+  background: var(--gov);
+  color: #fff;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bloco-h h4 { font-family: var(--sans); font-size: 1rem; font-weight: 600; margin: 0; }
+.bloco-h .sub { font-size: 0.8rem; color: var(--ink-3); margin-top: 2px; }
+.bloco-b { padding: 24px; }
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 32px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field.full { grid-column: 1 / -1; }
+.field label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.field .v {
+  font-size: 0.92rem;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+/* Entrada Bloco D */
+.entrada {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  margin-bottom: 12px;
+}
+.entrada-h {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  gap: 14px;
+}
+.entrada-h:hover { background: var(--surface-2); }
+.entrada-h .info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.entrada-h .info .ent { font-weight: 600; font-size: 0.92rem; }
+.entrada-h .data {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.entrada-b {
+  padding: 18px;
+  border-top: 1px solid var(--line);
+  display: none;
+}
+.entrada.open .entrada-b { display: block; }
+.entrada-b .row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px 20px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.entrada-b .row .l {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.rtri-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: #d8f5e3;
+  color: #0a4520;
+  border: 1px solid #a8d6b8;
+}
+.divider-pl { height:1px; background:var(--line); margin:14px 0; }
+
+/* === Modal === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 19, 33, 0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal-h {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-h h3 { font-family: var(--sans); font-size: 1.15rem; font-weight: 600; margin: 0; }
+.modal-b { padding: 24px 28px; }
+.modal-f {
+  padding: 18px 28px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.alert {
+  padding: 14px 18px;
+  border-radius: var(--r);
+  font-size: 0.92rem;
+  margin-bottom: 16px;
+  border-left: 3px solid;
+  background: var(--surface-2);
+}
+.alert.danger { border-color: var(--red); background: #fef2f2; color: #7a1421; }
+.alert.success { border-color: var(--green); background: #ecfdf5; color: #065f46; }
+.alert.warning { border-color: var(--warning); background: #fef9e7; color: #78350f; }
+.alert.info { border-color: var(--gov); background: var(--gov-light); color: var(--gov-dark); }
+.alert .ttl { font-weight: 600; display: block; margin-bottom: 4px; }
+
+.checklist { list-style: none; margin: 12px 0; }
+.checklist li {
+  padding: 8px 0;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 0.92rem;
+}
+.checklist li::before {
+  content: "";
+  display: inline-block;
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.checklist li.ok::before {
+  background: var(--green);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E");
+  background-size: 14px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.checklist li.fail::before {
+  background: var(--red);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.checklist li.fail { color: var(--red); }
+.checklist .det { font-size: 0.82rem; color: var(--ink-3); margin-top: 2px; }
+
+.declaracao-box {
+  background: var(--gov-light);
+  border-left: 3px solid var(--gov);
+  padding: 16px 20px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--gov-dark);
+  margin: 16px 0;
+}
+
+/* === Public portal === */
+.public-shell {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.public-hero {
+  background: linear-gradient(135deg, var(--gov-dark) 0%, var(--gov) 100%);
+  color: #fff;
+  padding: 56px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.public-hero::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 50%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(201,162,39,0.15) 0%, transparent 70%);
+}
+.public-hero h3 { font-size: 2rem; margin-bottom: 14px; color: #fff; }
+.public-hero p { color: rgba(255,255,255,0.85); max-width: 56ch; line-height: 1.6; font-size: 1.05rem; }
+.public-hero .stats-mini {
+  display: flex;
+  gap: 36px;
+  margin-top: 32px;
+  position: relative;
+}
+.public-hero .stats-mini .stm { font-size: 0.85rem; color: rgba(255,255,255,0.85); }
+.public-hero .stats-mini .stm strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+.public-list { padding: 24px 32px; }
+.public-list-title {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.publication {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.publication:last-child { border-bottom: none; }
+.publication .pl-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.publication h4 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.publication h4 a { color: var(--ink); }
+.publication h4 a:hover { color: var(--gov); }
+.publication .meta {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+
+/* === Roadmap === */
+.roadmap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+.rm-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 32px 28px;
+  position: relative;
+}
+.rm-card .when {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.rm-card.now .when { color: var(--green); }
+.rm-card h4 { margin-bottom: 12px; font-family: var(--sans); font-size: 1.05rem; }
+.rm-card ul { list-style: none; padding: 0; }
+.rm-card li {
+  padding: 6px 0 6px 18px;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  position: relative;
+}
+.rm-card li::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  color: var(--gov);
+  font-weight: 600;
+}
+
+/* === Quote block === */
+.quote-block {
+  background: var(--surface);
+  border-left: 4px solid var(--gov);
+  padding: 32px 36px;
+  margin: 48px auto;
+  max-width: 720px;
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
+}
+.quote-block blockquote {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.quote-block cite {
+  font-style: normal;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  font-family: var(--sans);
+}
+
+/* === Footer === */
+.footer {
+  background: var(--gov-dark);
+  color: rgba(255,255,255,0.85);
+  padding: 56px 24px 32px;
+  margin-top: 88px;
+}
+.footer-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.footer h5 {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 14px;
+}
+.footer ul { list-style: none; padding: 0; }
+.footer li { padding: 4px 0; font-size: 0.88rem; }
+.footer a { color: rgba(255,255,255,0.85); border: none !important; }
+.footer a:hover { color: var(--accent); }
+.footer .brand-block {
+  font-family: var(--serif);
+}
+.footer .brand-block .crest-f {
+  width: 48px; height: 48px;
+  background: var(--accent);
+  color: var(--gov-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.footer .brand-block .crest-f svg { width: 26px; height: 26px; }
+.footer .brand-block .name { font-size: 1.3rem; color: #fff; margin-bottom: 8px; font-weight: 600; }
+.footer .brand-block p {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  max-width: 36ch;
+  color: rgba(255,255,255,0.7);
+}
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.5);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-bottom .legal { display: flex; gap: 18px; }
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+  .hero-illustration { aspect-ratio: 16/10; }
+  .stats-inner { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .cards-3 { grid-template-columns: 1fr; }
+  .roadmap { grid-template-columns: 1fr; }
+  .pipeline { grid-template-columns: repeat(3, 1fr); row-gap: 24px; }
+  .pipeline::before { display: none; }
+  .app-shell { grid-template-columns: 1fr; }
+  .app-side { display: none; }
+  .field-grid { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+  .pipeline-block { padding: 32px 20px; }
+  .public-hero { padding: 36px 24px; }
+  .public-hero .stats-mini { flex-wrap: wrap; gap: 24px; }
+  .topbar nav { display: none; }
+  .section { padding: 56px 20px; }
+}
+
+/* === Animação subtil === */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s, transform 0.6s; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* === Floating dock === */
+.dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gov-dark);
+  color: #fff;
+  padding: 8px 8px 8px 20px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  flex-wrap: wrap;
+  max-width: 92vw;
+  justify-content: center;
+}
+.dock.visible { opacity: 1; pointer-events: auto; }
+.dock .dock-btn {
+  background: rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 8px 14px;
+  color: #fff;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.dock .dock-btn:hover { background: rgba(255,255,255,0.2); }
+.dock .dock-btn.primary { background: var(--accent); color: #2a1f00; font-weight: 600; }
+.dock .dock-btn.primary:hover { background: #d6b033; }
+
+/* === Misc === */
+.flex { display: flex; }
+.flex-c { display: flex; align-items: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.spacer { flex: 1; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-12 { margin-bottom: 12px; }
+.muted { color: var(--ink-3); }
+.small { font-size: 0.85rem; }
+.tiny { font-size: 0.75rem; }
 </style>
 </head>
 <body>
 
-<div class="demo-banner">DEMONSTRAÇÃO INTERATIVA · Pegada Legislativa do Governo · Versão de demonstração para apresentação aos decisores · Maio 2026</div>
+<a class="skip" href="#main">Saltar para o conteúdo principal</a>
 
-<header class="topbar">
-  <div class="brand">
-    <div class="crest">RP</div>
-    <div class="brand-text">
-      <span class="t1">República Portuguesa · Governo</span>
-      <span class="t2">FPL — Pegada Legislativa</span>
-    </div>
-  </div>
-  <nav id="topnav">
-    <button data-view="dashboard" class="active">Início</button>
-    <button data-view="lista">As minhas FPL</button>
-    <button data-view="auditoria">Auditoria SGGOV</button>
-    <button data-view="publico">Portal Público</button>
-  </nav>
-  <div class="right">
-    <div class="role-switch" id="roleSwitch">
-      <button data-role="ponto_focal" class="active">Ponto Focal</button>
-      <button data-role="sggov">SGGOV</button>
-      <button data-role="publico">Cidadão</button>
-    </div>
-    <div class="user" id="userBadge">
-      <div class="avatar">MS</div>
-      <div class="meta"><span class="n">Maria Silva</span><span class="r">Ponto Focal · MAE</span></div>
+<div class="demo-strip" role="banner">Demonstração técnica · Maio 2026 · v0.2 · Não substitui comunicação oficial</div>
+
+<header class="topbar" role="banner">
+  <div class="topbar-inner">
+    <a href="#" class="brand">
+      <span class="crest" aria-hidden="true">
+        <!-- Escudo PT estilizado -->
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2 L4 5 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V5 Z" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="12" cy="11" r="2.5" fill="currentColor"/>
+        </svg>
+      </span>
+      <div class="meta">
+        <span class="top">República Portuguesa · SGGOV</span>
+        <span>Pegada Legislativa</span>
+      </div>
+    </a>
+    <nav aria-label="Navegação primária">
+      <a href="#porque">Porquê</a>
+      <a href="#como">Como funciona</a>
+      <a href="#demo">Demonstração</a>
+      <a href="#publico">Transparência</a>
+      <a href="#roadmap">Roadmap</a>
+    </nav>
+    <div class="right-actions">
+      <button class="theme-btn" id="themeBtn" aria-label="Alternar tema claro/escuro">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a class="btn primary" href="https://github.com/dapl-sggov/pegada" target="_blank" rel="noopener">
+        Código no GitHub
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l10-10M9 7h8v8"/></svg>
+      </a>
     </div>
   </div>
 </header>
 
-<div class="shell">
-  <aside class="sidebar" id="sidebar">
-    <div class="side-section">
-      <div class="side-title">Trabalho</div>
-      <div class="side-link active" data-view="dashboard">Início</div>
-      <div class="side-link" data-view="lista">As minhas FPL <span class="badge-count">7</span></div>
-      <div class="side-link" data-view="nova">Nova FPL</div>
-    </div>
-    <div class="side-section" id="sggovMenu" style="display:none">
-      <div class="side-title">SGGOV</div>
-      <div class="side-link" data-view="auditoria">Auditoria QA <span class="badge-count">3</span></div>
-      <div class="side-link" data-view="dashboard-sggov">Dashboard executivo</div>
-      <div class="side-link" data-view="entidades">Entidades RTRI</div>
-    </div>
-    <div class="side-section">
-      <div class="side-title">Recursos</div>
-      <div class="side-link" data-view="publico">Portal público</div>
-      <div class="side-link">Manual operacional</div>
-      <div class="side-link">FAQ e suporte</div>
-    </div>
-  </aside>
+<main id="main">
 
-  <main class="main" id="main"><!-- conteúdo injetado --></main>
+<!-- ============== HERO ============== -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Em execução da Lei n.º 5-A/2026</span>
+      <h1>O Governo passa a registar, <strong>publicamente</strong>, com quem fala antes de cada diploma.</h1>
+      <p class="lead">A Ficha de Pegada Legislativa documenta todas as interações com representantes de interesses na fase preparatória dos projetos de diploma. Sem ficha validada, o sistema não permite a submissão.</p>
+      <div class="ctas">
+        <a href="#demo" class="btn primary">
+          Ver a aplicação
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#publico" class="btn">
+          Como o cidadão consulta
+        </a>
+      </div>
+    </div>
+    <aside class="hero-illustration" aria-hidden="true">
+      <div>
+        <div class="stamp">RCM n.º [XX]/2026</div>
+        <div class="top">Princípio estruturante</div>
+      </div>
+      <p class="quote">A submissão fica tecnicamente impedida no sistema sem a validação do ponto focal e o cumprimento dos campos obrigatórios.</p>
+      <p class="source">— Resolução do Conselho de Ministros, anexo ao manual operacional</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============== STATS ============== -->
+<section class="stats">
+  <div class="stats-inner">
+    <div class="stat reveal"><div class="num">~520</div><div class="lbl">FPL/ano estimadas (Fase 1)</div></div>
+    <div class="stat reveal"><div class="num">5+5+5</div><div class="lbl">Marcos de validação obrigatória<br>+ blocos da ficha + objetivos</div></div>
+    <div class="stat reveal"><div class="num">15</div><div class="lbl">Ministérios abrangidos<br>desde o primeiro dia</div></div>
+    <div class="stat reveal"><div class="num">27 Jul</div><div class="lbl">Data de entrada em vigor<br>(2026)</div></div>
+  </div>
+</section>
+
+<!-- ============== PORQUÊ ============== -->
+<section class="section" id="porque">
+  <div class="section-header reveal">
+    <span class="eyebrow">Porquê agora</span>
+    <h2>O contexto legal e democrático que torna isto inadiável</h2>
+    <p>Três forças convergem em 2026 para que o registo sistemático de interações com lobistas deixe de ser opcional.</p>
+  </div>
+  <div class="cards-3">
+    <article class="card-why reveal">
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12L12 3l9 9M5 10v10h14V10M9 21V13h6v8"/></svg>
+      </div>
+      <h3>Lei n.º 5-A/2026</h3>
+      <p>Cria o Registo de Transparência (RTRI) na Assembleia da República, definindo quem é representante de interesses e impondo a sua inscrição. Sem registo, sem interlocução.</p>
+      <div class="ref">→ Já em vigor desde 1 de janeiro de 2026</div>
+    </article>
+    <article class="card-why reveal">
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      </div>
+      <h3>Recomendação OCDE 2024</h3>
+      <p>Estabelece como padrão internacional a "legislative footprint": registo público, estruturado e auditável das interações entre poder executivo e grupos de interesse na produção legislativa.</p>
+      <div class="ref">→ Portugal acompanha 14 países UE</div>
+    </article>
+    <article class="card-why reveal">
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+      </div>
+      <h3>RCM n.º [XX]/2026</h3>
+      <p>Operacionaliza o regime no Governo: cria a Ficha de Pegada Legislativa, define os marcos M0–M5 bloqueantes, atribui à SGGOV o controlo de qualidade por amostra.</p>
+      <div class="ref">→ Em vigor a 27 de julho de 2026</div>
+    </article>
+  </div>
+</section>
+
+<div class="quote-block reveal">
+  <blockquote>"Sem FPL atualizada e validada nos campos obrigatórios, o sistema não permite a submissão do projeto de diploma."</blockquote>
+  <cite>Princípio fundador, Modelo da Ficha de Pegada Legislativa, §1</cite>
 </div>
 
+<!-- ============== COMO ============== -->
+<section class="section" id="como">
+  <div class="section-header reveal">
+    <span class="eyebrow">Como funciona</span>
+    <h2>Seis marcos. Três bloqueantes. Um caminho claro.</h2>
+    <p>A ficha acompanha o ciclo de vida do diploma desde a abertura até à publicação. Em cada marco, o sistema verifica regras de completude e fundamentação. Se algo falta, o avanço é impedido.</p>
+  </div>
+  <div class="pipeline-block reveal">
+    <div class="pipeline" role="list" aria-label="Marcos de validação M0 a M5">
+      <div class="pl-step bloqueante" role="listitem">
+        <div class="dot">M0</div>
+        <div class="lbl">Abertura</div>
+        <div class="sub">Bloco A + B</div>
+      </div>
+      <div class="pl-step" role="listitem">
+        <div class="dot">M1</div>
+        <div class="lbl">Pré-CP</div>
+        <div class="sub">Antes da consulta</div>
+      </div>
+      <div class="pl-step" role="listitem">
+        <div class="dot">M2</div>
+        <div class="lbl">Pós-CP</div>
+        <div class="sub">Síntese da CP</div>
+      </div>
+      <div class="pl-step bloqueante" role="listitem">
+        <div class="dot">M3</div>
+        <div class="lbl">Pré-RSE</div>
+        <div class="sub">Bloco D + decisões</div>
+      </div>
+      <div class="pl-step bloqueante" role="listitem">
+        <div class="dot">M4</div>
+        <div class="lbl">Pré-CM</div>
+        <div class="sub">Tudo completo</div>
+      </div>
+      <div class="pl-step" role="listitem">
+        <div class="dot">M5</div>
+        <div class="lbl">Publicação</div>
+        <div class="sub">Diário da República</div>
+      </div>
+    </div>
+    <div class="pl-legend">
+      <div class="item"><span class="swatch" style="background:var(--gov)"></span> Marco bloqueante (não passa sem cumprir)</div>
+      <div class="item"><span class="swatch" style="background:var(--line)"></span> Marco registado (não bloqueia)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== DEMO VIVA ============== -->
+<section class="section" id="demo">
+  <div class="section-header reveal">
+    <span class="eyebrow">Demonstração interactiva</span>
+    <h2>A mesma ficha, vista por três olhos</h2>
+    <p>Toda a aplicação serve três audiências em simultâneo. Mude de perspectiva clicando nas abas abaixo — pode também tentar validar o marco M3 e ver o sistema bloquear (botão dentro da vista do ponto focal).</p>
+  </div>
+  <div class="demo-app reveal" role="region" aria-label="Demonstração da aplicação">
+    <div class="demo-tabbar" role="tablist">
+      <button class="demo-tab active" data-role="pf" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Ponto Focal
+      </button>
+      <button class="demo-tab" data-role="qa" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Auditoria SGGOV
+      </button>
+      <button class="demo-tab" data-role="pub" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+        Cidadão
+      </button>
+    </div>
+    <div class="demo-content" id="demoContent"><!-- preenchido por JS --></div>
+  </div>
+</section>
+
+<!-- ============== TRANSPARÊNCIA ============== -->
+<section class="section" id="publico">
+  <div class="section-header reveal">
+    <span class="eyebrow">Transparência por construção</span>
+    <h2>O que o cidadão e o jornalista veem</h2>
+    <p>Após a publicação no Diário da República (M5), a ficha completa fica acessível em portal público, com a integralidade das interações e das decisões de incorporação. Sem login. Em formatos abertos.</p>
+  </div>
+
+  <div class="public-shell reveal">
+    <div class="public-hero">
+      <h3>Pegada Legislativa do Governo</h3>
+      <p>Portal público com todas as Fichas de Pegada Legislativa publicadas após aprovação dos diplomas. Pesquise por palavra-chave, ministério, entidade interlocutora ou período.</p>
+      <div class="stats-mini">
+        <div class="stm"><strong>87</strong>FPL publicadas (2026)</div>
+        <div class="stm"><strong>1.247</strong>Interações documentadas</div>
+        <div class="stm"><strong>284</strong>Entidades interlocutadas</div>
+        <div class="stm"><strong>15</strong>Ministérios</div>
+      </div>
+    </div>
+    <div class="public-list">
+      <div class="public-list-title">Mais recentes</div>
+      <div class="publication">
+        <div class="pl-tags">
+          <span class="tag">DL</span>
+          <span class="tag">MAE</span>
+          <span class="badge publicado">Publicado · DR n.º 78/2026</span>
+        </div>
+        <h4><a href="#" onclick="abrirFplDetalhe();return false">Decreto-Lei que aprova o regime jurídico das comunidades de energia renovável</a></h4>
+        <div class="meta">5 interações externas · 67 contributos da consulta pública · publicado a 22/04/2026 · gabinete do MAE</div>
+      </div>
+      <div class="publication">
+        <div class="pl-tags">
+          <span class="tag">RCM</span>
+          <span class="tag">MECIC</span>
+          <span class="badge publicado">Publicado · DR n.º 65/2026</span>
+        </div>
+        <h4><a href="#">Estratégia Nacional para a Inteligência Artificial 2026-2030</a></h4>
+        <div class="meta">12 interações externas · 145 contributos · publicado a 03/04/2026 · gabinete do MECIC</div>
+      </div>
+      <div class="publication">
+        <div class="pl-tags">
+          <span class="tag">DL</span>
+          <span class="tag">MJ</span>
+          <span class="badge publicado">Publicado · DR n.º 78/2026</span>
+        </div>
+        <h4><a href="#">Decreto-Lei que aprova o regime jurídico da mediação civil e comercial</a></h4>
+        <div class="meta">3 interações externas · 28 contributos · publicado a 22/04/2026 · gabinete do MJ</div>
+      </div>
+      <div class="publication">
+        <div class="pl-tags">
+          <span class="tag">PL</span>
+          <span class="tag">MTSSS</span>
+          <span class="badge publicado">Publicado · DR n.º 71/2026</span>
+        </div>
+        <h4><a href="#">Proposta de Lei sobre teletrabalho e direito à desconexão</a></h4>
+        <div class="meta">8 interações externas · 142 contributos · publicado a 12/04/2026 · gabinete do MTSSS</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-12 mt-16" style="justify-content:center;flex-wrap:wrap">
+    <a class="btn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Descarregar dataset (CSV)</a>
+    <a class="btn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Vocabulário OCDE (JSON-LD)</a>
+    <a class="btn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg> API REST documentada</a>
+  </div>
+</section>
+
+<!-- ============== ROADMAP ============== -->
+<section class="section" id="roadmap">
+  <div class="section-header reveal">
+    <span class="eyebrow">O que vem a seguir</span>
+    <h2>Três entregas até 2027</h2>
+    <p>A FPL Ponte está construída para ser substituída — quando o módulo nativo do SmartLegis estiver pronto, a aplicação cede o lugar sem perda de dados.</p>
+  </div>
+  <div class="roadmap">
+    <article class="rm-card now reveal">
+      <div class="when">Maio – Julho 2026 · Em curso</div>
+      <h4>v1.0 — FPL Ponte mínima viável</h4>
+      <ul>
+        <li>Workflow bloqueante M0–M5</li>
+        <li>Bloco D + cache RTRI local</li>
+        <li>Importação manual da consulta pública</li>
+        <li>Auditoria SGGOV (Bloco G)</li>
+        <li>Portal público após M5</li>
+      </ul>
+    </article>
+    <article class="rm-card reveal">
+      <div class="when">Outubro 2026</div>
+      <h4>v2.0 — Integrações reais</h4>
+      <ul>
+        <li>Federação OIDC com autenticação.gov.pt</li>
+        <li>API RTRI da Assembleia ligada</li>
+        <li>Webhook Consulta.Lex</li>
+        <li>Dataset OCDE em dados.gov.pt</li>
+        <li>Dashboards SGGOV completos</li>
+      </ul>
+    </article>
+    <article class="rm-card reveal">
+      <div class="when">Março 2027</div>
+      <h4>v3.0 — Coexistência SmartLegis</h4>
+      <ul>
+        <li>Suporte a Regulamentos (Fase 2)</li>
+        <li>Integração nativa SmartLegis</li>
+        <li>API para investigadores</li>
+        <li>Visualizações públicas comparadas</li>
+        <li>Migração progressiva de FPL</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+</main>
+
 <footer class="footer">
-  Pegada Legislativa do Governo · Secretaria-Geral do Governo · Em conformidade com a Lei n.º 5-A/2026 e a RCM n.º [XX]/2026 · Demonstração v0.1
+  <div class="footer-inner">
+    <div class="brand-block">
+      <div class="crest-f" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2 L4 5 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V5 Z" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="11" r="2.5" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="name">Pegada Legislativa do Governo</div>
+      <p>Sistema autónomo da Secretaria-Geral do Governo, em execução da Lei n.º 5-A/2026 e da Resolução do Conselho de Ministros n.º [XX]/2026.</p>
+    </div>
+    <div>
+      <h5>Documentação</h5>
+      <ul>
+        <li><a href="../docs/01_Analise_Critica.md">Análise crítica</a></li>
+        <li><a href="../docs/02_Arquitetura.md">Arquitetura</a></li>
+        <li><a href="../docs/03_Plano_Implementacao.md">Plano de implementação</a></li>
+        <li><a href="../docs/04_Analise_Mock_e_Propostas.md">Análise UX</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Sistema</h5>
+      <ul>
+        <li><a href="https://github.com/dapl-sggov/pegada">Código no GitHub</a></li>
+        <li><a href="../README.md">README técnico</a></li>
+        <li><a href="v1-operacional.html">Versão operacional anterior</a></li>
+        <li><a href="../LICENSE">Licença EUPL-1.2</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Quadro jurídico</h5>
+      <ul>
+        <li><a href="#">Lei n.º 5-A/2026</a></li>
+        <li><a href="#">RCM n.º [XX]/2026</a></li>
+        <li><a href="#">Manual operacional</a></li>
+        <li><a href="#">Recomendação OCDE 2024</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>FPL Ponte v0.2 · Demonstração técnica · Maio 2026</div>
+    <div class="legal">
+      <a href="#">Acessibilidade</a>
+      <a href="#">Privacidade</a>
+      <a href="#">Termos</a>
+    </div>
+  </div>
 </footer>
 
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal" id="modalContent"></div>
+<!-- Floating dock -->
+<div class="dock" id="dock" role="navigation" aria-label="Navegação contextual">
+  <span style="opacity:0.7">Demonstração interactiva</span>
+  <button class="dock-btn primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Tentar validar M3</button>
+  <button class="dock-btn" onclick="document.getElementById('publico').scrollIntoView({behavior:'smooth'})">Ver portal público</button>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modalInner"></div>
 </div>
 
 <script>
-// ============ DADOS DEMO REALISTAS ============
-const GABINETES = [
-  {id:'mae', sigla:'MAE', nome:'Ministério do Ambiente e da Energia'},
-  {id:'ms', sigla:'MS', nome:'Ministério da Saúde'},
-  {id:'mtsss', sigla:'MTSSS', nome:'Ministério do Trabalho, Solidariedade e Segurança Social'},
-  {id:'me', sigla:'ME', nome:'Ministério da Economia'},
-  {id:'mj', sigla:'MJ', nome:'Ministério da Justiça'},
-  {id:'mecic', sigla:'MECIC', nome:'Ministério da Educação, Ciência e Inovação'},
-  {id:'mf', sigla:'MF', nome:'Ministério das Finanças'},
-  {id:'mai', sigla:'MAI', nome:'Ministério da Administração Interna'},
-  {id:'mai-h', sigla:'MIH', nome:'Ministério da Habitação'},
-  {id:'mc', sigla:'MC', nome:'Ministério da Cultura'},
-];
-
-const ENTIDADES_RTRI = [
-  {rtri:'RTRI/2025/00142', nome:'APREN — Associação Portuguesa de Energias Renováveis', natureza:'Associação representativa', validado:true},
-  {rtri:'RTRI/2025/00018', nome:'Confederação da Indústria Portuguesa (CIP)', natureza:'Confederação patronal', validado:true},
-  {rtri:'RTRI/2025/00027', nome:'Confederação Geral dos Trabalhadores Portugueses (CGTP)', natureza:'Confederação sindical', validado:true},
-  {rtri:'RTRI/2025/00031', nome:'União Geral de Trabalhadores (UGT)', natureza:'Confederação sindical', validado:true},
-  {rtri:'RTRI/2025/00214', nome:'ZERO — Associação Sistema Terrestre Sustentável', natureza:'Associação ambientalista', validado:true},
-  {rtri:'RTRI/2025/00309', nome:'Quercus — Associação Nacional de Conservação da Natureza', natureza:'Associação ambientalista', validado:true},
-  {rtri:'RTRI/2025/00088', nome:'EDP — Energias de Portugal, S.A.', natureza:'Empresa', validado:true},
-  {rtri:'RTRI/2025/00091', nome:'Galp Energia, S.A.', natureza:'Empresa', validado:true},
-  {rtri:'RTRI/2025/00415', nome:'APED — Associação Portuguesa de Empresas de Distribuição', natureza:'Associação setorial', validado:true},
-  {rtri:'RTRI/2025/00056', nome:'Ordem dos Engenheiros (OE)', natureza:'Associação pública profissional', validado:true},
-  {rtri:'RTRI/2025/00061', nome:'Ordem dos Médicos', natureza:'Associação pública profissional', validado:true},
-];
-
-const FPLS = [
-  {
-    id:'fpl-001',
-    numero:'2026/MAE/0042',
-    tipo:'DL',
-    titulo:'Decreto-Lei que aprova o regime jurídico da produção descentralizada de energia a partir de fontes renováveis em comunidades de energia',
-    titulo_curto:'Comunidades de energia renovável',
-    gabinete:'mae',
-    estado:'EM_RSE',
-    origem:'Programa do Governo',
-    referencia_origem:'Eixo III, medida 4.2',
-    sintese:'O presente diploma estabelece o quadro jurídico para a constituição e funcionamento de comunidades de energia renovável (CER), em conformidade com a Diretiva (UE) 2018/2001 (RED II), criando condições para a participação ativa de cidadãos, autarquias e PME na transição energética. Visa eliminar barreiras administrativas e tarifárias e estabelecer um modelo de partilha de energia produzida em autoconsumo coletivo.',
-    avaliacao_previa:true,
-    consulta_lex:{
-      ref:'CL-2026-031',
-      inicio:'2026-03-15',
-      fim:'2026-04-14',
-      n_contributos:67,
-      sintese:'Os 67 contributos recebidos manifestam apoio amplo ao regime, com observações maioritariamente focadas em três pontos: (a) regulação tarifária da energia partilhada em autoconsumo coletivo, considerada por muitos contribuintes como incompleta no n.º 4 do art. 14.º; (b) papel das autarquias na constituição de CER municipais, com proposta de simplificação no acesso a financiamento PRR; (c) tratamento fiscal dos excedentes vendidos à rede pelas pessoas singulares, considerado punitivo por associações de consumidores.',
-      decisao:'Acolheu-se parcialmente a observação (a) com a reformulação do n.º 4 do art. 14.º para clarificar o método de imputação de perdas. Não se acolheu (b) por exceder o âmbito do diploma. Quanto a (c), reencaminhou-se a questão para o Ministério das Finanças em sede de OE.'
-    },
-    bloco_d:[
-      {id:'d1',data:'2026-02-12',forma:'Reunião presencial',entidade:'APREN — Associação Portuguesa de Energias Renováveis',rtri:'RTRI/2025/00142',natureza:'RTRI inscrito',rtri_status:'validado',gov:['Secretária de Estado do Ambiente','Adjunta SE','Técnica gabinete'],interlocutor:['Presidente APREN','Director-geral'],objeto:'Apresentação de proposta de regime para comunidades de energia renovável; contributo escrito anexo.',sintese:'A APREN propõe um regime único para CER que abranja autoconsumo coletivo, partilha de energia entre membros e venda de excedentes em mercado, sem distinção entre origem solar ou eólica. Defende ainda a simplificação do licenciamento até 1 MW de potência instalada, alinhando com o regime espanhol e francês.',decisao:'Parcialmente incorporada',justificacao:'A proposta de regime único foi acolhida na arquitetura do diploma. Não se acolheu a simplificação até 1 MW por divergir das obrigações de comunicação à ERSE.'},
-      {id:'d2',data:'2026-02-19',forma:'Videoconferência',entidade:'EDP — Energias de Portugal, S.A.',rtri:'RTRI/2025/00088',natureza:'RTRI inscrito',rtri_status:'validado',gov:['Secretária de Estado do Ambiente','Chefe de gabinete'],interlocutor:['Director Regulação','Director Mercado'],objeto:'Análise dos efeitos do diploma na operação da rede de distribuição.',sintese:'A EDP manifestou preocupação com o aumento da complexidade da gestão de fluxos bidirecionais em zonas de elevada penetração solar, propondo um período transitório de 24 meses para adaptação dos sistemas de medição e a manutenção do modelo atual de tarifa de uso de redes para CER acima de 250 kW.',decisao:'Não incorporada',justificacao:'O período transitório é incompatível com o calendário das metas PNEC 2030. A questão tarifária é da competência regulatória da ERSE e não cabe no presente diploma.'},
-      {id:'d3',data:'2026-02-26',forma:'Reunião presencial',entidade:'ZERO — Associação Sistema Terrestre Sustentável',rtri:'RTRI/2025/00214',natureza:'RTRI inscrito',rtri_status:'validado',gov:['Secretária de Estado do Ambiente','Adjunta SE'],interlocutor:['Coordenador de Energia','Investigadora'],objeto:'Contributos sobre a participação de cidadãos com baixos rendimentos em CER.',sintese:'A ZERO propôs a criação de um mecanismo de comparticipação para participação de cidadãos em situação de pobreza energética (definição art. 3.º DL 70/2020), com financiamento via Fundo Ambiental, e a obrigatoriedade de pelo menos 10% dos membros de CER municipais serem agregados elegíveis. Defendeu também a inclusão de avaliação de impacto distributivo no RIA.',decisao:'Incorporada',justificacao:'A criação do mecanismo de comparticipação foi acolhida no art. 17.º. A obrigatoriedade de 10% foi acolhida no art. 12.º/3 com modulação por dimensão da CER. A avaliação de impacto distributivo foi incluída no RIA.'},
-      {id:'d4',data:'2026-03-05',forma:'Audiência presencial',entidade:'Confederação Geral dos Trabalhadores Portugueses (CGTP)',rtri:'RTRI/2025/00027',natureza:'RTRI inscrito',rtri_status:'validado',gov:['Secretária de Estado do Ambiente'],interlocutor:['Coordenador'],objeto:'Posição da CGTP sobre transição energética justa.',sintese:'A CGTP manifestou apoio ao princípio das comunidades de energia mas questionou a inexistência de cláusulas de proteção de emprego na cadeia de valor afetada. Solicitou inclusão de mecanismo de diálogo social específico no Conselho Consultivo das Comunidades de Energia.',decisao:'Parcialmente incorporada',justificacao:'A inclusão de representação sindical no Conselho Consultivo foi acolhida no art. 22.º. Não se acolheu cláusulas adicionais por divergir do escopo do diploma.'},
-      {id:'d5',data:'2026-03-21',forma:'Correspondência escrita',entidade:'Prof. Doutor António Sá da Costa (Universidade de Évora)',rtri:'',natureza:'Academia ou perito individual',rtri_status:'na',gov:['Adjunta SE'],interlocutor:[],objeto:'Parecer técnico sobre modelo de cálculo de coeficientes de partilha em autoconsumo coletivo.',sintese:'O parecer propõe um modelo de cálculo dinâmico baseado em consumo histórico ponderado, em alternativa ao modelo estático proposto inicialmente. Apresenta análise comparativa com modelos italiano e alemão.',decisao:'Incorporada',justificacao:'Modelo dinâmico acolhido no anexo I, com simplificação de cálculo para CER até 50 membros conforme proposto.'},
-    ],
-    bloco_c:[
-      {id:'c1',data:'2026-02-08',entidade:'Direção-Geral de Energia e Geologia (DGEG)',forma:'Parecer escrito',objeto:'Análise técnica do regime',sintese:'A DGEG considera o regime tecnicamente sólido e propôs ajustes a três artigos relativos a procedimentos de comunicação prévia e regimes de exceção para sistemas de pequena escala.'},
-      {id:'c2',data:'2026-02-16',entidade:'Entidade Reguladora dos Serviços Energéticos (ERSE)',forma:'Parecer escrito',objeto:'Análise das implicações regulatórias',sintese:'A ERSE confirma a sua competência regulatória nas matérias tarifárias e propõe coordenação na elaboração das portarias de execução previstas nos arts. 14.º e 18.º.'},
-      {id:'c3',data:'2026-02-22',entidade:'Ministério das Finanças (Gabinete SEAF)',forma:'Reunião',objeto:'Tratamento fiscal de excedentes',sintese:'Definição de tratamento fiscal aplicável a excedentes de produção: enquadramento em sede de IRS (categoria E) e isenção até 600€/ano por agregado, com reporte ao OE/2027.'},
-    ],
-    versoes:[
-      {n:1,data:'2026-01-10 09:14',autor:'Maria Silva',marco:'Criação',desc:'FPL criada, Bloco A preenchido'},
-      {n:2,data:'2026-01-10 11:32',autor:'Maria Silva',marco:'M0',desc:'M0 validado — Bloco B preenchido com origem (Programa do Governo)'},
-      {n:3,data:'2026-02-08 16:45',autor:'João Pereira',marco:'',desc:'Bloco C: adicionada entrada DGEG (parecer escrito)'},
-      {n:4,data:'2026-02-12 17:20',autor:'Maria Silva',marco:'',desc:'Bloco D: adicionada entrada APREN'},
-      {n:5,data:'2026-02-19 18:30',autor:'Maria Silva',marco:'',desc:'Bloco D: adicionada entrada EDP'},
-      {n:6,data:'2026-02-26 17:10',autor:'Maria Silva',marco:'',desc:'Bloco D: adicionada entrada ZERO'},
-      {n:7,data:'2026-03-05 16:00',autor:'Maria Silva',marco:'',desc:'Bloco D: adicionada entrada CGTP'},
-      {n:8,data:'2026-03-15 10:00',autor:'Sistema',marco:'',desc:'Consulta pública aberta no Consulta.Lex (CL-2026-031)'},
-      {n:9,data:'2026-03-21 14:15',autor:'João Pereira',marco:'',desc:'Bloco D: adicionada entrada Prof. António Sá da Costa'},
-      {n:10,data:'2026-04-14 18:00',autor:'Sistema',marco:'',desc:'Consulta pública encerrada — 67 contributos importados para Bloco E'},
-      {n:11,data:'2026-04-22 11:42',autor:'Maria Silva',marco:'M2',desc:'M2 registado — síntese e decisão de incorporação preenchidas'},
-      {n:12,data:'2026-04-30 15:20',autor:'Maria Silva',marco:'',desc:'Bloco D: decisões de incorporação preenchidas em todas as 5 entradas'},
-      {n:13,data:'2026-04-30 16:05',autor:'Maria Silva',marco:'M3',desc:'M3 validado — declaração de completude assinada; estado → EM_RSE'},
-    ],
-    marcos:{M0:'2026-01-10',M1:null,M2:'2026-04-22',M3:'2026-04-30',M4:null,M5:null}
-  },
-  {
-    id:'fpl-002',
-    numero:'2026/MS/0011',
-    tipo:'DL',
-    titulo:'Decreto-Lei que aprova o regime de partilha de dados de saúde para fins de investigação científica',
-    titulo_curto:'Partilha de dados de saúde para investigação',
-    gabinete:'ms',
-    estado:'EM_CONSULTA_PUBLICA',
-    origem:'Iniciativa do ministério',
-    sintese:'Estabelece o quadro jurídico para a partilha de dados pseudonimizados do Serviço Nacional de Saúde para fins de investigação científica, com salvaguardas específicas para dados especiais nos termos do RGPD.',
-    consulta_lex:{ref:'CL-2026-024',inicio:'2026-04-20',fim:'2026-05-20',n_contributos:23},
-    bloco_d:[
-      {id:'d1',data:'2026-03-10',forma:'Reunião presencial',entidade:'Ordem dos Médicos',rtri:'RTRI/2025/00061',natureza:'RTRI inscrito (força de lei)',rtri_status:'validado',gov:['SE Saúde','Chefe gabinete'],interlocutor:['Bastonário'],objeto:'Posição da OM sobre acesso de investigadores a dados clínicos',sintese:'A Ordem dos Médicos manifestou apoio ao regime mas alertou para a necessidade de garantias adicionais quanto à pseudonimização e à participação de comissões de ética.',decisao:'Incorporada'},
-      {id:'d2',data:'2026-03-18',forma:'Audiência presencial',entidade:'Conselho Nacional de Ética para as Ciências da Vida',rtri:'',natureza:'Autoridade pública',rtri_status:'na',gov:['Ministra','SE Saúde'],interlocutor:['Presidente'],objeto:'Parecer sobre modelo de governação',sintese:'O CNECV emitiu parecer favorável, sublinhando a importância de comité de acesso multidisciplinar e revisão anual do regime.',decisao:'Incorporada'},
-    ],
-    bloco_c:[],
-    versoes:[],
-    marcos:{M0:'2026-02-15',M1:'2026-04-15',M2:null,M3:null,M4:null,M5:null}
-  },
-  {
-    id:'fpl-003',
-    numero:'2026/MTSSS/0007',
-    tipo:'PL',
-    titulo:'Proposta de Lei que altera o Código do Trabalho em matéria de teletrabalho e direito à desconexão',
-    titulo_curto:'Teletrabalho e direito à desconexão',
-    gabinete:'mtsss',
-    estado:'EM_CM',
-    origem:'Programa do Governo',
-    consulta_lex:{ref:'CL-2026-018',inicio:'2026-02-01',fim:'2026-03-03',n_contributos:142},
-    bloco_d:[
-      {id:'d1',data:'2026-01-15',forma:'Reunião',entidade:'Confederação da Indústria Portuguesa (CIP)',rtri:'RTRI/2025/00018',natureza:'RTRI inscrito',rtri_status:'validado',gov:['Ministro','SE Trabalho'],interlocutor:['Presidente'],objeto:'Posição patronal sobre o regime',sintese:'A CIP propôs flexibilidade na definição de horários de desconexão por acordo coletivo.',decisao:'Parcialmente incorporada'},
-      {id:'d2',data:'2026-01-22',forma:'Reunião',entidade:'Confederação Geral dos Trabalhadores Portugueses (CGTP)',rtri:'RTRI/2025/00027',natureza:'RTRI inscrito',rtri_status:'validado',gov:['Ministro'],interlocutor:['Coordenador'],objeto:'Posição sindical',sintese:'A CGTP defendeu a desconexão como direito imperativo, sem possibilidade de derrogação por contratação coletiva.',decisao:'Não incorporada'},
-      {id:'d3',data:'2026-01-29',forma:'Reunião',entidade:'União Geral de Trabalhadores (UGT)',rtri:'RTRI/2025/00031',natureza:'RTRI inscrito',rtri_status:'validado',gov:['Ministro','SE Trabalho'],interlocutor:['Secretário-geral'],objeto:'Posição sindical',sintese:'A UGT manifestou-se favorável a um regime supletivo modulável por convenção coletiva.',decisao:'Incorporada'},
-    ],
-    bloco_c:[],
-    versoes:[],
-    marcos:{M0:'2026-01-08',M1:'2026-01-30',M2:'2026-03-15',M3:'2026-04-10',M4:'2026-04-25',M5:null}
-  },
-  {
-    id:'fpl-004',
-    numero:'2026/ME/0019',
-    tipo:'DL',
-    titulo:'Decreto-Lei que estabelece o regime do crédito fiscal à investigação e desenvolvimento empresarial (SIFIDE III)',
-    gabinete:'me',
-    estado:'EM_ELABORACAO',
-    origem:'Iniciativa do ministério',
-    bloco_d:[],
-    bloco_c:[],
-    versoes:[],
-    marcos:{M0:'2026-04-12',M1:null,M2:null,M3:null,M4:null,M5:null}
-  },
-  {
-    id:'fpl-005',
-    numero:'2025/MJ/0058',
-    tipo:'DL',
-    titulo:'Decreto-Lei que aprova o regime jurídico da mediação civil e comercial',
-    gabinete:'mj',
-    estado:'PUBLICADO',
-    origem:'Programa do Governo',
-    referencia_dr:'DR n.º 78/2026, Série I, de 22-04-2026',
-    bloco_d:[],
-    bloco_c:[],
-    versoes:[],
-    marcos:{M0:'2025-09-01',M1:'2025-10-15',M2:'2025-12-20',M3:'2026-02-10',M4:'2026-03-05',M5:'2026-04-22'}
-  },
-  {
-    id:'fpl-006',
-    numero:'2026/MECIC/0034',
-    tipo:'RCM',
-    titulo:'Resolução do Conselho de Ministros que aprova a Estratégia Nacional para a Inteligência Artificial 2026-2030',
-    gabinete:'mecic',
-    estado:'PUBLICADO',
-    origem:'Programa do Governo',
-    referencia_dr:'DR n.º 65/2026, Série I, de 03-04-2026',
-    bloco_d:[],
-    bloco_c:[],
-    versoes:[],
-    marcos:{M0:'2025-11-12',M1:'2026-01-08',M2:'2026-02-14',M3:'2026-03-01',M4:'2026-03-20',M5:'2026-04-03'}
-  },
-  {
-    id:'fpl-007',
-    numero:'2026/MAE/0049',
-    tipo:'DL',
-    titulo:'Decreto-Lei que estabelece o regime de gestão de resíduos de equipamentos elétricos e eletrónicos (transposição da Diretiva (UE) 2024/884)',
-    gabinete:'mae',
-    estado:'EM_ELABORACAO',
-    origem:'Transposição UE',
-    referencia_origem:'Diretiva (UE) 2024/884',
-    bloco_d:[],
-    bloco_c:[],
-    versoes:[],
-    marcos:{M0:'2026-04-28',M1:null,M2:null,M3:null,M4:null,M5:null}
-  },
-];
-
-const ESTADOS_LBL = {
-  CRIADO:{lbl:'Criado',cls:'criado'},
-  EM_ELABORACAO:{lbl:'Em elaboração',cls:'elaboracao'},
-  EM_CONSULTA_INTERNA:{lbl:'Consulta interna',cls:'consulta'},
-  EM_CONSULTA_PUBLICA:{lbl:'Consulta pública',cls:'consulta'},
-  EM_RSE:{lbl:'Em RSE',cls:'rse'},
-  EM_CM:{lbl:'Em CM',cls:'cm'},
-  APROVADO:{lbl:'Aprovado',cls:'aprovado'},
-  PUBLICADO:{lbl:'Publicado',cls:'publicado'},
-  EM_REVISAO_QA:{lbl:'Em revisão QA',cls:'revisao'},
-  ARQUIVADO:{lbl:'Arquivado',cls:'arquivado'},
+// ============ DADOS REALISTAS ============
+const FPL_DEMO = {
+  numero: '2026/MAE/0042',
+  tipo: 'DL',
+  titulo: 'Decreto-Lei que aprova o regime jurídico da produção descentralizada de energia a partir de fontes renováveis em comunidades de energia',
+  titulo_curto: 'Comunidades de energia renovável',
+  ministerio: 'Ministério do Ambiente e da Energia (MAE)',
+  estado: 'Em RSE',
+  origem: 'Programa do Governo, Eixo III, medida 4.2',
+  abertura: '10 de janeiro de 2026',
+  m3_validado: '30 de abril de 2026',
+  ponto_focal: 'Maria Silva',
+  bloco_d: [
+    { data: '12/02/2026', forma: 'Reunião presencial', entidade: 'APREN — Associação Portuguesa de Energias Renováveis', rtri: 'RTRI/2025/00142', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente', 'Adjunta SE'], decisao: 'Parcialmente incorporada', objeto: 'Apresentação de proposta de regime para CER e simplificação do licenciamento até 1 MW.', sintese: 'A APREN propôs regime único para CER (autoconsumo coletivo + partilha entre membros + venda de excedentes), sem distinção por origem solar/eólica. Defendeu simplificação do licenciamento até 1 MW (modelo espanhol e francês).', justificacao: 'A proposta de regime único foi acolhida na arquitetura do diploma. Não se acolheu a simplificação até 1 MW por divergir das obrigações de comunicação à ERSE.' },
+    { data: '19/02/2026', forma: 'Videoconferência', entidade: 'EDP — Energias de Portugal, S.A.', rtri: 'RTRI/2025/00088', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente', 'Chefe de gabinete'], decisao: 'Não incorporada', objeto: 'Análise dos efeitos do diploma na operação da rede de distribuição.', sintese: 'A EDP manifestou preocupação com a complexidade da gestão de fluxos bidirecionais em zonas de elevada penetração solar. Propôs período transitório de 24 meses para adaptação dos sistemas de medição.', justificacao: 'O período transitório é incompatível com o calendário das metas PNEC 2030. A questão tarifária é da competência regulatória da ERSE e não cabe no presente diploma.' },
+    { data: '26/02/2026', forma: 'Reunião presencial', entidade: 'ZERO — Associação Sistema Terrestre Sustentável', rtri: 'RTRI/2025/00214', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente', 'Adjunta SE'], decisao: 'Incorporada', objeto: 'Contributos sobre a participação de cidadãos com baixos rendimentos em CER.', sintese: 'A ZERO propôs mecanismo de comparticipação para participação de cidadãos em situação de pobreza energética, com financiamento via Fundo Ambiental, e obrigatoriedade de pelo menos 10% dos membros de CER municipais serem agregados elegíveis.', justificacao: 'A criação do mecanismo de comparticipação foi acolhida no art. 17.º. A obrigatoriedade de 10% foi acolhida no art. 12.º/3. A avaliação de impacto distributivo foi incluída no RIA.' },
+    { data: '05/03/2026', forma: 'Audiência presencial', entidade: 'Confederação Geral dos Trabalhadores Portugueses (CGTP)', rtri: 'RTRI/2025/00027', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente'], decisao: 'Parcialmente incorporada', objeto: 'Posição da CGTP sobre transição energética justa.', sintese: 'A CGTP manifestou apoio ao princípio das comunidades de energia mas questionou a inexistência de cláusulas de proteção de emprego. Solicitou inclusão de mecanismo de diálogo social no Conselho Consultivo.', justificacao: 'A inclusão de representação sindical no Conselho Consultivo foi acolhida no art. 22.º. Não se acolheu cláusulas adicionais por divergir do escopo do diploma.' },
+    { data: '21/03/2026', forma: 'Correspondência', entidade: 'Prof. António Sá da Costa (Universidade de Évora)', rtri: '', natureza: 'Academia', gov: ['Adjunta SE'], decisao: 'Incorporada', objeto: 'Parecer técnico sobre modelo de cálculo de coeficientes de partilha em autoconsumo coletivo.', sintese: 'O parecer propõe modelo de cálculo dinâmico baseado em consumo histórico ponderado, em alternativa ao modelo estático inicial. Apresenta análise comparativa com modelos italiano e alemão.', justificacao: 'Modelo dinâmico acolhido no anexo I, com simplificação para CER até 50 membros conforme proposto.' }
+  ]
 };
 
-let role = 'ponto_focal';
-let currentView = 'dashboard';
-let currentFplId = null;
-
-// ============ ROUTING ============
-function setView(view, opts={}){
-  currentView = view;
-  if(opts.fplId) currentFplId = opts.fplId;
-  document.querySelectorAll('.side-link').forEach(el=>el.classList.toggle('active', el.dataset.view===view));
-  document.querySelectorAll('#topnav button').forEach(el=>el.classList.toggle('active', el.dataset.view===view));
-  render();
-  window.scrollTo(0,0);
+// ============ Theme ============
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('fpl-theme', t); } catch {}
 }
-
-document.querySelectorAll('[data-view]').forEach(el=>{
-  el.addEventListener('click',()=>setView(el.dataset.view));
+const savedTheme = (() => { try { return localStorage.getItem('fpl-theme'); } catch { return null; } })();
+applyTheme(savedTheme || 'auto');
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme;
+  applyTheme(cur === 'dark' ? 'auto' : 'dark');
 });
 
-// ============ ROLE SWITCH ============
-document.querySelectorAll('#roleSwitch button').forEach(b=>{
-  b.addEventListener('click',()=>{
-    role = b.dataset.role;
-    document.querySelectorAll('#roleSwitch button').forEach(x=>x.classList.toggle('active', x===b));
-    document.getElementById('sggovMenu').style.display = role==='sggov' ? 'block' : 'none';
-    const userBadge = document.getElementById('userBadge');
-    if(role==='ponto_focal'){
-      userBadge.innerHTML = '<div class="avatar">MS</div><div class="meta"><span class="n">Maria Silva</span><span class="r">Ponto Focal · MAE</span></div>';
-      setView('dashboard');
-    } else if(role==='sggov'){
-      userBadge.innerHTML = '<div class="avatar">RF</div><div class="meta"><span class="n">Rui Ferreira</span><span class="r">SGGOV · QA</span></div>';
-      setView('dashboard-sggov');
-    } else {
-      userBadge.innerHTML = '<div class="avatar">PT</div><div class="meta"><span class="n">Acesso Público</span><span class="r">Cidadão</span></div>';
-      setView('publico');
-    }
-  });
+// ============ Modal ============
+function openModal(html) {
+  document.getElementById('modalInner').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.closeModal = closeModal;
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') closeModal();
 });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-// ============ MODAL ============
-function openModal(html){
-  document.getElementById('modalContent').innerHTML = html;
-  document.getElementById('modalOverlay').classList.add('open');
-}
-function closeModal(){
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-document.getElementById('modalOverlay').addEventListener('click',(e)=>{
-  if(e.target.id==='modalOverlay') closeModal();
-});
+// ============ Demo viva ============
+const demoContent = document.getElementById('demoContent');
 
-// ============ HELPERS ============
-function gabineteSigla(id){return GABINETES.find(g=>g.id===id)?.sigla||id}
-function gabineteNome(id){return GABINETES.find(g=>g.id===id)?.nome||id}
-function fmtData(d){if(!d)return'';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`}
-function badge(estado){const e=ESTADOS_LBL[estado];return`<span class="badge ${e.cls} dot">${e.lbl}</span>`}
-function tag(t){return`<span class="tag tipo-${t}">${t}</span>`}
-
-// ============ VIEWS ============
-function viewDashboard(){
-  const minhasFpl = FPLS.filter(f=>f.gabinete==='mae');
-  const pendentes = minhasFpl.filter(f=>['EM_ELABORACAO','EM_CONSULTA_PUBLICA'].includes(f.estado));
-  const recentes = [...minhasFpl].sort((a,b)=>(b.marcos.M3||b.marcos.M0).localeCompare(a.marcos.M3||a.marcos.M0)).slice(0,5);
-
+function renderPF() {
+  const f = FPL_DEMO;
   return `
-  <div class="page-head">
-    <div>
-      <div class="page-title">Bom dia, Maria.</div>
-      <div class="page-sub">Tem 2 FPL com marcos pendentes nos próximos 14 dias e 7 FPL ativas no seu gabinete.</div>
-    </div>
-    <button class="btn primary" onclick="setView('nova')">+ Nova FPL</button>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi"><div class="lbl">FPL ativas</div><div class="val">7</div><div class="delta">+2 face ao mês passado</div></div>
-    <div class="kpi"><div class="lbl">Marcos pendentes</div><div class="val" style="color:var(--warning)">2</div><div class="delta down">M3 da FPL 2026/MAE/0042 em 14 dias</div></div>
-    <div class="kpi"><div class="lbl">Publicadas em 2026</div><div class="val">3</div><div class="delta flat">Atualizado agora</div></div>
-    <div class="kpi"><div class="lbl">Conformidade média</div><div class="val" style="color:var(--success)">94%</div><div class="delta">Auditoria SGGOV</div></div>
-  </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-head"><h3>FPL recentes do MAE</h3><a href="#" onclick="setView('lista');return false">Ver todas →</a></div>
-      <table class="tbl">
-        <thead><tr><th>Diploma</th><th>Tipo</th><th>Estado</th><th>Última edição</th></tr></thead>
-        <tbody>
-        ${recentes.map(f=>`
-          <tr onclick="setView('detalhe',{fplId:'${f.id}'})">
-            <td class="cell-titulo">${f.titulo_curto||f.titulo.substring(0,80)+'...'}<span class="num">${f.numero}</span></td>
-            <td>${tag(f.tipo)}</td>
-            <td>${badge(f.estado)}</td>
-            <td class="muted small">${fmtData(f.marcos.M3||f.marcos.M0)}</td>
-          </tr>
-        `).join('')}
-        </tbody>
-      </table>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>Avisos</h3></div>
-      <div class="card-body">
-        <div class="alert warning">
-          <div><span class="ttl">FPL 2026/MAE/0042</span>Aguarda agendamento na Reunião de Secretários de Estado. Verifique se o GSEPCM solicitou alterações.</div>
-        </div>
-        <div class="alert info">
-          <div><span class="ttl">Consulta pública encerrada</span>FPL 2026/MS/0011 — 23 contributos importados. Necessita preencher síntese (M2).</div>
-        </div>
-        <div class="alert success">
-          <div><span class="ttl">Auditoria QA recebida</span>FPL 2025/MAE/0038 com pontuação 96/100. Sem pedidos de correção.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  `;
-}
-
-function viewLista(){
-  const lista = role==='sggov' ? FPLS : FPLS.filter(f=>f.gabinete==='mae');
-  return `
-  <div class="page-head">
-    <div>
-      <div class="page-title">${role==='sggov'?'Todas as FPL':'As minhas FPL'}</div>
-      <div class="page-sub">${lista.length} fichas · Pesquise, filtre e abra para editar</div>
-    </div>
-    <button class="btn primary" onclick="setView('nova')">+ Nova FPL</button>
-  </div>
-  <div class="filters">
-    <input type="text" placeholder="Pesquisar por título, número ou entidade...">
-    <select><option>Todos os estados</option>${Object.values(ESTADOS_LBL).map(e=>`<option>${e.lbl}</option>`).join('')}</select>
-    <select><option>Todos os tipos</option><option>DL</option><option>PL</option><option>RCM</option><option>DR</option></select>
-    <select><option>2026</option><option>2025</option></select>
-    <div class="sep"></div>
-    <button class="btn sm">Exportar CSV</button>
-  </div>
-  <div class="card">
-    <table class="tbl">
-      <thead><tr><th>N.º Processo</th><th>Tipo</th><th>Título</th><th>Gabinete</th><th>Estado</th><th>M0</th><th>M3</th><th>M5</th></tr></thead>
-      <tbody>
-      ${lista.map(f=>`
-        <tr onclick="setView('detalhe',{fplId:'${f.id}'})">
-          <td><strong>${f.numero}</strong></td>
-          <td>${tag(f.tipo)}</td>
-          <td class="cell-titulo">${f.titulo_curto||f.titulo}</td>
-          <td>${gabineteSigla(f.gabinete)}</td>
-          <td>${badge(f.estado)}</td>
-          <td class="muted small">${fmtData(f.marcos.M0)||'—'}</td>
-          <td class="muted small">${fmtData(f.marcos.M3)||'—'}</td>
-          <td class="muted small">${fmtData(f.marcos.M5)||'—'}</td>
-        </tr>
-      `).join('')}
-      </tbody>
-    </table>
-  </div>
-  `;
-}
-
-function viewDetalhe(){
-  const f = FPLS.find(x=>x.id===currentFplId);
-  if(!f) return '<div class="card-empty">FPL não encontrada</div>';
-  const marcosArr = ['M0','M1','M2','M3','M4','M5'];
-  const marcosLbl = {M0:'Abertura',M1:'Pré-CP',M2:'Pós-CP',M3:'Pré-RSE',M4:'Pré-CM',M5:'Publicação'};
-
-  // determinar marco corrente
-  let lastDone = -1;
-  marcosArr.forEach((m,i)=>{if(f.marcos[m]) lastDone = i});
-  const next = lastDone < 5 ? lastDone+1 : 5;
-
-  return `
-  <div class="fpl-head">
-    <div class="breadcrumb"><a href="#" onclick="setView('lista');return false">As minhas FPL</a> › ${f.numero}</div>
-    <h1>${f.titulo}</h1>
-    <div class="flex gap-8">
-      ${tag(f.tipo)} ${badge(f.estado)}
-      <span class="muted small">· N.º ${f.numero} · ${gabineteNome(f.gabinete)}</span>
-    </div>
-    <div class="meta">
-      <span><strong>Origem:</strong> ${f.origem||'—'}</span>
-      <span><strong>Aberto:</strong> ${fmtData(f.marcos.M0)||'—'}</span>
-      ${f.referencia_dr?`<span><strong>Diário da República:</strong> ${f.referencia_dr}</span>`:''}
-      <span><strong>Versão:</strong> ${f.versoes?f.versoes.length:1}</span>
-    </div>
-    <div class="actions">
-      ${f.estado==='EM_ELABORACAO' || f.estado==='EM_CONSULTA_PUBLICA' ? `
-        <button class="btn primary" onclick="abrirValidacaoM3()">Validar M3 (submeter para RSE)</button>
-      `:''}
-      ${f.estado==='EM_RSE' ? `
-        <button class="btn primary" onclick="abrirValidacaoM4()">Validar M4 (submeter para CM)</button>
-      `:''}
-      <button class="btn">Exportar PDF</button>
-      <button class="btn">Histórico de versões</button>
-      ${role==='sggov' ? `<button class="btn">Iniciar auditoria QA</button>`:''}
-    </div>
-  </div>
-
-  <div class="marcos">
-    ${marcosArr.map((m,i)=>{
-      const done = !!f.marcos[m];
-      const cur = i===next && !done;
-      return `<div class="marco ${done?'done':''} ${cur?'current':''}">
-        <div class="dot">${done?'✓':m.replace('M','')}</div>
-        <div class="lbl">${m}</div>
-        <div class="sub">${marcosLbl[m]}</div>
-        ${done?`<div class="sub">${fmtData(f.marcos[m])}</div>`:''}
-      </div>`;
-    }).join('')}
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" data-tab="A">Bloco A · Identificação</div>
-    <div class="tab" data-tab="B">Bloco B · Origem</div>
-    <div class="tab" data-tab="C">Bloco C · Internos <span class="pill">${(f.bloco_c||[]).length}</span></div>
-    <div class="tab" data-tab="D">Bloco D · Externos <span class="pill">${(f.bloco_d||[]).length}</span></div>
-    <div class="tab" data-tab="E">Bloco E · Consulta pública</div>
-    <div class="tab" data-tab="F">Bloco F · Declaração</div>
-    <div class="tab" data-tab="G">Bloco G · Auditoria</div>
-    <div class="tab" data-tab="H">Histórico</div>
-  </div>
-
-  <div id="bloco-A" class="bloco-render">${blocoA(f)}</div>
-  <div id="bloco-B" class="bloco-render" style="display:none">${blocoB(f)}</div>
-  <div id="bloco-C" class="bloco-render" style="display:none">${blocoC(f)}</div>
-  <div id="bloco-D" class="bloco-render" style="display:none">${blocoD(f)}</div>
-  <div id="bloco-E" class="bloco-render" style="display:none">${blocoE(f)}</div>
-  <div id="bloco-F" class="bloco-render" style="display:none">${blocoF(f)}</div>
-  <div id="bloco-G" class="bloco-render" style="display:none">${blocoG(f)}</div>
-  <div id="bloco-H" class="bloco-render" style="display:none">${blocoH(f)}</div>
-  `;
-}
-
-function blocoA(f){return `
-  <div class="bloco-section">
-    <div class="bloco-head">
-      <div class="ttl"><div class="letra">A</div><div><h3>Identificação do projeto</h3><div class="desc">Preenchimento maioritariamente automático a partir do sistema de tramitação</div></div></div>
-    </div>
-    <div class="bloco-body">
-      <div class="field-grid">
-        <div class="field"><label>Tipo de diploma</label><div class="val">${({DL:'Decreto-Lei',PL:'Proposta de Lei',RCM:'Resolução do Conselho de Ministros',DR:'Decreto Regulamentar'})[f.tipo]||f.tipo}</div></div>
-        <div class="field"><label>N.º interno de processo</label><div class="val"><strong>${f.numero}</strong></div></div>
-        <div class="field full"><label>Título</label><div class="val">${f.titulo}</div></div>
-        <div class="field"><label>Área governativa proponente</label><div class="val">${gabineteNome(f.gabinete)}</div></div>
-        <div class="field"><label>Áreas co-proponentes</label><div class="val empty">Sem co-proponentes</div></div>
-        <div class="field"><label>Data de abertura</label><div class="val">${fmtData(f.marcos.M0)||'Por definir'}</div></div>
-        <div class="field"><label>Estado atual</label><div class="val">${badge(f.estado)}</div></div>
-      </div>
-    </div>
-  </div>
-`}
-
-function blocoB(f){return `
-  <div class="bloco-section">
-    <div class="bloco-head">
-      <div class="ttl"><div class="letra">B</div><div><h3>Origem e motivação</h3><div class="desc">Obrigatório à abertura (M0)</div></div></div>
-    </div>
-    <div class="bloco-body">
-      <div class="field-grid">
-        <div class="field"><label>Tipo de origem</label><div class="val">${f.origem||'<span class="empty">Por preencher</span>'}</div></div>
-        <div class="field"><label>Referência da origem</label><div class="val ${!f.referencia_origem?'empty':''}">${f.referencia_origem||'Não aplicável'}</div></div>
-        <div class="field full"><label>Síntese do problema e solução</label><div class="val">${f.sintese||'<span class="empty">Por preencher (mínimo 200 caracteres)</span>'}</div></div>
-        <div class="field"><label>Avaliação prévia de impacto</label><div class="val">${f.avaliacao_previa?'✓ Sim':'<span class="empty">Não indicada</span>'}</div></div>
-      </div>
-    </div>
-  </div>
-`}
-
-function blocoC(f){
-  const lista = f.bloco_c||[];
-  return `
-  <div class="bloco-section">
-    <div class="bloco-head">
-      <div class="ttl"><div class="letra">C</div><div><h3>Contributos internos ao Governo</h3><div class="desc">Pareceres e contributos formais de áreas governativas e administração</div></div></div>
-      <button class="btn primary sm">+ Adicionar contributo</button>
-    </div>
-    <div class="bloco-body">
-      ${lista.length===0?'<div class="card-empty">Sem contributos internos registados</div>':lista.map((e,i)=>`
-        <div class="entrada" id="c-${i}">
-          <div class="entrada-head" onclick="document.getElementById('c-${i}').classList.toggle('open')">
-            <div class="ttl"><strong>${e.entidade}</strong> <span class="tag">${e.forma}</span></div>
-            <div class="data">${fmtData(e.data)}</div>
+    <div class="app-shell">
+      <aside class="app-side">
+        <div class="section-title">Trabalho</div>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Início</a>
+        <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> As minhas FPL <span class="badge-num">7</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> Notificações <span class="badge-num">3</span></a>
+        <div class="section-title">Conta</div>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> O meu perfil</a>
+      </aside>
+      <div class="app-main">
+        <div class="app-head">
+          <div>
+            <h3>FPL aberta · ${f.numero}</h3>
+            <div class="subt">Maria Silva, ponto focal · ${f.ministerio}</div>
           </div>
-          <div class="entrada-body">
-            <div class="row"><div class="lbl">Objeto</div><div>${e.objeto}</div></div>
-            <div class="row"><div class="lbl">Síntese da posição</div><div>${e.sintese}</div></div>
+          <button class="btn primary" onclick="abrirValidacaoM4()">Validar M4 — submeter para CM</button>
+        </div>
+
+        <div class="fpl-card">
+          <div class="breadcrumb"><a href="#">As minhas FPL</a> › ${f.numero}</div>
+          <div class="flex gap-8 mb-12" style="flex-wrap:wrap">
+            <span class="tag">${f.tipo}</span>
+            <span class="badge rse">${f.estado}</span>
+          </div>
+          <h2>${f.titulo}</h2>
+          <div class="fpl-pipe" aria-label="Marcos">
+            <div class="step done">M0</div>
+            <div class="step done">M1</div>
+            <div class="step done">M2</div>
+            <div class="step done">M3</div>
+            <div class="step cur">M4</div>
+            <div class="step">M5</div>
+          </div>
+          <div class="meta">
+            <div><span class="l">Origem</span><span class="v">${f.origem}</span></div>
+            <div><span class="l">Aberta em</span><span class="v">${f.abertura}</span></div>
+            <div><span class="l">M3 validado</span><span class="v">${f.m3_validado}</span></div>
+            <div><span class="l">Ponto focal</span><span class="v">${f.ponto_focal}</span></div>
           </div>
         </div>
-      `).join('')}
-    </div>
-  </div>`;
-}
 
-function blocoD(f){
-  const lista = f.bloco_d||[];
-  return `
-  <div class="bloco-section">
-    <div class="bloco-head">
-      <div class="ttl"><div class="letra" style="background:var(--gov-red)">D</div><div><h3>Interações externas — núcleo da pegada</h3><div class="desc">Reuniões, audiências e outras interações com representantes de interesses</div></div></div>
-      <button class="btn primary sm" onclick="abrirNovaEntradaD()">+ Adicionar interação</button>
-    </div>
-    <div class="bloco-body">
-      ${lista.length===0?'<div class="card-empty">Sem interações externas registadas</div>':lista.map((e,i)=>`
-        <div class="entrada" id="d-${i}">
-          <div class="entrada-head" onclick="document.getElementById('d-${i}').classList.toggle('open')">
+        <div class="bloco">
+          <div class="bloco-h">
             <div class="ttl">
-              <strong>${e.entidade}</strong>
-              <span class="tag">${e.forma}</span>
-              ${e.rtri?`<span class="rtri-status ${e.rtri_status}">RTRI ${e.rtri}</span>`:`<span class="rtri-status ${e.rtri_status}">${e.natureza}</span>`}
-              ${e.decisao?`<span class="tag" style="background:#e6fcf0;color:#0a4520;border-color:#86efac">→ ${e.decisao}</span>`:'<span class="tag" style="background:#fff8e6;color:#86610a;border-color:#fde68a">⚠ Decisão pendente</span>'}
-            </div>
-            <div class="data">${fmtData(e.data)}</div>
-          </div>
-          <div class="entrada-body">
-            <div class="row"><div class="lbl">Forma</div><div>${e.forma}</div></div>
-            <div class="row"><div class="lbl">Natureza jurídica</div><div>${e.natureza}</div></div>
-            <div class="row"><div class="lbl">N.º RTRI</div><div>${e.rtri||'<em>Não aplicável</em>'} ${e.rtri?'<span class="rtri-status validado">✓ Validado contra API da AR</span>':''}</div></div>
-            <div class="row"><div class="lbl">Pessoas pelo Governo</div><div>${(e.gov||[]).join('; ')||'—'}</div></div>
-            <div class="row"><div class="lbl">Pelos interlocutores</div><div>${(e.interlocutor||[]).join('; ')||'<em>Não identificados</em>'}</div></div>
-            <div class="row"><div class="lbl">Objeto</div><div>${e.objeto}</div></div>
-            <div class="row"><div class="lbl">Síntese da posição</div><div>${e.sintese}</div></div>
-            ${e.decisao?`
-              <div class="divider"></div>
-              <div class="row"><div class="lbl">Decisão de incorporação</div><div><strong>${e.decisao}</strong></div></div>
-              <div class="row"><div class="lbl">Justificação</div><div>${e.justificacao||''}</div></div>
-            `:`<div class="alert warning mt-12"><div><span class="ttl">Decisão pendente</span>Necessário preencher decisão de incorporação e justificação antes de validar M3.</div></div>`}
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  </div>`;
-}
-
-function blocoE(f){
-  const cl=f.consulta_lex;
-  if(!cl)return `<div class="bloco-section"><div class="bloco-head"><div class="ttl"><div class="letra">E</div><div><h3>Consulta pública</h3></div></div></div><div class="bloco-body"><div class="card-empty">Não foi realizada consulta pública para este diploma</div></div></div>`;
-  return `
-  <div class="bloco-section">
-    <div class="bloco-head">
-      <div class="ttl"><div class="letra">E</div><div><h3>Consulta pública</h3><div class="desc">Importado automaticamente do Consulta.Lex</div></div></div>
-      <span class="rtri-status validado">✓ Sincronizado</span>
-    </div>
-    <div class="bloco-body">
-      <div class="field-grid">
-        <div class="field"><label>Referência Consulta.Lex</label><div class="val"><strong>${cl.ref}</strong></div></div>
-        <div class="field"><label>Período</label><div class="val">${fmtData(cl.inicio)} a ${fmtData(cl.fim)}</div></div>
-        <div class="field"><label>N.º total de contributos</label><div class="val"><strong>${cl.n_contributos}</strong></div></div>
-        <div class="field"><label>Lista de entidades contribuintes</label><div class="val"><a href="#">Ver tabela completa →</a></div></div>
-        <div class="field full"><label>Síntese das principais posições</label><div class="val ${!cl.sintese?'empty':''}">${cl.sintese||'Por preencher (mínimo 300 caracteres)'}</div></div>
-        <div class="field full"><label>Decisão sobre incorporação</label><div class="val ${!cl.decisao?'empty':''}">${cl.decisao||'Por preencher (mínimo 200 caracteres)'}</div></div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function blocoF(f){
-  const m3 = f.marcos.M3;
-  const m4 = f.marcos.M4;
-  return `
-  <div class="bloco-section">
-    <div class="bloco-head">
-      <div class="ttl"><div class="letra">F</div><div><h3>Declaração do ponto focal</h3><div class="desc">Validações obrigatórias nos marcos M3 e M4</div></div></div>
-    </div>
-    <div class="bloco-body">
-      <div class="declaration-box">
-        "Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."
-      </div>
-      <div class="field-grid">
-        <div class="field"><label>Declaração M3 — Pré-RSE</label><div class="val">${m3?`✓ Validada em ${fmtData(m3)} por <strong>Maria Silva</strong>`:'<span class="empty">Pendente</span>'}</div></div>
-        <div class="field"><label>Declaração M4 — Pré-CM</label><div class="val">${m4?`✓ Validada em ${fmtData(m4)} por <strong>Maria Silva</strong>`:'<span class="empty">Pendente</span>'}</div></div>
-      </div>
-      <div class="alert info mt-12"><div><span class="ttl">Lembrete legal</span>A submissão de declaração comprovadamente falsa é sujeita ao regime previsto no n.º 13 da RCM.</div></div>
-    </div>
-  </div>`;
-}
-
-function blocoG(f){
-  if(role!=='sggov'){
-    return `<div class="bloco-section"><div class="bloco-head"><div class="ttl"><div class="letra" style="background:var(--text-faint)">G</div><div><h3>Auditoria SGGOV</h3><div class="desc">Bloco interno SGGOV</div></div></div></div><div class="bloco-body"><div class="card-empty">Este bloco é visível apenas para a equipa de QA da SGGOV.</div></div></div>`;
-  }
-  return `
-  <div class="bloco-section">
-    <div class="bloco-head">
-      <div class="ttl"><div class="letra" style="background:var(--text-faint)">G</div><div><h3>Auditoria SGGOV (apenas interno)</h3></div></div>
-      <button class="btn primary sm">+ Iniciar auditoria</button>
-    </div>
-    <div class="bloco-body">
-      <div class="field-grid">
-        <div class="field"><label>Auditor</label><div class="val">Rui Ferreira</div></div>
-        <div class="field"><label>Data</label><div class="val">${fmtData('2026-05-02')}</div></div>
-        <div class="field"><label>Pontuação de completude</label><div class="val"><strong style="font-size:24px;color:var(--success)">94/100</strong></div></div>
-        <div class="field"><label>Estado</label><div class="val">✓ Sem pedidos de correção</div></div>
-        <div class="field full"><label>Observações</label><div class="val">FPL com cobertura adequada das interações relevantes. Decisões de incorporação bem fundamentadas. Sugestão menor: explicitar no objeto da entrada D-2 (EDP) se a reunião abrangeu também aspetos tarifários, dado que a posição apresentada inclui essa dimensão.</div></div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function blocoH(f){
-  const v = f.versoes||[];
-  return `
-  <div class="bloco-section">
-    <div class="bloco-head"><div class="ttl"><div class="letra" style="background:#5b6478">H</div><div><h3>Histórico de versões e auditoria</h3><div class="desc">Eventos imutáveis</div></div></div></div>
-    <div class="bloco-body">
-      ${v.length===0?'<div class="card-empty">Sem histórico disponível</div>':`
-        <div class="timeline">
-        ${[...v].reverse().map(e=>`
-          <div class="timeline-item ${e.marco?'marco':''}">
-            <div class="ts">${e.data} · v${e.n}</div>
-            <div class="desc">${e.marco?`<strong>${e.marco}</strong> · `:''}${e.desc}</div>
-            <div class="author">por ${e.autor}</div>
-          </div>
-        `).join('')}
-        </div>
-      `}
-    </div>
-  </div>`;
-}
-
-// ============ TABS interaction (event delegation) ============
-function bindTabs(){
-  document.querySelectorAll('.tab').forEach(t=>{
-    t.addEventListener('click',()=>{
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      document.querySelectorAll('.bloco-render').forEach(b=>b.style.display='none');
-      document.getElementById('bloco-'+t.dataset.tab).style.display='block';
-    });
-  });
-}
-
-// ============ Modal: validação M3 ============
-function abrirValidacaoM3(){
-  const f = FPLS.find(x=>x.id===currentFplId);
-  const checks = [];
-  // Bloco A check
-  checks.push({ok:true,t:'Bloco A (Identificação) completo'});
-  checks.push({ok:!!f.origem,t:'Bloco B: tipo de origem definido'});
-  checks.push({ok:!!f.sintese && f.sintese.length>=200,t:'Bloco B: síntese do problema (mínimo 200 caracteres)',det:f.sintese?`${f.sintese.length} caracteres ✓`:''});
-  // Bloco D
-  const semDecisao = (f.bloco_d||[]).filter(e=>!e.decisao);
-  checks.push({ok:semDecisao.length===0,t:`Bloco D: decisão de incorporação em todas as ${(f.bloco_d||[]).length} entradas`,det:semDecisao.length>0?`${semDecisao.length} entradas pendentes: ${semDecisao.map(e=>e.entidade).join(', ')}`:''});
-  // Consulta pública
-  if(f.consulta_lex){
-    checks.push({ok:!!f.consulta_lex.sintese,t:'Bloco E: síntese das posições da consulta pública'});
-    checks.push({ok:!!f.consulta_lex.decisao,t:'Bloco E: decisão sobre incorporação'});
-  }
-  checks.push({ok:false,t:'Bloco F: declaração de completude assinada',det:'Assinatura pendente — clique em "Assinar e validar M3" abaixo'});
-
-  const allOk = checks.every(c=>c.ok || c.t.includes('Bloco F'));
-  const blocking = checks.filter(c=>!c.ok && !c.t.includes('Bloco F'));
-
-  const html = `
-    <div class="modal-head"><h3>Validar Marco M3 — Submissão para Reunião de Secretários de Estado</h3><button class="btn ghost sm" onclick="closeModal()">✕</button></div>
-    <div class="modal-body">
-      ${blocking.length>0?`
-        <div class="alert danger"><div><span class="ttl">Não é possível validar M3</span>Existem ${blocking.length} pendência(s) bloqueante(s). A submissão fica impedida pelo sistema até serem resolvidas.</div></div>
-      `:`
-        <div class="alert success"><div><span class="ttl">Pronto a submeter</span>Todas as verificações automáticas estão satisfeitas. Falta apenas a sua assinatura digital da declaração de completude.</div></div>
-      `}
-      <h4 style="font-size:13px;margin:14px 0 4px">Verificações automáticas</h4>
-      <ul class="checklist">
-        ${checks.map(c=>`<li class="${c.ok?'ok':'fail'}"><div>${c.t}${c.det?`<div class="det">${c.det}</div>`:''}</div></li>`).join('')}
-      </ul>
-      <div class="declaration-box">
-        <strong>Declaração:</strong> "Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
-      ${blocking.length>0?`<button class="btn primary" disabled style="opacity:.5;cursor:not-allowed">Assinar e validar M3</button>`:`<button class="btn success" onclick="closeModal();alert('M3 validado em ambiente de demonstração.')">Assinar e validar M3</button>`}
-    </div>
-  `;
-  openModal(html);
-}
-
-function abrirValidacaoM4(){
-  openModal(`
-    <div class="modal-head"><h3>Validar M4 — Submissão para Conselho de Ministros</h3><button class="btn ghost sm" onclick="closeModal()">✕</button></div>
-    <div class="modal-body">
-      <div class="alert success"><div><span class="ttl">Verificações OK</span>FPL pronta para submissão a CM.</div></div>
-      <ul class="checklist">
-        <li class="ok"><div>Todos os blocos completos</div></li>
-        <li class="ok"><div>M3 validado em 30/04/2026</div></li>
-        <li class="ok"><div>Sem pedidos de correção pendentes</div></li>
-        <li class="ok"><div>Pontuação QA: 94/100 (≥80 exigida)</div></li>
-      </ul>
-      <div class="declaration-box"><strong>Segunda declaração:</strong> "Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn success" onclick="closeModal();alert('M4 validado em ambiente de demonstração.')">Assinar e validar M4</button>
-    </div>
-  `);
-}
-
-function abrirNovaEntradaD(){
-  openModal(`
-    <div class="modal-head"><h3>Nova interação externa — Bloco D</h3><button class="btn ghost sm" onclick="closeModal()">✕</button></div>
-    <div class="modal-body">
-      <div class="alert info"><div>Esta é a entrada que documenta a interação com um representante de interesses, na aceção da Lei n.º 5-A/2026.</div></div>
-      <div class="field-grid" style="grid-template-columns:1fr 1fr">
-        <div class="field"><label>Data da interação *</label><input type="date" value="2026-05-04"></div>
-        <div class="field"><label>Forma *</label><select><option>Reunião presencial</option><option>Videoconferência</option><option>Audiência</option><option>Correspondência escrita</option><option>Contributo espontâneo</option></select></div>
-        <div class="field full"><label>Pesquisar entidade no RTRI *</label>
-          <input type="text" id="rtriSearch" placeholder="Comece a escrever o nome da entidade..." oninput="rtriPesquisar(this.value)">
-          <div id="rtriResults" style="background:#fff;border:1px solid var(--border);border-radius:4px;margin-top:4px;max-height:200px;overflow-y:auto;display:none"></div>
-        </div>
-        <div class="field"><label>Natureza jurídica *</label><select><option>Representante de interesses inscrito no RTRI</option><option>Representante automaticamente inscrito por força da Lei</option><option>Academia ou perito individual</option><option>Autoridade pública</option><option>Outra</option></select></div>
-        <div class="field"><label>Pessoas pelo Governo *</label><input type="text" placeholder="Ex.: SE Ambiente; Adjunta SE"></div>
-        <div class="field full"><label>Objeto / matéria * <span class="muted small">(mínimo 50 caracteres)</span></label><textarea placeholder="Descreva o objeto da interação..."></textarea></div>
-        <div class="field full"><label>Síntese da posição apresentada * <span class="muted small">(mínimo 100 caracteres)</span></label><textarea placeholder="Resuma a posição apresentada pela entidade interlocutora..."></textarea></div>
-      </div>
-      <div class="alert warning mt-12"><div><span class="ttl">Decisão de incorporação</span>Pode preencher já a decisão de incorporação ou voltar mais tarde. <strong>É obrigatória antes de validar o marco M3.</strong></div></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn">Guardar rascunho</button>
-      <button class="btn primary" onclick="closeModal();alert('Entrada criada (modo demonstração)')">Adicionar à FPL</button>
-    </div>
-  `);
-}
-
-function rtriPesquisar(q){
-  const box = document.getElementById('rtriResults');
-  if(q.length<2){box.style.display='none';return}
-  const matches = ENTIDADES_RTRI.filter(e=>e.nome.toLowerCase().includes(q.toLowerCase())).slice(0,6);
-  if(matches.length===0){box.innerHTML=`<div style="padding:14px;color:var(--text-muted);font-size:13px"><strong>Nenhuma entidade encontrada</strong><br><span class="small">Pode <a href="#">criar manualmente</a> com flag de validação pendente.</span></div>`;box.style.display='block';return}
-  box.innerHTML = matches.map(e=>`
-    <div style="padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.background='#f5f6f8'" onmouseout="this.style.background='#fff'" onclick="document.getElementById('rtriSearch').value='${e.nome}';document.getElementById('rtriResults').style.display='none'">
-      <div style="font-weight:500;font-size:13px">${e.nome}</div>
-      <div style="font-size:11px;color:var(--text-muted)">${e.rtri} · ${e.natureza} <span class="rtri-status validado" style="margin-left:6px">✓ RTRI ativo</span></div>
-    </div>
-  `).join('');
-  box.style.display='block';
-}
-
-// ============ Auditoria SGGOV ============
-function viewAuditoria(){
-  return `
-  <div class="page-head">
-    <div>
-      <div class="page-title">Auditoria por amostra · Bloco G</div>
-      <div class="page-sub">Auditoria de qualidade das FPL submetidas. Pontuação 0-100. Pedidos de correção devolvidos ao ponto focal.</div>
-    </div>
-    <button class="btn primary">+ Nova amostragem</button>
-  </div>
-  <div class="kpis">
-    <div class="kpi"><div class="lbl">FPL auditadas (2026)</div><div class="val">47</div><div class="delta">12% da população</div></div>
-    <div class="kpi"><div class="lbl">Pontuação média</div><div class="val" style="color:var(--success)">87</div><div class="delta">Meta ≥80</div></div>
-    <div class="kpi"><div class="lbl">Em correção</div><div class="val" style="color:var(--warning)">3</div><div class="delta down">Aguardam ponto focal</div></div>
-    <div class="kpi"><div class="lbl">Falhas RTRI</div><div class="val" style="color:var(--success)">0,8%</div><div class="delta">Meta ≤1%</div></div>
-  </div>
-  <div class="card">
-    <div class="card-head"><h3>Auditorias recentes</h3></div>
-    <table class="tbl">
-      <thead><tr><th>FPL</th><th>Gabinete</th><th>Pontuação</th><th>Auditor</th><th>Data</th><th>Estado</th></tr></thead>
-      <tbody>
-        <tr><td><strong>2026/MAE/0042</strong> Comunidades de energia</td><td>MAE</td><td><strong style="color:var(--success)">94</strong>/100</td><td>Rui Ferreira</td><td>02/05/2026</td><td><span class="badge aprovado dot">Sem correções</span></td></tr>
-        <tr><td><strong>2026/MS/0011</strong> Partilha dados saúde</td><td>MS</td><td><strong style="color:var(--warning)">76</strong>/100</td><td>Ana Costa</td><td>28/04/2026</td><td><span class="badge revisao dot">Correção pedida</span></td></tr>
-        <tr><td><strong>2026/MTSSS/0007</strong> Teletrabalho</td><td>MTSSS</td><td><strong style="color:var(--success)">91</strong>/100</td><td>Rui Ferreira</td><td>25/04/2026</td><td><span class="badge aprovado dot">Sem correções</span></td></tr>
-        <tr><td><strong>2025/MJ/0058</strong> Mediação civil</td><td>MJ</td><td><strong style="color:var(--success)">88</strong>/100</td><td>Ana Costa</td><td>20/04/2026</td><td><span class="badge aprovado dot">Sem correções</span></td></tr>
-        <tr><td><strong>2026/MECIC/0034</strong> Estratégia IA</td><td>MECIC</td><td><strong style="color:var(--warning)">71</strong>/100</td><td>Rui Ferreira</td><td>15/04/2026</td><td><span class="badge revisao dot">Correção pedida</span></td></tr>
-      </tbody>
-    </table>
-  </div>
-  `;
-}
-
-function viewDashboardSggov(){
-  return `
-  <div class="page-head">
-    <div>
-      <div class="page-title">Dashboard executivo SGGOV</div>
-      <div class="page-sub">Visão consolidada do regime de Pegada Legislativa · Atualizado há 2 minutos</div>
-    </div>
-    <button class="btn">Exportar relatório</button>
-  </div>
-  <div class="kpis">
-    <div class="kpi"><div class="lbl">FPL ativas</div><div class="val">312</div><div class="delta">+18 esta semana</div></div>
-    <div class="kpi"><div class="lbl">Marcos M5 (publicadas)</div><div class="val">87</div><div class="delta">YTD 2026</div></div>
-    <div class="kpi"><div class="lbl">Submissões bloqueadas por FPL</div><div class="val" style="color:var(--gov-red)">23</div><div class="delta down">Pegada efetivamente bloqueante</div></div>
-    <div class="kpi"><div class="lbl">Cobertura RTRI</div><div class="val" style="color:var(--success)">99,2%</div><div class="delta">Validação automática</div></div>
-  </div>
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-head"><h3>Distribuição por estado</h3></div>
-      <div class="card-body">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          ${[
-            ['Em elaboração',124,'#fff4dc','#86610a'],
-            ['Em consulta pública',38,'#dbeafe','#1e3a8a'],
-            ['Em RSE',22,'#e9d5ff','#5b21b6'],
-            ['Em CM',9,'#fde0e0','#891f1f'],
-            ['Aprovadas (não publicadas)',32,'#d1fae5','#0e6b34'],
-            ['Publicadas',87,'#0a3161','#fff'],
-          ].map(([l,n,bg,fg])=>`
-            <div style="display:flex;align-items:center;gap:12px">
-              <div style="width:120px;font-size:12px">${l}</div>
-              <div style="flex:1;height:18px;background:#f5f6f8;border-radius:3px;overflow:hidden">
-                <div style="width:${n/124*100}%;height:100%;background:${bg};display:flex;align-items:center;padding:0 8px;color:${fg};font-size:11px;font-weight:600">${n}</div>
+              <span class="letra">D</span>
+              <div>
+                <h4>Bloco D · Interações externas</h4>
+                <div class="sub">Núcleo da pegada · ${f.bloco_d.length} entradas · todas com decisão preenchida</div>
               </div>
             </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>Top 5 ministérios por adesão</h3></div>
-      <table class="tbl">
-        <thead><tr><th>Ministério</th><th class="txt-right">FPL</th><th class="txt-right">Pontuação</th></tr></thead>
-        <tbody>
-          <tr><td>MAE</td><td class="txt-right"><strong>52</strong></td><td class="txt-right" style="color:var(--success)">94</td></tr>
-          <tr><td>MTSSS</td><td class="txt-right"><strong>41</strong></td><td class="txt-right" style="color:var(--success)">91</td></tr>
-          <tr><td>MJ</td><td class="txt-right"><strong>38</strong></td><td class="txt-right" style="color:var(--success)">88</td></tr>
-          <tr><td>MS</td><td class="txt-right"><strong>34</strong></td><td class="txt-right" style="color:var(--warning)">79</td></tr>
-          <tr><td>ME</td><td class="txt-right"><strong>29</strong></td><td class="txt-right" style="color:var(--success)">85</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="card mt-12">
-    <div class="card-head"><h3>Top 10 entidades RTRI mais interlocutadas (2026)</h3></div>
-    <table class="tbl">
-      <thead><tr><th>Entidade</th><th>RTRI</th><th class="txt-right">Reuniões</th><th class="txt-right">Diplomas</th><th class="txt-right">Ministérios</th></tr></thead>
-      <tbody>
-        <tr><td>Confederação da Indústria Portuguesa (CIP)</td><td>RTRI/2025/00018</td><td class="txt-right">42</td><td class="txt-right">28</td><td class="txt-right">9</td></tr>
-        <tr><td>Confederação Geral dos Trabalhadores Portugueses (CGTP)</td><td>RTRI/2025/00027</td><td class="txt-right">38</td><td class="txt-right">26</td><td class="txt-right">8</td></tr>
-        <tr><td>União Geral de Trabalhadores (UGT)</td><td>RTRI/2025/00031</td><td class="txt-right">35</td><td class="txt-right">24</td><td class="txt-right">8</td></tr>
-        <tr><td>Ordem dos Médicos</td><td>RTRI/2025/00061</td><td class="txt-right">21</td><td class="txt-right">12</td><td class="txt-right">3</td></tr>
-        <tr><td>EDP — Energias de Portugal, S.A.</td><td>RTRI/2025/00088</td><td class="txt-right">18</td><td class="txt-right">9</td><td class="txt-right">3</td></tr>
-        <tr><td>APREN</td><td>RTRI/2025/00142</td><td class="txt-right">16</td><td class="txt-right">8</td><td class="txt-right">2</td></tr>
-        <tr><td>ZERO — Associação Sistema Terrestre Sustentável</td><td>RTRI/2025/00214</td><td class="txt-right">14</td><td class="txt-right">11</td><td class="txt-right">5</td></tr>
-      </tbody>
-    </table>
-  </div>
-  `;
-}
-
-function viewEntidades(){
-  return `
-  <div class="page-head">
-    <div><div class="page-title">Entidades RTRI</div><div class="page-sub">Cache local sincronizado com a API do RTRI da Assembleia da República · Última sincronização há 12 minutos</div></div>
-    <button class="btn primary">Forçar sincronização</button>
-  </div>
-  <div class="filters">
-    <input type="text" placeholder="Pesquisar entidade...">
-    <select><option>Todas as naturezas</option><option>Associação representativa</option><option>Empresa</option><option>Confederação</option></select>
-    <div class="sep"></div>
-    <span class="muted small">${ENTIDADES_RTRI.length} entidades · Sincronização OK</span>
-  </div>
-  <div class="card">
-    <table class="tbl">
-      <thead><tr><th>RTRI</th><th>Designação</th><th>Natureza</th><th>Estado</th><th>Última verificação</th></tr></thead>
-      <tbody>
-        ${ENTIDADES_RTRI.map(e=>`
-          <tr>
-            <td><strong>${e.rtri}</strong></td>
-            <td>${e.nome}</td>
-            <td>${e.natureza}</td>
-            <td><span class="rtri-status validado">✓ Ativo</span></td>
-            <td class="muted small">04/05/2026 09:15</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  </div>
-  `;
-}
-
-// ============ Nova FPL ============
-function viewNova(){
-  return `
-  <div class="page-head">
-    <div><div class="page-title">Nova FPL — Abertura</div><div class="page-sub">Preencha o Bloco A (identificação) e o Bloco B (origem). Validar M0 marca o início do ciclo de vida da FPL.</div></div>
-  </div>
-  <div class="bloco-section">
-    <div class="bloco-head"><div class="ttl"><div class="letra">A</div><div><h3>Bloco A · Identificação</h3></div></div></div>
-    <div class="bloco-body">
-      <div class="field-grid">
-        <div class="field"><label>Tipo de diploma *</label><select><option>Decreto-Lei</option><option>Proposta de Lei</option><option>Resolução do Conselho de Ministros (normativa)</option><option>Decreto Regulamentar</option><option>Despacho normativo</option></select></div>
-        <div class="field"><label>Área governativa proponente</label><div class="val">Ministério do Ambiente e da Energia</div></div>
-        <div class="field full"><label>Título do diploma *</label><input type="text" placeholder="Ex.: Decreto-Lei que aprova o regime jurídico de..."></div>
-        <div class="field full"><label>Título curto (para listagens)</label><input type="text" placeholder="Ex.: Comunidades de energia renovável"></div>
-        <div class="field"><label>Co-proponentes</label><select multiple style="height:80px"><option>Ministério das Finanças</option><option>Ministério da Economia</option><option>Ministério da Saúde</option><option>Ministério da Justiça</option></select></div>
-        <div class="field"><label>Regime aplicável</label><select><option>Normal</option><option>Urgente</option><option>Transposição quase-literal de ato UE</option></select></div>
-      </div>
-    </div>
-  </div>
-  <div class="bloco-section">
-    <div class="bloco-head"><div class="ttl"><div class="letra">B</div><div><h3>Bloco B · Origem e motivação</h3></div></div></div>
-    <div class="bloco-body">
-      <div class="field-grid">
-        <div class="field"><label>Tipo de origem *</label><select><option>Programa do Governo</option><option>Transposição UE</option><option>Decisão judicial</option><option>Compromisso internacional</option><option>Iniciativa do ministério</option><option>Outra</option></select></div>
-        <div class="field"><label>Referência da origem</label><input type="text" placeholder="Ex.: Eixo III, medida 4.2 / Diretiva (UE) 2024/884"></div>
-        <div class="field full"><label>Síntese do problema e solução proposta * <span class="muted small">(mínimo 200 caracteres)</span></label><textarea placeholder="Descreva resumidamente o problema que o diploma visa resolver e a solução proposta..."></textarea></div>
-        <div class="field"><label>Existe avaliação prévia de impacto?</label><div><label class="muted"><input type="radio" name="avp"> Sim</label> <label class="muted"><input type="radio" name="avp"> Não</label></div></div>
-      </div>
-    </div>
-  </div>
-  <div class="flex gap-12 mt-12" style="justify-content:flex-end">
-    <button class="btn" onclick="setView('lista')">Cancelar</button>
-    <button class="btn">Guardar rascunho</button>
-    <button class="btn primary">Criar FPL e validar M0</button>
-  </div>
-  `;
-}
-
-// ============ Portal Público ============
-function viewPublico(){
-  const publicadas = FPLS.filter(f=>f.estado==='PUBLICADO');
-  return `
-  <div class="public-hero">
-    <h1>Pegada Legislativa do Governo</h1>
-    <p>Portal público de transparência sobre o processo legislativo. Aqui pode consultar todas as Fichas de Pegada Legislativa publicadas, com a integralidade das interações com representantes de interesses, contributos da consulta pública e decisões de incorporação tomadas pelo Governo.</p>
-    <div class="stats">
-      <div class="it"><strong>87</strong>FPL publicadas em 2026</div>
-      <div class="it"><strong>1.247</strong>Interações documentadas</div>
-      <div class="it"><strong>284</strong>Entidades interlocutadas</div>
-      <div class="it"><strong>15</strong>Ministérios</div>
-    </div>
-  </div>
-
-  <div class="public-search">
-    <input type="text" placeholder="Pesquise por palavra-chave, número de processo, entidade ou ministério...">
-    <select><option>Todos os tipos</option><option>Decreto-Lei</option><option>Proposta de Lei</option><option>RCM</option></select>
-    <select><option>Todos os ministérios</option>${GABINETES.map(g=>`<option>${g.sigla}</option>`).join('')}</select>
-    <select><option>2026</option><option>2025</option></select>
-    <button class="btn primary">Pesquisar</button>
-    <button class="btn ghost">↓ Descarregar dataset</button>
-  </div>
-
-  <div class="grid-2">
-    <div>
-      <div class="card mb-12">
-        <div class="card-head"><h3>FPL recentemente publicadas</h3></div>
-        <table class="tbl">
-          <tbody>
-            ${publicadas.map(f=>`
-              <tr onclick="setView('detalhe',{fplId:'${f.id}'})">
-                <td>
-                  <div class="cell-titulo">${f.titulo}</div>
-                  <div class="muted small mt-12">${tag(f.tipo)} · ${gabineteSigla(f.gabinete)} · Publicado ${fmtData(f.marcos.M5)} · ${f.referencia_dr||''}</div>
-                </td>
-              </tr>
+            <button class="btn">+ Adicionar interação</button>
+          </div>
+          <div class="bloco-b">
+            ${f.bloco_d.map((e, i) => `
+              <div class="entrada ${i === 0 ? 'open' : ''}" id="e${i}">
+                <div class="entrada-h" onclick="document.getElementById('e${i}').classList.toggle('open')">
+                  <div class="info">
+                    <span class="ent">${e.entidade}</span>
+                    <span class="tag">${e.forma}</span>
+                    ${e.rtri ? `<span class="rtri-status">✓ ${e.rtri}</span>` : '<span class="tag" style="background:#f5e9d8;color:#5a3a00;border-color:#d8c08a">Academia</span>'}
+                  </div>
+                  <span class="data">${e.data}</span>
+                </div>
+                <div class="entrada-b">
+                  <div class="row"><span class="l">Forma</span><span>${e.forma}</span></div>
+                  <div class="row"><span class="l">Pelo Governo</span><span>${e.gov.join('; ')}</span></div>
+                  <div class="row"><span class="l">Objeto</span><span>${e.objeto}</span></div>
+                  <div class="row"><span class="l">Síntese da posição</span><span>${e.sintese}</span></div>
+                  <div class="divider-pl"></div>
+                  <div class="row"><span class="l">Decisão</span><span><strong>${e.decisao}</strong></span></div>
+                  <div class="row"><span class="l">Justificação</span><span>${e.justificacao}</span></div>
+                </div>
+              </div>
             `).join('')}
-            <tr><td><div class="cell-titulo">Decreto-Lei n.º 30/2026, de 15-04 — Estatuto do Cuidador Informal Principal</div><div class="muted small mt-12">${tag('DL')} · MTSSS · Publicado 15/04/2026</div></td></tr>
-            <tr><td><div class="cell-titulo">Resolução do Conselho de Ministros n.º 42/2026 — Estratégia Nacional de Adaptação às Alterações Climáticas 2030</div><div class="muted small mt-12">${tag('RCM')} · MAE · Publicado 28/03/2026</div></td></tr>
-            <tr><td><div class="cell-titulo">Proposta de Lei n.º 85/XVII — Código de Processo Civil (revisão)</div><div class="muted small mt-12">${tag('PL')} · MJ · Publicado 22/03/2026</div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div>
-      <div class="card mb-12">
-        <div class="card-head"><h3>Acesso aos dados</h3></div>
-        <div class="card-body">
-          <div class="muted small mb-12">Datasets em formato aberto, atualizados diariamente:</div>
-          <div class="flex gap-8" style="flex-direction:column">
-            <a class="btn">↓ Descarregar todas as FPL (JSON)</a>
-            <a class="btn">↓ Descarregar todas as FPL (CSV)</a>
-            <a class="btn">↓ Vocabulário OCDE (JSON-LD)</a>
-            <a class="btn ghost">📡 API REST documentada (OpenAPI)</a>
-            <a class="btn ghost">📋 Política de utilização e licença</a>
           </div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-head"><h3>Sobre este portal</h3></div>
-        <div class="card-body">
-          <p class="small">A Pegada Legislativa do Governo é um instrumento de transparência criado pela Resolução do Conselho de Ministros n.º [XX]/2026, que dá execução à Lei n.º 5-A/2026 (Regime de Transparência do Lóbi).</p>
-          <p class="small mt-12">Documenta todas as consultas e interações ocorridas, na fase preparatória de cada projeto de diploma do Governo, com representantes de interesses inscritos no Registo de Transparência da AR (RTRI), bem como os contributos recolhidos em sede de consulta pública.</p>
-          <p class="small mt-12"><a href="#">Saber mais →</a></p>
-        </div>
-      </div>
     </div>
-  </div>
   `;
 }
 
-// ============ Render ============
-function render(){
-  const main = document.getElementById('main');
-  switch(currentView){
-    case 'dashboard': main.innerHTML = viewDashboard(); break;
-    case 'lista': main.innerHTML = viewLista(); break;
-    case 'nova': main.innerHTML = viewNova(); break;
-    case 'detalhe': main.innerHTML = viewDetalhe(); bindTabs(); break;
-    case 'auditoria': main.innerHTML = viewAuditoria(); break;
-    case 'dashboard-sggov': main.innerHTML = viewDashboardSggov(); break;
-    case 'entidades': main.innerHTML = viewEntidades(); break;
-    case 'publico': main.innerHTML = viewPublico(); break;
-    default: main.innerHTML = viewDashboard();
-  }
+function renderQA() {
+  return `
+    <div class="app-shell">
+      <aside class="app-side">
+        <div class="section-title">SGGOV — auditoria</div>
+        <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Auditorias QA</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> KPIs do regime</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Cache RTRI</a>
+        <div class="section-title">Análise</div>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg> Distribuição por estado</a>
+      </aside>
+      <div class="app-main">
+        <div class="app-head">
+          <div>
+            <h3>Dashboard executivo</h3>
+            <div class="subt">Visão consolidada do regime · atualizado há 2 minutos</div>
+          </div>
+          <button class="btn">Exportar relatório trimestral</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
+            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">FPL ativas</div>
+            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--gov)">312</div>
+            <div style="font-size:0.78rem;color:var(--green);margin-top:4px">+18 esta semana</div>
+          </div>
+          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
+            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Publicadas YTD</div>
+            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--gov)">87</div>
+            <div style="font-size:0.78rem;color:var(--ink-3);margin-top:4px">2026</div>
+          </div>
+          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
+            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Submissões bloqueadas</div>
+            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--red)">23</div>
+            <div style="font-size:0.78rem;color:var(--ink-3);margin-top:4px">A pegada está a funcionar</div>
+          </div>
+          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
+            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Cobertura RTRI</div>
+            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--green)">99,2%</div>
+            <div style="font-size:0.78rem;color:var(--ink-3);margin-top:4px">Validação automática</div>
+          </div>
+        </div>
+
+        <div class="bloco">
+          <div class="bloco-h">
+            <div class="ttl"><div>
+              <h4>Top 5 entidades mais interlocutadas em 2026</h4>
+              <div class="sub">Por número de interações registadas no Bloco D</div>
+            </div></div>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Entidade</th><th>RTRI</th><th>Reuniões</th><th>Diplomas</th><th>Ministérios</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Confederação da Indústria Portuguesa (CIP)</strong></td><td class="cel-num">RTRI/2025/00018</td><td>42</td><td>28</td><td>9</td></tr>
+              <tr><td><strong>CGTP</strong></td><td class="cel-num">RTRI/2025/00027</td><td>38</td><td>26</td><td>8</td></tr>
+              <tr><td><strong>União Geral de Trabalhadores</strong></td><td class="cel-num">RTRI/2025/00031</td><td>35</td><td>24</td><td>8</td></tr>
+              <tr><td><strong>Ordem dos Médicos</strong></td><td class="cel-num">RTRI/2025/00061</td><td>21</td><td>12</td><td>3</td></tr>
+              <tr><td><strong>EDP — Energias de Portugal</strong></td><td class="cel-num">RTRI/2025/00088</td><td>18</td><td>9</td><td>3</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bloco mt-16">
+          <div class="bloco-h">
+            <div class="ttl"><div>
+              <h4>Auditorias recentes · Bloco G</h4>
+              <div class="sub">Pontuação 0–100 · pedidos de correção</div>
+            </div></div>
+            <button class="btn">+ Nova amostragem</button>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>FPL</th><th>Gabinete</th><th>Pontuação</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td><strong>2026/MAE/0042</strong> Comunidades de energia</td><td>MAE</td><td><strong style="color:var(--green)">94/100</strong></td><td><span class="badge aprovado">Sem correções</span></td></tr>
+              <tr><td><strong>2026/MS/0011</strong> Partilha dados saúde</td><td>MS</td><td><strong style="color:var(--warning)">76/100</strong></td><td><span class="badge revisao">Correção pedida</span></td></tr>
+              <tr><td><strong>2026/MTSSS/0007</strong> Teletrabalho</td><td>MTSSS</td><td><strong style="color:var(--green)">91/100</strong></td><td><span class="badge aprovado">Sem correções</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-render();
+function renderPub() {
+  return `
+    <div style="padding:48px 56px;max-height:620px;overflow-y:auto">
+      <div style="text-align:center;margin-bottom:36px">
+        <span class="eyebrow">Portal público</span>
+        <h2 style="margin:14px 0 12px;font-size:2rem">Decreto-Lei das comunidades de energia renovável</h2>
+        <p class="muted" style="font-size:0.95rem">Publicado no Diário da República a 22 de abril de 2026 · DR n.º 78/2026, Série I</p>
+      </div>
+
+      <div class="bloco" style="margin-bottom:18px">
+        <div class="bloco-h"><div class="ttl"><span class="letra">A</span><div><h4>Identificação</h4></div></div></div>
+        <div class="bloco-b">
+          <div class="field-grid">
+            <div class="field"><label>Tipo de diploma</label><div class="v">Decreto-Lei</div></div>
+            <div class="field"><label>Número de processo</label><div class="v mono">2026/MAE/0042</div></div>
+            <div class="field"><label>Área governativa</label><div class="v">Ministério do Ambiente e da Energia</div></div>
+            <div class="field"><label>Aberto em</label><div class="v">10 de janeiro de 2026</div></div>
+            <div class="field full"><label>Origem e motivação</label><div class="v">Programa do Governo, Eixo III, medida 4.2 — transição energética justa.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bloco">
+        <div class="bloco-h"><div class="ttl"><span class="letra">D</span><div><h4>5 interações com representantes de interesses</h4><div class="sub">Núcleo da pegada</div></div></div></div>
+        <div class="bloco-b" style="padding:0">
+          <table class="tbl">
+            <thead><tr><th>Data</th><th>Entidade</th><th>RTRI</th><th>Forma</th><th>Decisão</th></tr></thead>
+            <tbody>
+              <tr><td class="cel-num">12/02</td><td><strong>APREN</strong></td><td class="cel-num">RTRI/2025/00142</td><td>Reunião</td><td><span class="rtri-status" style="background:#fef9e7;color:#78350f;border-color:#f3d997">Parcialmente incorporada</span></td></tr>
+              <tr><td class="cel-num">19/02</td><td><strong>EDP</strong></td><td class="cel-num">RTRI/2025/00088</td><td>Videoconferência</td><td><span class="rtri-status" style="background:#fef2f2;color:#7a1421;border-color:#f0b8b8">Não incorporada</span></td></tr>
+              <tr><td class="cel-num">26/02</td><td><strong>ZERO</strong></td><td class="cel-num">RTRI/2025/00214</td><td>Reunião</td><td><span class="rtri-status">Incorporada</span></td></tr>
+              <tr><td class="cel-num">05/03</td><td><strong>CGTP</strong></td><td class="cel-num">RTRI/2025/00027</td><td>Audiência</td><td><span class="rtri-status" style="background:#fef9e7;color:#78350f;border-color:#f3d997">Parcialmente incorporada</span></td></tr>
+              <tr><td class="cel-num">21/03</td><td><strong>Prof. António Sá da Costa</strong></td><td class="cel-num">—</td><td>Correspondência</td><td><span class="rtri-status">Incorporada</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="quote-block" style="margin:24px 0">
+        <blockquote>"O cidadão pode agora saber, antes da publicação no Diário da República, quem o Governo ouviu sobre cada diploma e que peso essas posições tiveram na versão final."</blockquote>
+        <cite>Princípio de transparência por construção</cite>
+      </div>
+
+      <div style="text-align:center;margin-top:24px">
+        <a class="btn primary" href="#">Ver ficha completa em formato JSON-LD (OCDE)</a>
+      </div>
+    </div>
+  `;
+}
+
+const renders = { pf: renderPF, qa: renderQA, pub: renderPub };
+function setRole(role) {
+  document.querySelectorAll('.demo-tab').forEach(t => {
+    const active = t.dataset.role === role;
+    t.classList.toggle('active', active);
+    t.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  demoContent.innerHTML = renders[role]();
+}
+document.querySelectorAll('.demo-tab').forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
+setRole('pf');
+
+// ============ Validação M3/M4 ============
+window.abrirValidacaoM4 = () => {
+  openModal(`
+    <div class="modal-h">
+      <h3 id="modalTitle">Validar Marco M4 — submissão para Conselho de Ministros</h3>
+      <button class="btn" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-b">
+      <div class="alert success">
+        <span class="ttl">Verificações automáticas: 5 de 5 cumpridas</span>
+        Todas as condições estão satisfeitas. Falta apenas a sua assinatura da declaração de completude (Bloco F).
+      </div>
+      <ul class="checklist">
+        <li class="ok"><div>M3 validado em 30/04/2026</div></li>
+        <li class="ok"><div>Bloco D: 5 entradas com decisão de incorporação preenchida</div></li>
+        <li class="ok"><div>Bloco E: síntese (387 caracteres) e decisão (218 caracteres)</div></li>
+        <li class="ok"><div>Sem pedidos de correção pendentes da SGGOV</div></li>
+        <li class="ok"><div>Pontuação QA: 94/100 (≥80 exigida)</div></li>
+      </ul>
+      <div class="declaracao-box">
+        Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.
+      </div>
+      <div class="alert info">
+        <span class="ttl">O sistema bloqueia se algo faltar</span>
+        Esta verificação corre no servidor antes de cada transição. Não há forma de contornar pelo cliente. É aqui que o regime se torna efetivo.
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="closeModal();alert('M4 validado em ambiente de demonstração.')">Assinar e validar M4</button>
+    </div>
+  `);
+};
+
+// Demonstração de bloqueio
+window.abrirBloqueioDemo = () => {
+  openModal(`
+    <div class="modal-h">
+      <h3>Validar M3 — exemplo de bloqueio</h3>
+      <button class="btn" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-b">
+      <div class="alert danger">
+        <span class="ttl">Não é possível validar M3 — 3 pendências bloqueantes</span>
+        O sistema impede a transição até resolver as falhas abaixo. Esta é a "submissão bloqueante" prevista no n.º 3.4 da RCM.
+      </div>
+      <ul class="checklist">
+        <li class="ok"><div>Bloco A (Identificação) completo</div></li>
+        <li class="ok"><div>Bloco B: tipo de origem definido</div></li>
+        <li class="fail"><div>Bloco B: síntese do problema (mínimo 200 caracteres)<div class="det">Atual: 87 caracteres — faltam 113</div></div></li>
+        <li class="fail"><div>Bloco D: decisão de incorporação em todas as entradas<div class="det">2 entradas pendentes: APREN, EDP</div></li>
+        <li class="fail"><div>Bloco F: declaração de completude assinada<div class="det">Assinatura pendente</div></li>
+      </ul>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="closeModal()">Voltar e corrigir</button>
+      <button class="btn primary" disabled style="opacity:0.5;cursor:not-allowed">Assinar e validar M3</button>
+    </div>
+  `);
+};
+
+window.abrirFplDetalhe = () => {
+  document.getElementById('demo').scrollIntoView({behavior:'smooth'});
+  setRole('pub');
+};
+
+// ============ Reveal on scroll ============
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ============ Floating dock ============
+const dock = document.getElementById('dock');
+const heroSection = document.querySelector('.hero');
+const footerSection = document.querySelector('.footer');
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+  const footerTop = footerSection.offsetTop - window.innerHeight;
+  dock.classList.toggle('visible', y > heroBottom && y < footerTop);
+}, { passive: true });
+
+// Botão "Tentar validar M3" no dock
+document.querySelector('#dock .dock-btn.primary').onclick = () => {
+  document.getElementById('demo').scrollIntoView({behavior:'smooth'});
+  setTimeout(() => abrirBloqueioDemo(), 800);
+};
 </script>
 </body>
 </html>
