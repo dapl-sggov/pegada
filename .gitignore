@@ -1,0 +1,33 @@
+# Dependências
+node_modules/
+package-lock.json
+
+# Base de dados local + anexos
+app/data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Variáveis de ambiente / segredos
+.env
+.env.local
+.env.production
+secrets/
+
+# Build outputs (não usados nesta v0.2 mas precaução para o futuro)
+dist/
+build/
+coverage/
