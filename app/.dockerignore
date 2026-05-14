@@ -1,0 +1,16 @@
+# Contexto de build = ./app — paths relativos a app/
+backend/node_modules
+backend/data
+**/*.sqlite
+**/*.sqlite-*
+**/.env
+**/.env.*
+!**/.env.example
+**/npm-debug.log*
+**/.DS_Store
+**/Thumbs.db
+.git
+**/*.md
+**/coverage
+**/.vscode
+**/.idea
