@@ -1,32 +1,16 @@
-// Hardening de segurança: rate limiting, CSRF (double-submit cookie),
-// security headers (Helmet-like), bloqueio de conta após N falhas.
+// security.js — Hardening: rate limiting (via cache partilhada), CSRF
+// (double-submit cookie), security headers, bloqueio de conta após N falhas.
+// API assíncrona; rate-limit usa Redis em produção (in-memory em dev).
 
 import crypto from 'node:crypto';
-import { db } from './db.js';
+import { db, cutoffISO } from './db.js';
+import { cache } from './cache.js';
+import config from './config.js';
+import { uuid } from './util.js';
 
-// Cria tabelas de segurança
-export function initSecurity() {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS tentativa_login (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT NOT NULL,
-      ip TEXT,
-      sucesso INTEGER NOT NULL,
-      timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE INDEX IF NOT EXISTS idx_tentativa_email_ts ON tentativa_login(email, timestamp DESC);
-    CREATE INDEX IF NOT EXISTS idx_tentativa_ip_ts ON tentativa_login(ip, timestamp DESC);
-
-    CREATE TABLE IF NOT EXISTS conta_bloqueada (
-      email TEXT PRIMARY KEY,
-      bloqueada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      desbloqueia_em TEXT NOT NULL,
-      motivo TEXT
-    );
-  `);
-}
-
-// ============ Security headers ============
+// ---------------------------------------------------------------------------
+// Security headers
+// ---------------------------------------------------------------------------
 export function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -34,105 +18,100 @@ export function securityHeaders(req, res, next) {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-  // CSP: bloqueia inline scripts (excepto módulos próprios), restringe origens
   res.setHeader('Content-Security-Policy', [
-    "default-src 'self'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'", // inline styles necessários para alguns componentes
-    "img-src 'self' data:",
-    "font-src 'self' data:",
-    "connect-src 'self'",
-    "frame-ancestors 'none'",
-    "form-action 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
+    "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:", "font-src 'self' data:", "connect-src 'self'",
+    "frame-ancestors 'none'", "form-action 'self'", "base-uri 'self'", "object-src 'none'",
   ].join('; '));
-  // HSTS — só ativar em produção sob TLS
-  if (process.env.NODE_ENV === 'production') {
+  if (config.isProd) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   next();
 }
 
-// ============ Rate limit (in-memory) ============
-const buckets = new Map();
-function rl(key, max, windowMs) {
-  const now = Date.now();
-  const bucket = buckets.get(key) || { hits: [], blocked_until: 0 };
-  if (bucket.blocked_until > now) return { allowed: false, retryAfter: Math.ceil((bucket.blocked_until - now) / 1000) };
-  bucket.hits = bucket.hits.filter(t => now - t < windowMs);
-  bucket.hits.push(now);
-  if (bucket.hits.length > max) {
-    bucket.blocked_until = now + windowMs;
-    buckets.set(key, bucket);
-    return { allowed: false, retryAfter: Math.ceil(windowMs / 1000) };
+// ---------------------------------------------------------------------------
+// Rate limiting — contadores na cache partilhada (Redis ou in-memory)
+// ---------------------------------------------------------------------------
+async function hit(key, max, windowSec) {
+  const n = await cache.incr('rl:' + key, windowSec);
+  if (n > max) {
+    const ttl = await cache.ttl('rl:' + key);
+    return { allowed: false, retryAfter: ttl > 0 ? ttl : windowSec };
   }
-  buckets.set(key, bucket);
   return { allowed: true };
 }
 
 export function rateLimit({ max = 100, windowMs = 60_000, keyFn = req => req.ip }) {
-  return (req, res, next) => {
-    const r = rl(keyFn(req), max, windowMs);
-    if (!r.allowed) {
-      res.setHeader('Retry-After', String(r.retryAfter));
-      return res.status(429).json({ error: 'Demasiados pedidos. Tente novamente em breve.', retry_after_s: r.retryAfter });
-    }
+  const windowSec = Math.ceil(windowMs / 1000);
+  return async (req, res, next) => {
+    try {
+      const r = await hit(keyFn(req), max, windowSec);
+      if (!r.allowed) {
+        res.setHeader('Retry-After', String(r.retryAfter));
+        return res.status(429).json({ error: 'Demasiados pedidos. Tente novamente em breve.', retry_after_s: r.retryAfter });
+      }
+    } catch { /* cache indisponível: não bloqueia o serviço */ }
     next();
   };
 }
 
-// Rate limit específico para login (mais agressivo + por email)
-export function rateLimitLogin(req, res, next) {
-  const email = (req.body?.email || '').toLowerCase();
-  const ipKey = 'login:ip:' + req.ip;
-  const emailKey = 'login:email:' + email;
-  const r1 = rl(ipKey, 20, 5 * 60_000); // 20 / 5min por IP
-  const r2 = rl(emailKey, 5, 5 * 60_000); // 5 / 5min por email
-  if (!r1.allowed || !r2.allowed) {
-    return res.status(429).json({ error: 'Demasiadas tentativas. Tente novamente em 5 minutos.' });
-  }
+export async function rateLimitLogin(req, res, next) {
+  try {
+    const email = (req.body?.email || '').toLowerCase();
+    const r1 = await hit('login:ip:' + req.ip, 20, 300);
+    const r2 = await hit('login:email:' + email, 5, 300);
+    if (!r1.allowed || !r2.allowed) {
+      return res.status(429).json({ error: 'Demasiadas tentativas. Tente novamente em 5 minutos.' });
+    }
+  } catch { /* idem */ }
   next();
 }
 
-// ============ Tentativas + bloqueio de conta ============
+// ---------------------------------------------------------------------------
+// Tentativas de login + bloqueio de conta
+// ---------------------------------------------------------------------------
 const MAX_LOGIN_FAILS = 8;
 const LOCK_MINUTES = 30;
 
-export function registarTentativaLogin(email, ip, sucesso) {
-  db.prepare('INSERT INTO tentativa_login (email, ip, sucesso) VALUES (?, ?, ?)').run(email, ip || null, sucesso ? 1 : 0);
-  // Limpa antigas (>7 dias)
-  db.prepare("DELETE FROM tentativa_login WHERE timestamp < datetime('now','-7 days')").run();
+export async function registarTentativaLogin(email, ip, sucesso) {
+  await db.run(
+    'INSERT INTO tentativa_login (id, email, ip, sucesso) VALUES (?, ?, ?, ?)',
+    [uuid(), email, ip || null, sucesso ? 1 : 0]
+  );
+  // limpa antigas (retenção configurável)
+  await db.run('DELETE FROM tentativa_login WHERE timestamp < ?', [cutoffISO({ days: config.retention.tentativasLoginDias })]);
   if (sucesso) {
-    // limpa bloqueio se existir
-    db.prepare('DELETE FROM conta_bloqueada WHERE email = ?').run(email);
+    await db.run('DELETE FROM conta_bloqueada WHERE email = ?', [email]);
     return;
   }
-  // Conta falhas recentes
-  const fails = db.prepare(`
-    SELECT COUNT(*) as n FROM tentativa_login
-    WHERE email = ? AND sucesso = 0 AND timestamp > datetime('now','-30 minutes')
-  `).get(email).n;
-  if (fails >= MAX_LOGIN_FAILS) {
+  const fails = await db.get(
+    'SELECT COUNT(*) as n FROM tentativa_login WHERE email = ? AND sucesso = 0 AND timestamp > ?',
+    [email, cutoffISO({ minutes: 30 })]
+  );
+  if (fails && fails.n >= MAX_LOGIN_FAILS) {
     const desbloqueia = new Date(Date.now() + LOCK_MINUTES * 60_000).toISOString();
-    db.prepare(`
-      INSERT OR REPLACE INTO conta_bloqueada (email, desbloqueia_em, motivo)
-      VALUES (?, ?, ?)
-    `).run(email, desbloqueia, `${MAX_LOGIN_FAILS} tentativas falhadas em 30 min`);
+    await db.run(
+      `INSERT INTO conta_bloqueada (email, desbloqueia_em, motivo)
+       VALUES (?, ?, ?)
+       ON CONFLICT (email) DO UPDATE SET desbloqueia_em = excluded.desbloqueia_em, motivo = excluded.motivo, bloqueada_em = CURRENT_TIMESTAMP`,
+      [email, desbloqueia, `${MAX_LOGIN_FAILS} tentativas falhadas em 30 min`]
+    );
   }
 }
 
-export function contaBloqueada(email) {
-  const r = db.prepare('SELECT * FROM conta_bloqueada WHERE email = ?').get(email);
+export async function contaBloqueada(email) {
+  const r = await db.get('SELECT * FROM conta_bloqueada WHERE email = ?', [email]);
   if (!r) return null;
   if (new Date(r.desbloqueia_em) < new Date()) {
-    db.prepare('DELETE FROM conta_bloqueada WHERE email = ?').run(email);
+    await db.run('DELETE FROM conta_bloqueada WHERE email = ?', [email]);
     return null;
   }
   return r;
 }
 
-// ============ CSRF (double-submit cookie) ============
+// ---------------------------------------------------------------------------
+// CSRF (double-submit cookie)
+// ---------------------------------------------------------------------------
 const CSRF_COOKIE = 'fpl_csrf';
 const CSRF_HEADER = 'x-csrf-token';
 
@@ -141,11 +120,8 @@ export function ensureCsrfToken(req, res, next) {
   if (!token) {
     token = crypto.randomBytes(24).toString('base64url');
     res.cookie(CSRF_COOKIE, token, {
-      httpOnly: false, // tem de ser legível pelo JS para ser enviado no header
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 8 * 60 * 60 * 1000,
-      path: '/',
+      httpOnly: false, sameSite: 'lax', secure: config.auth.cookieSecure,
+      maxAge: 8 * 60 * 60 * 1000, path: '/',
     });
   }
   req.csrfToken = token;
@@ -154,11 +130,10 @@ export function ensureCsrfToken(req, res, next) {
 
 export function requireCsrf(req, res, next) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-  // Login + endpoints públicos: dispensa
   if (req.path.startsWith('/auth/login')) return next();
   if (req.path.startsWith('/publico/')) return next();
-  // hooks externos têm autenticação por chave (separada)
-  if (req.path.startsWith('/hooks/')) return next();
+  if (req.path.startsWith('/export/')) return next(); // leitura por papéis SGGOV
+  if (req.path.startsWith('/hooks/')) return next();   // autenticação por chave própria
   const cookie = req.cookies?.[CSRF_COOKIE];
   const header = req.headers[CSRF_HEADER];
   if (!cookie || !header || cookie !== header) {
