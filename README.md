@@ -56,6 +56,30 @@ node src/server.js   # arranca em http://localhost:3717
 
 Abrir http://localhost:3717 no navegador.
 
+### 3. Stack completa com Docker (infraestrutura-alvo CEGER)
+
+A partir da v0.2 existe orquestração que reflete a infraestrutura de produção
+(PostgreSQL + Redis + MinIO + app), preparada para migração para o CEGER:
+
+```bash
+cp .env.example .env       # ajustar segredos (JWT_SECRET, CL_WEBHOOK_KEY, passwords)
+docker compose up -d       # sobe postgres + redis + minio + app
+```
+
+- App em `http://localhost:3717`
+- Consola MinIO em `http://localhost:9001`
+- Consola SQL (Adminer): `docker compose --profile tools up -d adminer` → `http://localhost:8080`
+
+> **Estado da migração:** a Fase 1 (infraestrutura: `config.js` 12-factor,
+> `docker-compose.yml`, `Dockerfile`, `release.yml`, runbook `docs/06_Operacao.md`)
+> está concluída. A Fase 2 — refactor do código de SQLite síncrono para
+> PostgreSQL/MinIO/Redis assíncronos — está documentada e em curso num branch
+> dedicado. Até estar concluída, o `node src/server.js` continua a usar SQLite
+> (modo legado), controlado pela flag `DB_FORCE_SQLITE`.
+
+Ver **[`docs/06_Operacao.md`](docs/06_Operacao.md)** para o runbook completo
+de instalação, backup, observabilidade e go-live no CEGER.
+
 ### Utilizadores de demonstração
 
 Todos com password `demo1234`:
