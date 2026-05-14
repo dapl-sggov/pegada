@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'mock/**'
+      - 'demo/**'
       - 'docs/**'
       - 'README.md'
       - '.github/workflows/pages.yml'
@@ -29,6 +30,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -r mock _site/mock
+          cp -r demo _site/demo
           cp -r docs _site/docs
           cp README.md _site/README.md
           # Landing page que aponta para o mock
@@ -77,11 +79,17 @@ jobs:
               </div>
             </header>
             <main>
+              <a href="demo/" class="card" style="display:block;border-color:var(--gov-blue);border-width:2px;margin-bottom:24px;background:linear-gradient(135deg,#fff 0%,#f4f7fc 100%)">
+                <span class="demo-tag" style="background:var(--gov-blue);color:#fff">Recomendado · Plataforma completa</span>
+                <h2 style="font-size:22px">Demonstração interativa autónoma</h2>
+                <p style="font-size:15px;max-width:640px">Simulação completa da aplicação FPL Ponte — entre por perfil (Ponto Focal, SGGOV, Cidadão), crie fichas, preencha os blocos A–G, valide marcos M0–M5 com verificação real, emita comprovativos criptográficos e veja o Portal do Governo. Corre 100% no seu navegador, com estado guardado localmente. Sem servidor, sem instalação.</p>
+                <span class="btn" style="font-size:15px">Abrir a demonstração interativa →</span>
+              </a>
               <div class="grid">
                 <a href="mock/" class="card">
                   <div class="icon">▶</div>
-                  <h2>Mock interativo</h2>
-                  <p>Demonstração visual completa para apresentação aos decisores políticos. Comutador de papéis (Ponto Focal / SGGOV / Cidadão), 3 dashboards, fluxo M0–M5 com bloqueio, portal público.</p>
+                  <h2>Mock institucional</h2>
+                  <p>Página de apresentação para decisores políticos: narrativa do regime, fluxo M0–M5, comprovativo criptográfico e demo embebida das 3 perspetivas.</p>
                   <span class="btn">Abrir o mock →</span>
                 </a>
                 <a href="docs/01_Analise_Critica.md" class="card">
@@ -118,8 +126,8 @@ jobs:
               <div class="info">
                 <h2>Sobre esta página</h2>
                 <p>Esta é uma página de demonstração técnica, hospedada em GitHub Pages a partir do repositório <code>dapl-sggov/pegada</code>. Não substitui qualquer comunicação oficial do Governo.</p>
-                <p>O <strong>mock interativo</strong> funciona inteiramente no seu navegador, sem servidor. Os dados exibidos são fictícios, criados para fins ilustrativos.</p>
-                <p>O <strong>sistema funcional completo</strong> (backend Node.js + SQLite) deve ser executado localmente seguindo as instruções do README — não está disponível online por razões de soberania de dados.</p>
+                <p>A <strong>demonstração interativa autónoma</strong> e o <strong>mock institucional</strong> funcionam inteiramente no seu navegador, sem servidor. Os dados exibidos são fictícios, criados para fins ilustrativos. Na demonstração interativa, o estado é guardado apenas no seu navegador (localStorage) — pode reiniciá-lo a qualquer momento.</p>
+                <p>O <strong>sistema funcional completo</strong> (backend Node.js + SQLite/PostgreSQL) deve ser executado localmente seguindo as instruções do README — não está disponível online por razões de soberania de dados.</p>
               </div>
             </main>
             <footer>

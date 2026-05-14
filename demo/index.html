@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Demonstração interativa autónoma da Pegada Legislativa do Governo — corre inteiramente no navegador, com dados fictícios.">
+<meta name="theme-color" content="#1d3461">
+<title>FPL · Demonstração Interativa — Pegada Legislativa do Governo</title>
+<link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<div id="app" aria-live="polite">
+  <div class="boot">
+    <div class="boot-crest" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L4 5 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V5 Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="11" r="2.5" fill="currentColor"/></svg>
+    </div>
+    <div class="boot-spinner"></div>
+    <p>A iniciar a demonstração…</p>
+  </div>
+</div>
+<div id="toasts" class="toast-stack" aria-live="assertive"></div>
+<div id="modal-root"></div>
+<script src="demo.js"></script>
+</body>
+</html>
