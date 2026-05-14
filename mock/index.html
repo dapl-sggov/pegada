@@ -927,6 +927,68 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin: 16px 0;
 }
 
+/* === Comprovativo criptográfico === */
+.comprovativo-code {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  background: var(--gov-dark);
+  color: #e7eaf0;
+  padding: 14px 16px;
+  border-radius: var(--r);
+  word-break: break-all;
+  line-height: 1.8;
+  border: 1px solid var(--gov);
+}
+.comprovativo-code .seg-h { color: #8fb4e8; }
+.comprovativo-code .seg-p { color: #e7eaf0; }
+.comprovativo-code .seg-s { color: var(--accent); }
+.comprovativo-meta {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  font-size: 0.78rem; color: var(--ink-3); margin-top: 10px;
+}
+.comprovativo-meta b { color: var(--ink-2); font-weight: 600; }
+.cmp-flow {
+  display: flex; align-items: stretch; gap: 8px; margin: 18px 0;
+}
+.cmp-flow .node {
+  flex: 1; border: 1px solid var(--line); border-radius: var(--r);
+  padding: 14px 12px; text-align: center; background: var(--surface-2);
+}
+.cmp-flow .node .ic {
+  width: 32px; height: 32px; margin: 0 auto 8px;
+  border-radius: 50%; background: var(--gov); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.cmp-flow .node .ic svg { width: 17px; height: 17px; }
+.cmp-flow .node.smartlegis .ic { background: var(--accent); color: #2a1f00; }
+.cmp-flow .node .t { font-size: 0.82rem; font-weight: 600; }
+.cmp-flow .node .d { font-size: 0.72rem; color: var(--ink-3); margin-top: 3px; line-height: 1.4; }
+.cmp-flow .arrow {
+  display: flex; align-items: center; color: var(--ink-4);
+  font-size: 0.7rem; font-weight: 600; padding: 0 2px;
+}
+.cmp-list { width: 100%; }
+.cmp-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-bottom: 1px solid var(--line-2); font-size: 0.85rem;
+}
+.cmp-row:last-child { border-bottom: none; }
+.cmp-row .marco-dot {
+  width: 30px; height: 30px; flex-shrink: 0; border-radius: 6px;
+  background: var(--gov); color: #fff; font-family: var(--mono);
+  font-weight: 700; font-size: 0.78rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.cmp-row .marco-dot.pend { background: var(--surface-2); color: var(--ink-4); border: 1px dashed var(--line); }
+.cmp-row .jti { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-3); }
+.cmp-badge {
+  font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cmp-badge.valido { background: #d8f5e3; color: #0a4520; }
+.cmp-badge.pend { background: var(--surface-2); color: var(--ink-4); }
+.cmp-badge.verificado { background: var(--gov); color: #fff; }
+
 /* === Public portal === */
 .public-shell {
   background: var(--surface);
@@ -1381,7 +1443,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   <div class="section-header reveal">
     <span class="eyebrow">Demonstração interactiva</span>
     <h2>A mesma ficha, vista por três olhos</h2>
-    <p>Toda a aplicação serve três audiências em simultâneo. Mude de perspectiva clicando nas abas abaixo — pode também tentar validar o marco M3 e ver o sistema bloquear (botão dentro da vista do ponto focal).</p>
+    <p>Toda a aplicação serve três audiências em simultâneo. Mude de perspectiva clicando nas abas abaixo. Na vista do ponto focal pode <strong>validar o marco M4 e ver o comprovativo criptográfico ser emitido</strong>; no dock flutuante pode também tentar validar um marco incompleto e ver o sistema bloquear.</p>
   </div>
   <div class="demo-app reveal" role="region" aria-label="Demonstração da aplicação">
     <div class="demo-tabbar" role="tablist">
@@ -1710,6 +1772,40 @@ function renderPF() {
             `).join('')}
           </div>
         </div>
+
+        <div class="bloco">
+          <div class="bloco-h">
+            <div class="ttl">
+              <span class="letra" style="background:var(--accent);color:#2a1f00">⚿</span>
+              <div>
+                <h4>Comprovativos criptográficos</h4>
+                <div class="sub">Emitidos a cada marco bloqueante · copiados para o SmartLegis</div>
+              </div>
+            </div>
+          </div>
+          <div class="cmp-list">
+            <div class="cmp-row">
+              <span class="marco-dot">M0</span>
+              <div style="flex:1"><strong>Abertura</strong><div class="jti">cmp_M0-a3F27Kx9bMnQ · emitido 10/01/2026</div></div>
+              <span class="cmp-badge verificado">Verificado pelo SmartLegis</span>
+            </div>
+            <div class="cmp-row">
+              <span class="marco-dot">M3</span>
+              <div style="flex:1"><strong>Pré-RSE</strong><div class="jti">cmp_M3-9fK2bL7xQw4p · emitido 30/04/2026</div></div>
+              <span class="cmp-badge verificado">Verificado pelo SmartLegis</span>
+            </div>
+            <div class="cmp-row">
+              <span class="marco-dot pend">M4</span>
+              <div style="flex:1"><strong>Pré-CM</strong><div class="jti">Será emitido ao validar M4</div></div>
+              <span class="cmp-badge pend">Pendente</span>
+            </div>
+            <div class="cmp-row">
+              <span class="marco-dot pend">M5</span>
+              <div style="flex:1"><strong>Publicação</strong><div class="jti">Será emitido após aprovação em CM</div></div>
+              <span class="cmp-badge pend">Pendente</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -1723,6 +1819,8 @@ function renderQA() {
         <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Auditorias QA</a>
         <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> KPIs do regime</a>
         <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Cache RTRI</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Comprovativos</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Exportar p/ Portal Gov</a>
         <div class="section-title">Análise</div>
         <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg> Distribuição por estado</a>
       </aside>
@@ -1794,6 +1892,25 @@ function renderQA() {
             </tbody>
           </table>
         </div>
+
+        <div class="bloco mt-16">
+          <div class="bloco-h">
+            <div class="ttl"><div>
+              <h4>Comprovativos criptográficos · últimas emissões</h4>
+              <div class="sub">Cada marco bloqueante (M0/M3/M4/M5) emite um JWS Ed25519 verificável offline pelo SmartLegis</div>
+            </div></div>
+            <button class="btn" onclick="mostrarFluxoComprovativo()">Como funciona</button>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>FPL</th><th>Marco</th><th>Identificador (jti)</th><th>Emitido</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td><strong>2026/MAE/0042</strong></td><td>M3</td><td class="cel-num">cmp_M3-9fK2bL7xQw4p</td><td class="cel-num">30/04/2026</td><td><span class="cmp-badge verificado">Verificado</span></td></tr>
+              <tr><td><strong>2026/MTSSS/0007</strong></td><td>M4</td><td class="cel-num">cmp_M4-3pR8vN2kHy6t</td><td class="cel-num">25/04/2026</td><td><span class="cmp-badge verificado">Verificado</span></td></tr>
+              <tr><td><strong>2026/MJ/0058</strong></td><td>M5</td><td class="cel-num">cmp_M5-7wQx1aF9bL3m</td><td class="cel-num">22/04/2026</td><td><span class="cmp-badge verificado">Verificado</span></td></tr>
+              <tr><td><strong>2026/ME/0019</strong></td><td>M0</td><td class="cel-num">cmp_M0-5kT2yB8nQp1r</td><td class="cel-num">02/05/2026</td><td><span class="cmp-badge valido">Válido</span></td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -1803,9 +1920,14 @@ function renderPub() {
   return `
     <div style="padding:48px 56px;max-height:620px;overflow-y:auto">
       <div style="text-align:center;margin-bottom:36px">
-        <span class="eyebrow">Portal público</span>
+        <span class="eyebrow">Portal do Governo · ao lado da Agenda Pública</span>
         <h2 style="margin:14px 0 12px;font-size:2rem">Decreto-Lei das comunidades de energia renovável</h2>
         <p class="muted" style="font-size:0.95rem">Publicado no Diário da República a 22 de abril de 2026 · DR n.º 78/2026, Série I</p>
+      </div>
+
+      <div class="alert info" style="margin-bottom:24px">
+        <span class="ttl">Como esta ficha chegou aqui</span>
+        Após o marco M5, a aplicação FPL — que opera confinada à Rede Informática do Governo — exportou um pacote estruturado que foi transferido para o Portal do Governo. Aqui fica acessível ao público, sem login, ao lado da Agenda Pública dos membros do Governo.
       </div>
 
       <div class="bloco" style="margin-bottom:18px">
@@ -1861,7 +1983,7 @@ function setRole(role) {
 document.querySelectorAll('.demo-tab').forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
 setRole('pf');
 
-// ============ Validação M3/M4 ============
+// ============ Validação M3/M4 + comprovativo ============
 window.abrirValidacaoM4 = () => {
   openModal(`
     <div class="modal-h">
@@ -1871,10 +1993,10 @@ window.abrirValidacaoM4 = () => {
     <div class="modal-b">
       <div class="alert success">
         <span class="ttl">Verificações automáticas: 5 de 5 cumpridas</span>
-        Todas as condições estão satisfeitas. Falta apenas a sua assinatura da declaração de completude (Bloco F).
+        Todas as condições estão satisfeitas. Falta a sua assinatura da declaração de completude (Bloco F). Ao assinar, o sistema emite o <strong>comprovativo criptográfico de M4</strong>.
       </div>
       <ul class="checklist">
-        <li class="ok"><div>M3 validado em 30/04/2026</div></li>
+        <li class="ok"><div>M3 validado em 30/04/2026 — comprovativo emitido e verificado</div></li>
         <li class="ok"><div>Bloco D: 5 entradas com decisão de incorporação preenchida</div></li>
         <li class="ok"><div>Bloco E: síntese (387 caracteres) e decisão (218 caracteres)</div></li>
         <li class="ok"><div>Sem pedidos de correção pendentes da SGGOV</div></li>
@@ -1884,16 +2006,71 @@ window.abrirValidacaoM4 = () => {
         Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.
       </div>
       <div class="alert info">
-        <span class="ttl">O sistema bloqueia se algo faltar</span>
-        Esta verificação corre no servidor antes de cada transição. Não há forma de contornar pelo cliente. É aqui que o regime se torna efetivo.
+        <span class="ttl">Enforcement por comprovativo criptográfico</span>
+        A validação corre no servidor. Cumprida, o sistema emite um JWS assinado (Ed25519) que o ponto focal cola no SmartLegis — que o verifica offline e só então deixa o diploma avançar. Sem comprovativo válido, a tramitação fica bloqueada.
       </div>
     </div>
     <div class="modal-f">
       <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn primary" onclick="closeModal();alert('M4 validado em ambiente de demonstração.')">Assinar e validar M4</button>
+      <button class="btn primary" onclick="emitirComprovativo('M4')">Assinar e validar M4</button>
     </div>
   `);
 };
+
+// Comprovativo emitido após validação de um marco bloqueante
+window.emitirComprovativo = (marco) => {
+  const jtis = { M0: 'cmp_M0-a3F27Kx9bMnQ', M3: 'cmp_M3-9fK2bL7xQw4p', M4: 'cmp_M4-3pR8vN2kHy6t', M5: 'cmp_M5-7wQx1aF9bL3m' };
+  const jti = jtis[marco] || 'cmp_' + marco + '-7Kx9bMnQ';
+  openModal(`
+    <div class="modal-h">
+      <h3 id="modalTitle">${marco} validado — comprovativo criptográfico emitido</h3>
+      <button class="btn" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-b">
+      <div class="alert success">
+        <span class="ttl">Marco ${marco} validado em ambiente de demonstração</span>
+        O sistema gerou o comprovativo abaixo. Copie-o e cole-o no campo correspondente do SmartLegis.
+      </div>
+      <div class="comprovativo-code">
+        <span class="seg-h">eyJhbGciOiJFZERTQSIsInR5cCI6ImZwbC1jb21wcm92YXRpdm8ran9zIiwia2lkIjoiZnBsLTIwMjYtMDEifQ</span>.<span class="seg-p">eyJpc3MiOiJmcGwuc2dnb3YucmluZyIsInN1YiI6IjIwMjYvTUFFLzAwNDIiLCJtYXJjbyI6Ii${marco}IiwiamlkIjoi${jti}In0</span>.<span class="seg-s">k7Qx9aF2bLnQmR4vP8wZ3yT6sN1uH0eK5cB7dG2fXa9JpYrW3M8tL4QvciZoExS</span>
+      </div>
+      <div class="comprovativo-meta">
+        <span><b>Algoritmo</b> EdDSA (Ed25519)</span>
+        <span><b>Emissor</b> fpl.sggov.ring</span>
+        <span><b>Marco</b> ${marco}</span>
+        <span><b>jti</b> ${jti}</span>
+        <span><b>kid</b> fpl-2026-01</span>
+      </div>
+      <div class="cmp-flow">
+        <div class="node">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+          <div class="t">FPL</div><div class="d">Emite o JWS assinado</div>
+        </div>
+        <div class="arrow">copia ▶</div>
+        <div class="node">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="t">Ponto focal</div><div class="d">Cola no SmartLegis</div>
+        </div>
+        <div class="arrow">cola ▶</div>
+        <div class="node smartlegis">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7z"/></svg></div>
+          <div class="t">SmartLegis</div><div class="d">Verifica offline com a chave pública</div>
+        </div>
+      </div>
+      <div class="alert info">
+        <span class="ttl">Verificação offline, sem chamada de rede</span>
+        O SmartLegis valida a assinatura com a chave pública partilhada. Não há integração síncrona entre os sistemas — o <em>handoff</em> é máquina-a-máquina. Sem comprovativo válido, o SmartLegis bloqueia a progressão.
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="closeModal()">Fechar</button>
+      <button class="btn primary" onclick="closeModal()">Copiar comprovativo</button>
+    </div>
+  `);
+};
+
+// Fluxo do comprovativo (a partir do dashboard SGGOV)
+window.mostrarFluxoComprovativo = () => emitirComprovativo('M3');
 
 // Demonstração de bloqueio
 window.abrirBloqueioDemo = () => {
@@ -1905,7 +2082,7 @@ window.abrirBloqueioDemo = () => {
     <div class="modal-b">
       <div class="alert danger">
         <span class="ttl">Não é possível validar M3 — 3 pendências bloqueantes</span>
-        O sistema impede a transição até resolver as falhas abaixo. Esta é a "submissão bloqueante" prevista no n.º 3.4 da RCM.
+        O sistema impede a validação até resolver as falhas abaixo. Sem validação <strong>não é emitido comprovativo criptográfico</strong> — e sem comprovativo, o SmartLegis bloqueia a tramitação (RCM v2, n.º 4).
       </div>
       <ul class="checklist">
         <li class="ok"><div>Bloco A (Identificação) completo</div></li>
@@ -1914,6 +2091,10 @@ window.abrirBloqueioDemo = () => {
         <li class="fail"><div>Bloco D: decisão de incorporação em todas as entradas<div class="det">2 entradas pendentes: APREN, EDP</div></li>
         <li class="fail"><div>Bloco F: declaração de completude assinada<div class="det">Assinatura pendente</div></li>
       </ul>
+      <div class="alert info">
+        <span class="ttl">É aqui que o regime se torna efetivo</span>
+        Não há forma de contornar pelo cliente. O comprovativo só existe se a FPL estiver validada — e o SmartLegis só deixa avançar com comprovativo válido.
+      </div>
     </div>
     <div class="modal-f">
       <button class="btn" onclick="closeModal()">Voltar e corrigir</button>
