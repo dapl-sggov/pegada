@@ -1,8 +1,26 @@
 # Plano de Implementação — FPL Ponte v1.0
 
-**Cronograma alvo:** Maio–Julho 2026 (12 semanas)
-**Equipa-base:** 1 tech lead + 2 backend + 2 frontend + 1 DevOps + 1 QA + 0,5 UX (≈7,5 FTE)
-**Filosofia:** *deliver early, iterate*. v1.0 deliberadamente minimalista; v2.0 e v3.0 nos meses seguintes.
+**Versão:** 2.0 — Maio 2026 (revista após decisões do Memorando Executivo e da RCM v2)
+**Cronograma:** 11 semanas até ao go-live obrigatório de 27 de julho de 2026
+**Equipa:** 7–8 FTE internos SGGOV (ver Nota de Capacidade SGGOV) · gestão exclusivamente SGGOV
+**Filosofia:** *deliver early, iterate* — v1.0 deliberadamente minimalista; v2.0 e v3.0 nos meses seguintes.
+
+> **Nota de versão.** Esta v2.0 alinha o plano com as decisões dos documentos de decisão: confinamento à RING (sai a federação OIDC), acoplamento por comprovativo criptográfico (entra um marco de engenharia novo), publicação no Portal do Governo (o portal público sai da app e dá lugar a um módulo de exportação), gestão exclusivamente SGGOV (sai o procedimento de contratação de desenvolvimento). Ver `docs/07_Adaptacao_Brainstorming.md`.
+
+---
+
+## Calendário macro
+
+| Marco | Evento |
+|---|---|
+| Arranque | Equipa formalmente afeta; ambientes provisionados na RING |
+| ~Semana 7 | Núcleo funcional em staging; especificação do comprovativo fechada com a equipa SmartLegis; formação dos pontos focais iniciada |
+| ~Semana 10 | Pen-test externo concluído; piloto com dois ministérios |
+| ~Semana 11 | Go-live em modo "sombra"; formação concluída |
+| **27 julho 2026** | **Entrada em vigor obrigatória** — prazo legal, sem prorrogação. Aplicação plenamente operacional |
+
+O processo de decisão política que antecede o arranque consta dos documentos
+de decisão da SGGOV (documentação interna, não versionada neste repositório).
 
 ---
 
@@ -10,282 +28,124 @@
 
 | # | Marco | Semana | Critério de aceitação |
 |---|---|---|---|
-| E1 | Setup técnico | 1 | Repos, CI, ambientes dev/staging operacionais |
-| E2 | Fundações de domínio | 2 | Modelo de dados implementado, migrations, seed |
-| E3 | Auth + RBAC | 2-3 | Login, sessões, papéis, escopo por gabinete |
-| E4 | Núcleo CRUD FPL | 3-4 | Criar FPL, editar Bloco A+B, listar, ler |
-| E5 | Workflow + marcos | 4-5 | M0..M5 com validações server-side; estados na DB |
-| E6 | Bloco D + RTRI mock | 5-6 | Adicionar interações, validar com mock RTRI local |
-| E7 | Frontend MVP | 4-7 (paralelo) | UI completa para fluxo M0→M5 |
-| E8 | Anexos + auditoria | 6-7 | Upload, download, log de eventos |
-| E9 | Notificações | 7 | Email transacional ou queue local |
-| E10 | Bloco G (auditoria QA) | 8 | Pontuação, pedido de correção |
-| E11 | Portal público | 8-9 | Lista + detalhe FPL publicadas |
-| E12 | Hardening segurança | 9-10 | OWASP, headers, rate limit, pen-test interno |
-| E13 | Performance + observabilidade | 10 | Métricas, dashboards, SLOs medidos |
-| E14 | Acessibilidade WCAG 2.2 AA | 10-11 | Auditoria axe-core sem failures |
-| E15 | Pen-test externo | 11 | Findings críticos resolvidos |
-| E16 | Piloto 2 ministérios | 11 | Cenários reais executados em staging |
-| E17 | Go-live produção | 12 | Sistema em produção, formação concluída |
+| E1 | Setup técnico na RING | 1 | Repos, CI, ambientes dev/staging na RING operacionais |
+| E2 | Fundações de domínio | 2 | Modelo de dados (Postgres), migrations idempotentes, seed |
+| E3 | Auth via diretório interno + RBAC | 2-3 | Login contra diretório interno, sessões, papéis, escopo por gabinete, TOTP |
+| E4 | Núcleo CRUD FPL | 3-4 | Criar FPL, editar blocos A-E, listar, ler, versionar |
+| E5 | Workflow + marcos M0-M5 | 4-5 | Máquina de estados; validações server-side; devolução de pendências |
+| **E6** | **Comprovativo criptográfico** | **5-6** | **Emissão Ed25519 nos marcos M0/M3/M4/M5; verificação offline; JWKS; rotação de chaves. Especificação fechada com SmartLegis.** |
+| E7 | Bloco D + RTRI (fallback) | 6 | Interações externas; lookup RTRI local; modo degradado manual |
+| E8 | Frontend MVP | 4-8 (paralelo) | UI completa para o fluxo M0→M5, incluindo apresentação do comprovativo |
+| E9 | Anexos (MinIO) + auditoria | 7 | Upload S3, SHA-256, antivírus, audit log |
+| E10 | Notificações internas | 7-8 | Notificações in-app + outbox; sem dependência de SMTP externo no arranque |
+| E11 | Bloco G (auditoria QA) | 8 | Pontuação, pedido de correção, fluxo de correção; revogação de comprovativo |
+| **E12** | **Exportação para o Portal do Governo** | **8-9** | **Pacotes estruturados (JSON/JSON-LD/CSV); lote por data; vocabulário OCDE. Transferência manual operável pela SGGOV.** |
+| E13 | Hardening segurança | 9-10 | OWASP, headers, rate limit, CSRF; *threat modeling* do comprovativo |
+| E14 | Observabilidade | 10 | Métricas Prometheus, dashboards, SLOs, healthchecks |
+| E15 | Acessibilidade WCAG 2.2 AA | 10-11 | Auditoria axe-core + teste com leitor de ecrã; auditoria externa |
+| E16 | Pen-test externo | 11 | Findings críticos resolvidos; superfície reduzida pelo confinamento à RING |
+| E17 | Piloto 2 ministérios | 11 | Cenários reais em staging; recolha de feedback |
+| E18 | Go-live na RING | 12 | Sistema em produção na RING; formação concluída; modo sombra 22-27 jul |
+
+Face à v1.0 do plano: **E6 (comprovativo) é novo**; **E12 deixou de ser "portal público" e passou a "exportação"**; as tarefas de federação OIDC foram **removidas** de E3; o marco de contratação de empresa de desenvolvimento foi **removido** (gestão exclusivamente SGGOV).
 
 ---
 
-## Detalhe por marco
+## Detalhe dos marcos com maior mudança
 
-### E1 — Setup técnico (semana 1)
+### E1 — Setup técnico na RING (semana 1)
+- Repositório Git, CI (lint + smoke test), ambientes dev/staging **na RING**
+- Docker Compose: Postgres + Redis + MinIO + app (ver `docker-compose.yml`)
+- Sem provisionamento de ambiente exposto à internet — nenhuma fase do projeto o exige
+- Cofre de segredos para a chave privada Ed25519
 
-**Tarefas:**
-- Repositório Git (GitHub/GitLab) com branch protection
-- Estrutura monorepo: `backend/`, `frontend/`, `shared/`
-- CI básico: lint, typecheck, test
-- Ambiente dev local com Docker Compose (Node + Postgres + MinIO)
-- Ambiente staging provisionado (cloud nacional ou CEGER)
-- Documentação README + ARCHITECTURE.md
+### E3 — Auth via diretório interno + RBAC (semana 2-3)
+- *Adapter* de autenticação contra o **diretório interno dos serviços** (LDAP/AD)
+- No protótipo, *adapter* com utilizadores locais que simula o diretório; em produção, configuração aponta ao diretório real — sem refactor
+- TOTP obrigatório para SGGOV_ADMIN e SGGOV_QA
+- **Sem federação OIDC** — removido por decisão (confinamento à RING)
+- RBAC com escopo por gabinete
 
-**Entregáveis:** repositório operacional, build verde, ambiente dev funcional
+### E6 — Comprovativo criptográfico (semana 5-6) — MARCO NOVO
+- Módulo `comprovativo.js`: emissão e verificação
+- Geração de par de chaves Ed25519; chave privada no cofre de segredos
+- Emissão de JWS compacto nos marcos M0, M3, M4, M5
+- Cálculo de `snapshot_hash` (SHA-256 do snapshot canónico)
+- Tabelas `comprovativo` e `chave_assinatura`
+- Endpoint `GET /api/.well-known/fpl-jwks.json` (consumido pelo SmartLegis)
+- Endpoint `POST /api/comprovativos/:jti:verificar` (uso de auditoria)
+- Rotação de chaves via `kid`, sem downtime
+- Revogação por mudança de estado (`VALIDO`→`SUBSTITUIDO`)
+- **Dependência crítica:** especificação conjunta fechada com a equipa do SmartLegis até 30 de junho. Esta coordenação é feita a montante e não se repete depois do go-live.
 
-### E2 — Fundações de domínio (semana 2)
-
-**Tarefas:**
-- Migrations para todas as tabelas (Knex.js)
-- Seed de gabinetes (15-20 ministérios + estruturas)
-- Seed de papéis e utilizadores teste
-- Seed de entidades RTRI mock (50-100 entidades realistas)
-- Tipos TypeScript partilhados entre backend e frontend
-- Validadores Zod para todas as entidades
-
-### E3 — Auth + RBAC (semana 2-3)
-
-**Tarefas:**
-- Endpoint POST /api/auth/login com bcrypt
-- JWT cookie httpOnly
-- Middleware de autenticação
-- Middleware de autorização por papel + escopo de gabinete
-- TOTP opcional (speakeasy)
-- Endpoint /api/auth/me
-- Página de login no frontend
-- Logout
-- Reset de password (token email)
-
-### E4 — Núcleo CRUD FPL (semana 3-4)
-
-**Tarefas:**
-- POST /api/fpl (criar com bloco A mínimo)
-- GET /api/fpl (lista paginada com filtros: estado, gabinete, q, datas)
-- GET /api/fpl/:id (detalhe completo)
-- PATCH /api/fpl/:id (atualiza A, B, E)
-- Geração automática de número de processo (formato: ANO/SIGLA/NNNN)
-- Versionamento: cada PATCH cria entrada em versao_fpl
-- GET /api/fpl/:id/versoes
-- GET /api/fpl/:id/versoes/:n
-- Aplicação de RBAC: ponto focal só vê FPL do seu gabinete; SGGOV vê tudo
-
-### E5 — Workflow + marcos (semana 4-5)
-
-**Tarefas:**
-- Implementação da máquina de estados (state machine library ou puro)
-- POST /api/fpl/:id/marcos/:marco/validar
-- Validações por marco (ver §5 da Arquitetura)
-- Devolução estruturada de pendências (lista com path + razão) em 422
-- Eventos de auditoria por cada transição
-- Bloqueio de transição para trás (exige justificação)
-- Endpoint POST /api/fpl/:id/arquivar
-
-### E6 — Bloco D + RTRI mock (semana 5-6)
-
-**Tarefas:**
-- Tabela `entrada_bloco_d`
-- POST /api/fpl/:id/bloco-d
-- PATCH /api/fpl/:id/bloco-d/:eid
-- DELETE /api/fpl/:id/bloco-d/:eid (com auditoria)
-- Pesquisa RTRI: GET /api/rtri/entidades?q=
-- Lookup local primeiro, fallback para mock externo
-- Validação cross-field: natureza_juridica=RTRI_INSCRITO ⇒ rtri_id obrigatório
-- Marcação rtri_status=PENDENTE quando lookup falha
-- Pesquisa ranqueada por similaridade (trigram em PG, custom em SQLite)
-
-### E7 — Frontend MVP (semana 4-7, paralelo)
-
-**Tarefas:**
-- Layout base + design system com Radix UI primitives
-- Página de lista de FPL com filtros e paginação
-- Página de detalhe FPL com tabs (A, B, C, D, E, F, G)
-- Formulários para cada bloco com validação client-side (espelhada server-side)
-- Componente de timeline da FPL (versões + eventos)
-- Componente de validação de marco (mostra pendências, botão validar)
-- Componente de upload de anexos
-- Estado global: utilizador, FPL atual, lista
-- Sistema de notificações in-app (toasts)
-- Modo escuro / claro (acessibilidade)
-- Indicadores visuais de estado (badges coloridos)
-
-### E8 — Anexos + auditoria (semana 6-7)
-
-**Tarefas:**
-- POST /api/fpl/:id/anexos (multipart, max 20MB)
-- Validação de mime-type (PDF, DOCX, XLSX)
-- Cálculo SHA-256
-- Storage filesystem (dev) ou S3-compatible (prod)
-- Antivírus em fila assíncrona (ClamAV ou skip em dev)
-- GET /api/anexos/:aid (download autenticado)
-- Modal de visualização rápida no frontend (PDF inline)
-- Audit log para cada operação
-- Visão cronológica de eventos por FPL
-
-### E9 — Notificações (semana 7)
-
-**Tarefas:**
-- Configuração SMTP
-- Templates HTML + texto plano
-- Triggers:
-  - Validação de marco bloqueante: notifica GSEPCM/SGGOV conforme aplicável
-  - Pedido de correção (Bloco G): notifica ponto focal
-  - Aprovação de correção: notifica ponto focal
-  - Convite a novo utilizador
-- Fila local com retry exponencial
-- Dashboard de notificações falhadas
-
-### E10 — Bloco G (auditoria QA) (semana 8)
-
-**Tarefas:**
-- Tabela auditoria_qa
-- POST /api/fpl/:id/auditoria (apenas SGGOV_QA)
-- PATCH /api/fpl/:id/auditoria/:aid
-- Cálculo automático de pontuação assistida (alguns indicadores)
-- Estado da FPL passa a EM_REVISAO_QA quando há pedido de correção
-- Workflow de correção: ponto focal recebe, corrige, SGGOV_QA aprova
-- Página interna SGGOV de gestão de auditorias
-
-### E11 — Portal público (semana 8-9)
-
-**Tarefas:**
-- GET /api/publico/fpl (apenas estado=PUBLICADO)
-- GET /api/publico/fpl/:id (campos com visibilidade=Público)
-- Filtros: gabinete, ano, tipo, área
-- Pesquisa textual
-- Página pública sem autenticação
-- Layout institucional, branding governamental
-- Datasets agregados:
-  - GET /api/publico/datasets/fpl.json
-  - GET /api/publico/datasets/fpl.csv
-  - GET /api/publico/datasets/fpl.jsonld (vocabulário OCDE)
-- RSS de novas publicações
-- Sitemap
-
-### E12 — Hardening segurança (semana 9-10)
-
-**Tarefas:**
-- Rate limiting (express-rate-limit, Redis em produção)
-- Helmet.js para security headers
-- CSP estrito com nonces
-- Validação CSRF (double submit cookie)
-- Audit dependências (npm audit, Snyk)
-- SAST: ESLint security plugin + Semgrep
-- Logs sem PII (redaction)
-- Política de password (mínimo 12 chars, complexidade)
-- Bloqueio de conta após N tentativas
-- Testes de SQL injection, XSS, IDOR
-- Configuração de TLS 1.3 only
-
-### E13 — Performance + observabilidade (semana 10)
-
-**Tarefas:**
-- Endpoint /metrics (prom-client)
-- Métricas: latência por rota, throughput, errors, conexões DB, fila de notificações
-- Dashboards Grafana
-- Alertas: 5xx > 1%, latência P95 > 1s, fila > 100
-- Endpoint /health (DB, disk, dependências)
-- Tracing OpenTelemetry (opcional v1.0)
-- Otimização de queries (EXPLAIN, índices)
-
-### E14 — Acessibilidade WCAG 2.2 AA (semana 10-11)
-
-**Tarefas:**
-- Auditoria axe-core integrada em CI
-- Teste manual com leitor de ecrã (NVDA)
-- Foco visível em todos os elementos interativos
-- Labels associados a inputs
-- Contraste mínimo 4.5:1
-- Atalhos de teclado documentados
-- Declaração de acessibilidade publicada
-
-### E15 — Pen-test externo (semana 11)
-
-**Tarefas:**
-- Empresa externa certificada
-- Threat modeling formal
-- Testes black-box e grey-box
-- Relatório com classificação CVSS
-- Plano de correções
-- Reteste
-
-### E16 — Piloto 2 ministérios (semana 11)
-
-**Tarefas:**
-- Selecionar 2 ministérios voluntários
-- Sessão de formação (3h)
-- Dados reais em staging
-- Acompanhamento durante 1 semana
-- Recolha de feedback estruturado
-- Ajustes de UX prioritários
-
-### E17 — Go-live produção (semana 12)
-
-**Tarefas:**
-- Provisionamento final de produção
-- Migration aplicada em produção
-- Seed de produção (gabinetes, papéis, primeiros utilizadores)
-- DNS + TLS + WAF
-- Monitorização ativa
-- Runbook on-call
-- Comunicação institucional
-- Formação síncrona de pontos focais (todos)
-- Modo "shadow" 24-48h antes do hard-go-live
+### E12 — Exportação para o Portal do Governo (semana 8-9)
+- Módulo `export.js`
+- `GET /api/export/fpl/:id` — pacote de uma FPL publicada, com filtro de visibilidade
+- `GET /api/export/lote?desde=` — lote para sincronização periódica
+- `GET /api/export/datasets/fpl.{json,csv,jsonld}` — datasets agregados, JSON-LD com vocabulário OCDE
+- **Não há portal público servido pela app.** A app gera os artefactos; o Portal do Governo serve-os ao público, ao lado da Agenda Pública
+- Transferência manual operável pela SGGOV no arranque; automatização posterior
 
 ---
 
-## Decisões em aberto a fechar antes do início
+## Decisões já fechadas (não reabrir)
 
-1. **Stack final**: Node.js (recomendado para velocidade) ou Java/Spring (recomendado para alinhamento institucional)
-2. **Cloud**: nacional / CEGER on-prem / comercial soberana
-3. **Operação pós-go-live**: SGGOV interno / CEGER / fornecedor
-4. **Política de retenção**: indefinido (interesse público) ou prazo
-5. **Inclusão de Regulamentos no v1.0**: recomendado *não* — guardar para v3.0
+Os documentos de decisão fecharam o que estava em aberto na v1.0 deste plano:
 
----
-
-## Riscos do plano
-
-| Risco | Mitigação |
+| Decisão | Resolução |
 |---|---|
-| RTRI da AR não pronta | Mock local + reconciliação manual |
-| autenticação.gov.pt federação atrasa | Login local + TOTP como modo de arranque |
-| Pen-test descobre vulnerabilidades críticas | Buffer de 1 semana antes do go-live |
-| Pontos focais não aderem | Comprovativo bloqueante + auditoria SGGOV ativa |
-| Equipa de 7,5 FTE não disponível a tempo | Reduzir escopo v1.0 ainda mais; adiar Bloco G para v1.1 |
+| Stack de backend | Node.js / Express / PostgreSQL |
+| Build vs. Buy | **Build interno**, gestão exclusivamente SGGOV |
+| Infraestrutura | **RING** (gerida pela SGGOV pós-integração do CEGER) |
+| Operação pós-go-live | **SGGOV interna** |
+| Autenticação | Diretório interno + TOTP; **sem OIDC** |
+| Exposição de rede | **Confinada à RING**, acesso por VPN |
+| Bloqueio | **Comprovativo criptográfico** verificável pelo SmartLegis |
+| Publicação pública | **Portal do Governo**, ao lado da Agenda Pública |
+| Inclusão de Regulamentos | Não na v1.0 — RCM v2 n.º 2.2/2.3 prevê extensão faseada em 12 meses |
+| Retenção de dados | Indefinida para dados FPL (interesse público); logs 5 anos; sessões 30 dias |
 
 ---
 
-## v1.1 — primeiras 4 semanas pós-go-live
+## Riscos do plano (alinhados com o Memorando)
 
-- Correções de UX críticas do feedback dos pontos focais
-- Hardening adicional pós pen-test
-- Onboarding de todos os ministérios restantes
-- Estabilização de notificações
-- Otimização de performance hot-spots
+| Risco | Probabilidade | Mitigação |
+|---|:---:|---|
+| Capacidade interna SGGOV insuficiente em 12 semanas | Média | Avaliação imediata de competências; reforço pontual (1-2 FTE) por contratação direta + contrato de segurança |
+| RTRI não pronto a 27 julho | Alta | Modo *fallback* manual desenhado de origem; sem dependência crítica |
+| Especificação do comprovativo demora | Baixa | Equipas internas SGGOV; especificação fechada em maio |
+| Pen-test deteta falhas críticas | Média | Buffer de 1 semana; superfície reduzida pelo confinamento à RING |
+| Adesão dos pontos focais insuficiente | Média | Submissão bloqueante por comprovativo + formação obrigatória + QA mensal SGGOV |
+| Acessibilidade não satisfaz WCAG 2.2 AA | Baixa | Auditoria externa antes do go-live; correções iterativas |
+| Indisponibilidade transitória da VPN do Governo | Baixa | Risco operacional já gerido pelo serviço de TI do Estado; a aplicação não introduz risco novo |
 
-## v2.0 — outubro 2026
+---
 
-- Federação OIDC com autenticação.gov.pt
-- Webhook Consulta.Lex
-- Sincronização bidirecional RTRI
-- Bloco G QA automatizado
+## Faseamento pós-v1.0
+
+### v2.0 — 31 outubro 2026 — Integrações maturadas
+- Sincronização plena com o RTRI (quando a API da AR estiver disponível e contratualizada)
+- Otimização do pacote de exportação para o Portal do Governo; automatização da transferência
+- API de consulta para investigadores (a partir da RING ou via Portal do Governo)
+- Webhook Consulta.Lex (quando disponível)
 - Dashboards SGGOV completos
-- API pública JSON-LD com vocabulário OCDE
 
-## v3.0 — março 2027
+### v3.0 — 31 março 2027 — Cobertura plena
+- Suporte a Regulamentos e demais atos (RCM v2, n.º 2.2 — extensão faseada)
+- Coexistência com o SmartLegis; migração progressiva de FPL
+- Modalidades simplificadas para tipologias de baixo conteúdo discricionário
 
-- Suporte a Regulamentos
-- Federação SmartLegis (modo coexistência)
-- API para investigadores
-- Visualizações públicas avançadas
+---
+
+## Pré-condições para o arranque
+
+O cronograma de ~11 semanas só é credível com um conjunto de decisões prévias —
+aprovação política do caminho, afetação de recursos internos, abertura de canal
+formal com a AR sobre o RTRI e submissão da RCM. O detalhe, os responsáveis e os
+prazos dessas decisões constam dos documentos de decisão da SGGOV (documentação
+interna, não versionada neste repositório).
+
+O essencial para o planeamento de engenharia: **cada semana de atraso nas
+decisões prévias comprime proporcionalmente o tempo de desenvolvimento**, e existe
+uma data a partir da qual a equipa interna já não consegue ser alocada em tempo
+útil para garantir o go-live no prazo legal.

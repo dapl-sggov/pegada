@@ -1333,8 +1333,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 <section class="section" id="como">
   <div class="section-header reveal">
     <span class="eyebrow">Como funciona</span>
-    <h2>Seis marcos. Três bloqueantes. Um caminho claro.</h2>
-    <p>A ficha acompanha o ciclo de vida do diploma desde a abertura até à publicação. Em cada marco, o sistema verifica regras de completude e fundamentação. Se algo falta, o avanço é impedido.</p>
+    <h2>Seis marcos. Quatro bloqueantes. Um caminho claro.</h2>
+    <p>A ficha acompanha o ciclo de vida do diploma desde a abertura até à publicação. Em cada marco bloqueante, depois de o sistema verificar todas as regras de completude e fundamentação, é emitido um <strong>comprovativo criptográfico</strong> — que o SmartLegis verifica antes de deixar a tramitação avançar. Sem comprovativo válido, o diploma não passa.</p>
   </div>
   <div class="pipeline-block reveal">
     <div class="pipeline" role="list" aria-label="Marcos de validação M0 a M5">
@@ -1363,15 +1363,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
         <div class="lbl">Pré-CM</div>
         <div class="sub">Tudo completo</div>
       </div>
-      <div class="pl-step" role="listitem">
+      <div class="pl-step bloqueante" role="listitem">
         <div class="dot">M5</div>
         <div class="lbl">Publicação</div>
         <div class="sub">Diário da República</div>
       </div>
     </div>
     <div class="pl-legend">
-      <div class="item"><span class="swatch" style="background:var(--gov)"></span> Marco bloqueante (não passa sem cumprir)</div>
-      <div class="item"><span class="swatch" style="background:var(--line)"></span> Marco registado (não bloqueia)</div>
+      <div class="item"><span class="swatch" style="background:var(--gov)"></span> Marco bloqueante — emite comprovativo criptográfico</div>
+      <div class="item"><span class="swatch" style="background:var(--line)"></span> Marco registado — não bloqueia</div>
     </div>
   </div>
 </section>
@@ -1407,13 +1407,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   <div class="section-header reveal">
     <span class="eyebrow">Transparência por construção</span>
     <h2>O que o cidadão e o jornalista veem</h2>
-    <p>Após a publicação no Diário da República (M5), a ficha completa fica acessível em portal público, com a integralidade das interações e das decisões de incorporação. Sem login. Em formatos abertos.</p>
+    <p>Após a publicação no Diário da República (M5), a ficha completa é publicada no <strong>Portal do Governo</strong>, ao lado da Agenda Pública dos membros do Governo — juntos, o repositório integrado de transparência do Executivo. Com a integralidade das interações e das decisões de incorporação. Sem login. Em formatos abertos.</p>
   </div>
 
   <div class="public-shell reveal">
     <div class="public-hero">
-      <h3>Pegada Legislativa do Governo</h3>
-      <p>Portal público com todas as Fichas de Pegada Legislativa publicadas após aprovação dos diplomas. Pesquise por palavra-chave, ministério, entidade interlocutora ou período.</p>
+      <h3>Pegada Legislativa · Portal do Governo</h3>
+      <p>Todas as Fichas de Pegada Legislativa publicadas após aprovação dos diplomas, ao lado da Agenda Pública dos membros do Governo. Pesquise por palavra-chave, ministério, entidade interlocutora ou período.</p>
       <div class="stats-mini">
         <div class="stm"><strong>87</strong>FPL publicadas (2026)</div>
         <div class="stm"><strong>1.247</strong>Interações documentadas</div>
@@ -1485,17 +1485,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
         <li>Bloco D + cache RTRI local</li>
         <li>Importação manual da consulta pública</li>
         <li>Auditoria SGGOV (Bloco G)</li>
-        <li>Portal público após M5</li>
+        <li>Comprovativo criptográfico para o SmartLegis</li>
+        <li>Exportação para o Portal do Governo após M5</li>
       </ul>
     </article>
     <article class="rm-card reveal">
       <div class="when">Outubro 2026</div>
-      <h4>v2.0 — Integrações reais</h4>
+      <h4>v2.0 — Integrações maturadas</h4>
       <ul>
-        <li>Federação OIDC com autenticação.gov.pt</li>
-        <li>API RTRI da Assembleia ligada</li>
+        <li>Sincronização plena com o RTRI da Assembleia</li>
+        <li>Exportação automatizada para o Portal do Governo</li>
         <li>Webhook Consulta.Lex</li>
-        <li>Dataset OCDE em dados.gov.pt</li>
+        <li>Dataset OCDE (JSON-LD) e API para investigadores</li>
         <li>Dashboards SGGOV completos</li>
       </ul>
     </article>

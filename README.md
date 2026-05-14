@@ -300,20 +300,29 @@ GET    /api/admin/dashboard                     — KPIs + tentativas falhadas 2
 
 ## Próximos passos
 
-Este sistema é **pronto para mostrar a decisores**. Para chegar à v1.0 de produção:
+As decisões estruturais foram tomadas pelos documentos de decisão da SGGOV
+(Memorando Executivo v5 + RCM v2) — ver **[`docs/07_Adaptacao_Brainstorming.md`](docs/07_Adaptacao_Brainstorming.md)**.
+O quadro técnico ficou:
 
-1. Decidir stack final, modelo de aquisição, infraestrutura (ver `docs/01` §4.5)
-2. Migrar SQLite → PostgreSQL (trivial: trocar DSN e adaptar 2-3 queries específicas)
-3. Implementar federação OIDC com autenticação.gov.pt
-4. Implementar anexos (upload + antivírus + visibilidade)
-5. Implementar webhook Consulta.Lex e cache RTRI sincronizada
-6. Pen-test externo
-7. Auditoria de acessibilidade WCAG 2.2 AA
-8. Piloto com 2 ministérios, ajustes de UX
-9. Go-live
+- **Confinamento à RING** — aplicação não exposta à internet, acesso por VPN, sem federação OIDC
+- **Acoplamento por comprovativo criptográfico** — a app emite um JWS Ed25519 em cada marco
+  bloqueante (M0/M3/M4/M5); o SmartLegis verifica-o offline e bloqueia a tramitação se inválido
+- **Publicação no Portal do Governo** — a app exporta pacotes estruturados; o portal serve-os
+  ao público, ao lado da Agenda Pública dos membros do Governo
+- **Gestão exclusivamente SGGOV** — build interno, sem contratação externa de desenvolvimento
 
-Cronograma realista: 12 semanas a partir do arranque da equipa.
+Caminho para a v1.0 de produção:
+
+1. **Fase 1 — Infraestrutura de portabilidade** ✅ concluída (config 12-factor, Docker Compose
+   com Postgres+Redis+MinIO, Dockerfile, release.yml, runbook `docs/06`)
+2. **Fase 2 — Refactor do código** (branch dedicado): SQLite→Postgres assíncrono, storage→MinIO,
+   Redis, **módulo de comprovativo criptográfico**, módulo de exportação para o Portal do Governo
+3. Auth via diretório interno dos serviços (LDAP/AD) — *adapter* substitui o login local
+4. Pen-test externo · auditoria de acessibilidade WCAG 2.2 AA
+5. Piloto com 2 ministérios · go-live na RING até 27 de julho de 2026 (prazo legal)
+
+Cronograma de engenharia: ~11 semanas a partir do arranque da equipa.
 
 ---
 
-*FPL Ponte v0.1 · SGGOV · Maio 2026 · Demonstração funcional*
+*FPL Ponte v0.2 · SGGOV · Maio 2026 · Demonstração funcional · documentação revista após decisões de maio*

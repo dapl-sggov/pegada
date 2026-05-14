@@ -37,3 +37,6 @@ coverage/
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Documentos de trabalho internos — NÃO versionar (repo público)
+brainstorming/

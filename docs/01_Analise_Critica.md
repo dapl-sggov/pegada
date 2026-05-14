@@ -221,4 +221,24 @@ Sem esta reformulação, o risco de incumprimento legal a 27 de julho é alto. C
 
 ---
 
-*Análise crítica preparada como input para a decisão SGGOV de implementação. Sujeita a revisão à medida que evoluem os pressupostos externos (RTRI, Consulta.Lex, federação OIDC, decisão CNPD).*
+## 6. Adenda — decisões entretanto tomadas (Maio 2026)
+
+As sete decisões identificadas em §4.5 como "decisão imediata necessária" foram, entretanto, fechadas pelos documentos de decisão da SGGOV (Memorando Executivo v5 e RCM v2). O registo abaixo fecha o ciclo desta análise:
+
+| # | Decisão em aberto (§4.5) | Resolução tomada |
+|---|---|---|
+| 1 | Stack | **Node.js / Express / PostgreSQL** |
+| 2 | Modelo de aquisição | **Build interno** — gestão exclusivamente SGGOV, sem contratação externa de desenvolvimento |
+| 3 | Infraestrutura | **RING** — gerida pela SGGOV após integração do CEGER |
+| 4 | Modelo de operação | **SGGOV interna** — a equipa que constrói é a que opera |
+| 5 | Patrocinador político e budget | Fixados nos documentos de decisão da SGGOV (documentação interna) |
+| 6 | Compromisso da AR (RTRI) | Carta formal à AR; entretanto, *fallback* manual desenhado de origem |
+| 7 | Federação OIDC | **Abandonada** — o confinamento à RING torna-a desnecessária; autenticação via diretório interno |
+
+Acresce uma decisão estrutural não antecipada nesta análise: o **acoplamento ao SmartLegis por comprovativo criptográfico**, que substitui a necessidade de integração síncrona. A análise destas decisões e o seu impacto nos artefactos técnicos está em `docs/07_Adaptacao_Brainstorming.md`; a arquitetura revista em `docs/02_Arquitetura.md` (v2.0).
+
+O diagnóstico das fragilidades do documento de especificações original (secções 1 a 5 desta análise) mantém-se válido — as decisões tomadas respondem, na sua maioria, às recomendações aqui feitas.
+
+---
+
+*Análise crítica preparada como input para a decisão SGGOV de implementação. Secções 1-5: Maio 2026. Adenda (secção 6): Maio 2026, após os documentos de decisão.*

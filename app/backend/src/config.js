@@ -31,9 +31,21 @@ export const config = {
 
   // --- HTTP ---
   port: int(env.PORT, 3717),
-  // Origem pública (para cookies secure, CORS, links em emails)
+  // Origem da aplicação (cookies secure, links em emails). Dentro da RING
+  // não há "origem pública" — esta URL é o endereço interno da aplicação.
   publicUrl: env.PUBLIC_URL || `http://localhost:${int(env.PORT, 3717)}`,
-  trustProxy: bool(env.TRUST_PROXY, isProd), // atrás de reverse proxy no CEGER
+  trustProxy: bool(env.TRUST_PROXY, isProd), // atrás de reverse proxy interno da RING
+
+  // --- Rede / confinamento ---
+  // A aplicação opera exclusivamente dentro da Rede Informática do Governo
+  // (RING), com acesso mediado por VPN. Não há exposição à internet pública.
+  // Decisão: Memorando Executivo, Princípio 1 · RCM v2, n.º 11.1.
+  network: {
+    confinadoRing: bool(env.CONFINADO_RING, isProd),
+    // Em RING não há CORS aberto: o frontend é servido pela própria app
+    // (mesma origem). Origens adicionais só por configuração explícita.
+    corsOrigins: (env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
+  },
 
   // --- Base de dados (PostgreSQL) ---
   // Em dev, se DATABASE_URL não estiver definida, o arranque cai para
@@ -74,6 +86,10 @@ export const config = {
   },
 
   // --- Autenticação ---
+  // Modelo de duas camadas (Memorando Executivo, Princípio 1 · RCM v2, n.º 11.1):
+  //   1. acesso à RING mediado por VPN (fora do âmbito desta aplicação)
+  //   2. autenticação aplicacional contra o diretório interno dos serviços
+  //      (LDAP/AD), com TOTP para papéis sensíveis
   auth: {
     jwtSecret: req('JWT_SECRET', env.JWT_SECRET, {
       allowDevDefault: 'demo-fpl-ponte-jwt-secret-change-in-prod',
@@ -82,15 +98,48 @@ export const config = {
     cookieName: env.SESSION_COOKIE_NAME || 'fpl_session',
     cookieSecure: bool(env.COOKIE_SECURE, isProd),
     bcryptRounds: int(env.BCRYPT_ROUNDS, 10),
-    // Federação OIDC (autenticação.gov.pt) — desativada na v1.0 por decisão
-    // SGGOV. A flag fica preparada para ativação futura sem refactor.
-    oidc: {
-      enabled: bool(env.OIDC_ENABLED, false),
-      issuer: env.OIDC_ISSUER || '',
-      clientId: env.OIDC_CLIENT_ID || '',
-      clientSecret: env.OIDC_CLIENT_SECRET || '',
-      redirectUri: env.OIDC_REDIRECT_URI || '',
+    // Diretório interno dos serviços (LDAP/AD). Em dev/protótipo, o driver
+    // 'local' usa utilizadores na base de dados a simular o diretório;
+    // em produção, 'ldap' liga ao diretório real — mudança de config, sem refactor.
+    diretorio: {
+      driver: env.DIRECTORY_DRIVER || 'local', // local | ldap
+      ldapUrl: env.LDAP_URL || '',
+      ldapBaseDn: env.LDAP_BASE_DN || '',
+      ldapBindDn: env.LDAP_BIND_DN || '',
+      ldapBindPassword: env.LDAP_BIND_PASSWORD || '',
     },
+    // TOTP obrigatório para papéis sensíveis
+    totpRequiredRoles: (env.TOTP_REQUIRED_ROLES || 'SGGOV_ADMIN,SGGOV_QA')
+      .split(',').map(s => s.trim()).filter(Boolean),
+    // Federação OIDC: NÃO usada na v1.0. O confinamento à RING torna-a
+    // desnecessária (decisão expressa do Memorando Executivo). A estrutura
+    // fica documentada para eventual reavaliação futura, mas não está ativa.
+    oidc: { enabled: false },
+  },
+
+  // --- Comprovativo criptográfico ---
+  // Em cada marco bloqueante (M0, M3, M4, M5) a aplicação emite um JWS
+  // assinado (Ed25519). O SmartLegis verifica-o offline com a chave pública
+  // e bloqueia a tramitação se a verificação falhar.
+  // Decisão: Memorando Executivo, Princípio 2 · RCM v2, n.º 4.
+  comprovativo: {
+    algoritmo: 'EdDSA', // Ed25519
+    issuer: env.COMPROVATIVO_ISSUER || 'fpl.sggov.ring',
+    // Identificador da chave ativa para emissão (header `kid` do JWS).
+    keyId: env.COMPROVATIVO_KEY_ID || 'fpl-dev-2026-01',
+    // Chave privada Ed25519 em PEM (PKCS#8). NUNCA na base de dados nem
+    // versionada. Em produção vive no cofre de segredos; é injetada por
+    // env var ou caminho de ficheiro protegido.
+    privateKeyPem: env.COMPROVATIVO_PRIVATE_KEY_PEM || '',
+    privateKeyPath: env.COMPROVATIVO_PRIVATE_KEY_PATH || '',
+    // Se nenhuma chave for fornecida em dev, o módulo gera um par efémero
+    // ao arranque (apenas para desenvolvimento — avisa nos logs).
+    allowEphemeralDevKey: bool(env.COMPROVATIVO_ALLOW_EPHEMERAL, !isProd),
+    // Validade do comprovativo. A revogação efetiva faz-se por estado na BD;
+    // o exp é uma salvaguarda adicional.
+    ttlDias: int(env.COMPROVATIVO_TTL_DIAS, 365),
+    // Marcos que emitem comprovativo
+    marcosBloqueantes: ['M0', 'M3', 'M4', 'M5'],
   },
 
   // --- Email transacional (SMTP do Estado / CEGER) ---
@@ -146,7 +195,8 @@ export const config = {
   },
 };
 
-// Validação de arranque: em produção, exigir segredos não-default.
+// Validação de arranque: em produção, exigir segredos não-default e
+// configuração coerente com o confinamento à RING.
 export function assertConfigProducao() {
   if (!isProd) return;
   const fracos = [];
@@ -158,6 +208,19 @@ export function assertConfigProducao() {
       `Segredos com valor de demonstração em produção: ${fracos.join(', ')}. ` +
       `Defina valores reais antes do arranque.`
     );
+  }
+  // O comprovativo criptográfico exige chave persistente em produção —
+  // uma chave efémera invalidaria todos os comprovativos a cada reinício.
+  if (!config.comprovativo.privateKeyPem && !config.comprovativo.privateKeyPath) {
+    throw new Error(
+      'Chave privada do comprovativo criptográfico em falta. Defina ' +
+      'COMPROVATIVO_PRIVATE_KEY_PEM ou COMPROVATIVO_PRIVATE_KEY_PATH. ' +
+      'Gerar: openssl genpkey -algorithm ed25519 -out fpl-comprovativo.pem'
+    );
+  }
+  // Confinamento à RING: em produção a aplicação não deve aceitar CORS aberto.
+  if (config.network.corsOrigins.includes('*')) {
+    throw new Error('CORS_ORIGINS não pode incluir "*" em produção (confinamento à RING).');
   }
 }
 
