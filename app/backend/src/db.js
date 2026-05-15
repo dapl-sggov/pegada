@@ -1,180 +1,188 @@
-import { DatabaseSync } from 'node:sqlite';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
+// db.js — Camada de acesso a dados dual-driver.
+//
+// Expõe uma API ASSÍNCRONA única que funciona com dois back-ends:
+//   • SQLite (node:sqlite, nativo)  — desenvolvimento, testes, modo legado/transição
+//   • PostgreSQL (pg)               — produção (RING)
+//
+// O código de domínio usa sempre `await db.get/all/run/exec/tx(...)` e nunca
+// sabe qual o driver por baixo. Os placeholders escrevem-se sempre com `?`
+// (estilo SQLite); quando o driver é Postgres, são convertidos para `$1,$2,...`.
+//
+// Escolha do driver (ver config.js):
+//   - DATABASE_URL definido e DB_FORCE_SQLITE != true  → Postgres
+//   - caso contrário                                    → SQLite
+//
+// Em produção, `config.assertConfigProducao()` garante DATABASE_URL.
+
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+import config from './config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, '../../data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-const DB_PATH = path.join(DATA_DIR, 'fpl.sqlite');
-export const db = new DatabaseSync(DB_PATH);
+// ---------------------------------------------------------------------------
+// Seleção de driver
+// ---------------------------------------------------------------------------
+const usePg = !!config.database.url
+  && !config.database.forceSqlite
+  && !config.database.url.startsWith('sqlite:');
 
-db.exec('PRAGMA journal_mode = WAL;');
-db.exec('PRAGMA foreign_keys = ON;');
+export const DRIVER = usePg ? 'pg' : 'sqlite';
 
-export function init() {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS utilizador (
-      id TEXT PRIMARY KEY,
-      nif TEXT UNIQUE,
-      email TEXT NOT NULL UNIQUE,
-      nome_completo TEXT NOT NULL,
-      password_hash TEXT NOT NULL,
-      ativo INTEGER NOT NULL DEFAULT 1,
-      criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
+let _impl = null;        // implementação concreta (resolvida no init)
+let _initPromise = null;
 
-    CREATE TABLE IF NOT EXISTS gabinete (
-      id TEXT PRIMARY KEY,
-      sigla TEXT NOT NULL UNIQUE,
-      nome TEXT NOT NULL,
-      ativo INTEGER NOT NULL DEFAULT 1
-    );
-
-    CREATE TABLE IF NOT EXISTS atribuicao_papel (
-      utilizador_id TEXT NOT NULL REFERENCES utilizador(id),
-      papel TEXT NOT NULL,
-      gabinete_id TEXT REFERENCES gabinete(id),
-      desde TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (utilizador_id, papel, gabinete_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS fpl (
-      id TEXT PRIMARY KEY,
-      numero_processo TEXT UNIQUE NOT NULL,
-      tipo_diploma TEXT NOT NULL,
-      titulo TEXT NOT NULL,
-      titulo_curto TEXT,
-      gabinete_id TEXT NOT NULL REFERENCES gabinete(id),
-      coproponentes TEXT,
-      estado_workflow TEXT NOT NULL DEFAULT 'CRIADO',
-      tipo_origem TEXT,
-      referencia_origem TEXT,
-      sintese_problema TEXT,
-      avaliacao_previa INTEGER,
-      consulta_lex_ref TEXT,
-      consulta_lex_inicio TEXT,
-      consulta_lex_fim TEXT,
-      consulta_lex_n_contributos INTEGER,
-      consulta_lex_sintese TEXT,
-      consulta_lex_decisao TEXT,
-      m0_validado_em TEXT, m0_validado_por TEXT,
-      m1_validado_em TEXT,
-      m2_validado_em TEXT,
-      m3_validado_em TEXT, m3_validado_por TEXT, m3_declaracao TEXT,
-      m4_validado_em TEXT, m4_validado_por TEXT, m4_declaracao TEXT,
-      m5_validado_em TEXT,
-      referencia_dr TEXT,
-      data_criacao TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      data_publicacao TEXT,
-      versao_atual INTEGER NOT NULL DEFAULT 1,
-      regime_simplificado TEXT,
-      criado_por TEXT REFERENCES utilizador(id)
-    );
-    CREATE INDEX IF NOT EXISTS idx_fpl_gabinete ON fpl(gabinete_id);
-    CREATE INDEX IF NOT EXISTS idx_fpl_estado ON fpl(estado_workflow);
-
-    CREATE TABLE IF NOT EXISTS entrada_bloco_c (
-      id TEXT PRIMARY KEY,
-      fpl_id TEXT NOT NULL REFERENCES fpl(id),
-      data TEXT NOT NULL,
-      entidade TEXT NOT NULL,
-      cargo TEXT,
-      forma TEXT NOT NULL,
-      objeto TEXT NOT NULL,
-      sintese_posicao TEXT NOT NULL,
-      criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS entrada_bloco_d (
-      id TEXT PRIMARY KEY,
-      fpl_id TEXT NOT NULL REFERENCES fpl(id),
-      data TEXT NOT NULL,
-      forma TEXT NOT NULL,
-      entidade_designacao TEXT NOT NULL,
-      rtri_id TEXT,
-      rtri_status TEXT,
-      natureza_juridica TEXT NOT NULL,
-      pessoas_governo TEXT NOT NULL,
-      pessoas_interlocutor TEXT,
-      objeto TEXT NOT NULL,
-      sintese_posicao TEXT NOT NULL,
-      decisao_incorporacao TEXT,
-      justificacao_decisao TEXT,
-      criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_d_fpl ON entrada_bloco_d(fpl_id);
-
-    CREATE TABLE IF NOT EXISTS versao_fpl (
-      id TEXT PRIMARY KEY,
-      fpl_id TEXT NOT NULL REFERENCES fpl(id),
-      numero INTEGER NOT NULL,
-      autor_id TEXT NOT NULL REFERENCES utilizador(id),
-      timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      snapshot TEXT NOT NULL,
-      marco_validado TEXT,
-      descricao TEXT,
-      UNIQUE (fpl_id, numero)
-    );
-    CREATE INDEX IF NOT EXISTS idx_v_fpl ON versao_fpl(fpl_id, numero DESC);
-
-    CREATE TABLE IF NOT EXISTS evento_auditoria (
-      id TEXT PRIMARY KEY,
-      fpl_id TEXT,
-      tipo_evento TEXT NOT NULL,
-      autor_id TEXT,
-      timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      payload TEXT NOT NULL,
-      ip_origem TEXT,
-      user_agent TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_e_fpl ON evento_auditoria(fpl_id, timestamp DESC);
-
-    CREATE TABLE IF NOT EXISTS entidade_rtri (
-      rtri_id TEXT PRIMARY KEY,
-      designacao TEXT NOT NULL,
-      natureza_juridica TEXT,
-      ativo INTEGER NOT NULL DEFAULT 1,
-      data_inscricao TEXT,
-      ultima_sincronizacao TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS auditoria_qa (
-      id TEXT PRIMARY KEY,
-      fpl_id TEXT NOT NULL REFERENCES fpl(id),
-      auditor_id TEXT NOT NULL REFERENCES utilizador(id),
-      data_auditoria TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      pontuacao INTEGER NOT NULL CHECK (pontuacao BETWEEN 0 AND 100),
-      observacoes TEXT,
-      pedido_correcao INTEGER NOT NULL DEFAULT 0,
-      descricao_correcao TEXT,
-      estado_correcao TEXT DEFAULT 'PENDENTE'
-    );
-
-    CREATE TABLE IF NOT EXISTS anexo (
-      id TEXT PRIMARY KEY,
-      fpl_id TEXT NOT NULL REFERENCES fpl(id),
-      bloco TEXT NOT NULL,
-      entrada_id TEXT,
-      nome_original TEXT NOT NULL,
-      mime_type TEXT NOT NULL,
-      tamanho_bytes INTEGER NOT NULL,
-      sha256 TEXT NOT NULL,
-      storage_path TEXT NOT NULL,
-      visibilidade TEXT NOT NULL DEFAULT 'INTERNO',
-      upload_por TEXT NOT NULL REFERENCES utilizador(id),
-      upload_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      antivirus_status TEXT NOT NULL DEFAULT 'PENDENTE'
-    );
-  `);
-
-  // Migrações idempotentes: adicionar colunas que faltem (TOTP, federação)
-  try { db.exec("ALTER TABLE utilizador ADD COLUMN totp_secret TEXT"); } catch {}
-  try { db.exec("ALTER TABLE utilizador ADD COLUMN totp_ativo INTEGER NOT NULL DEFAULT 0"); } catch {}
-  try { db.exec("ALTER TABLE utilizador ADD COLUMN federacao_provider TEXT"); } catch {}
-  try { db.exec("ALTER TABLE utilizador ADD COLUMN federacao_subject TEXT"); } catch {}
+// ---------------------------------------------------------------------------
+// Conversão de placeholders `?` → `$n` (apenas para Postgres)
+// ---------------------------------------------------------------------------
+function toPgParams(sql) {
+  let i = 0;
+  // não converte `?` dentro de literais de string simples — o nosso código
+  // nunca usa `?` literal em SQL, por isso a conversão direta é segura.
+  return sql.replace(/\?/g, () => `$${++i}`);
 }
 
-init();
+// ---------------------------------------------------------------------------
+// Implementação SQLite (node:sqlite — síncrono, envolvido em Promises)
+// ---------------------------------------------------------------------------
+async function makeSqlite() {
+  const { DatabaseSync } = await import('node:sqlite');
+  const DATA_DIR = path.resolve(__dirname, '../../data');
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  const dbPath = config.database.url.startsWith('sqlite:')
+    ? config.database.url.slice('sqlite:'.length)
+    : path.join(DATA_DIR, 'fpl.sqlite');
+  const sdb = new DatabaseSync(dbPath);
+  sdb.exec('PRAGMA journal_mode = WAL;');
+  sdb.exec('PRAGMA foreign_keys = ON;');
+
+  const stmtCache = new Map();
+  const prep = (sql) => {
+    let s = stmtCache.get(sql);
+    if (!s) { s = sdb.prepare(sql); stmtCache.set(sql, s); }
+    return s;
+  };
+
+  return {
+    kind: 'sqlite',
+    async get(sql, params = []) { return prep(sql).get(...params) ?? null; },
+    async all(sql, params = []) { return prep(sql).all(...params); },
+    async run(sql, params = []) {
+      const r = prep(sql).run(...params);
+      return { changes: r.changes, lastInsertRowid: r.lastInsertRowid };
+    },
+    async exec(sql) { sdb.exec(sql); },
+    async tx(fn) {
+      sdb.exec('BEGIN');
+      try { const r = await fn(this); sdb.exec('COMMIT'); return r; }
+      catch (e) { try { sdb.exec('ROLLBACK'); } catch {} throw e; }
+    },
+    async close() { sdb.close(); },
+    raw: sdb,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Implementação PostgreSQL (pg — assíncrono nativo)
+// ---------------------------------------------------------------------------
+async function makePg() {
+  let pg;
+  try {
+    pg = await import('pg');
+  } catch {
+    throw new Error(
+      'DATABASE_URL aponta para PostgreSQL mas o pacote "pg" não está instalado. ' +
+      'Execute `npm install` (pg é uma optionalDependency) ou defina DB_FORCE_SQLITE=true.'
+    );
+  }
+  const { Pool } = pg.default || pg;
+  const pool = new Pool({
+    connectionString: config.database.url,
+    max: config.database.poolMax,
+    ssl: config.database.ssl ? { rejectUnauthorized: false } : undefined,
+  });
+  // valida a ligação cedo
+  const c = await pool.connect(); c.release();
+
+  return {
+    kind: 'pg',
+    async get(sql, params = []) {
+      const r = await pool.query(toPgParams(sql), params);
+      return r.rows[0] ?? null;
+    },
+    async all(sql, params = []) {
+      const r = await pool.query(toPgParams(sql), params);
+      return r.rows;
+    },
+    async run(sql, params = []) {
+      const r = await pool.query(toPgParams(sql), params);
+      return { changes: r.rowCount, lastInsertRowid: null };
+    },
+    async exec(sql) { await pool.query(sql); },
+    async tx(fn) {
+      const client = await pool.connect();
+      const txImpl = {
+        kind: 'pg',
+        async get(s, p = []) { const r = await client.query(toPgParams(s), p); return r.rows[0] ?? null; },
+        async all(s, p = []) { const r = await client.query(toPgParams(s), p); return r.rows; },
+        async run(s, p = []) { const r = await client.query(toPgParams(s), p); return { changes: r.rowCount, lastInsertRowid: null }; },
+        async exec(s) { await client.query(s); },
+      };
+      try {
+        await client.query('BEGIN');
+        const r = await fn(txImpl);
+        await client.query('COMMIT');
+        return r;
+      } catch (e) {
+        try { await client.query('ROLLBACK'); } catch {}
+        throw e;
+      } finally {
+        client.release();
+      }
+    },
+    async close() { await pool.end(); },
+    raw: pool,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Inicialização (idempotente)
+// ---------------------------------------------------------------------------
+export async function initDb() {
+  if (_impl) return _impl;
+  if (_initPromise) return _initPromise;
+  _initPromise = (usePg ? makePg() : makeSqlite()).then((impl) => {
+    _impl = impl;
+    return impl;
+  });
+  return _initPromise;
+}
+
+function ensure() {
+  if (!_impl) throw new Error('Base de dados não inicializada — chame `await initDb()` no arranque.');
+  return _impl;
+}
+
+// ---------------------------------------------------------------------------
+// API pública — assíncrona, idêntica para os dois drivers
+// ---------------------------------------------------------------------------
+export const db = {
+  get driver() { return DRIVER; },
+  get(sql, params) { return ensure().get(sql, params); },
+  all(sql, params) { return ensure().all(sql, params); },
+  run(sql, params) { return ensure().run(sql, params); },
+  exec(sql) { return ensure().exec(sql); },
+  tx(fn) { return ensure().tx(fn); },
+  close() { return _impl ? _impl.close() : Promise.resolve(); },
+  get raw() { return ensure().raw; },
+};
+
+// Conveniência: instante "agora menos N dias/horas" em ISO, para passar como
+// parâmetro em vez de usar funções de data específicas de cada SGBD.
+export function cutoffISO({ days = 0, hours = 0, minutes = 0 } = {}) {
+  const ms = (days * 86400 + hours * 3600 + minutes * 60) * 1000;
+  return new Date(Date.now() - ms).toISOString();
+}
+
+export default db;

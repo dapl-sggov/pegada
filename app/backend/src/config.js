@@ -47,16 +47,15 @@ export const config = {
     corsOrigins: (env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
   },
 
-  // --- Base de dados (PostgreSQL) ---
-  // Em dev, se DATABASE_URL não estiver definida, o arranque cai para
-  // SQLite (modo legado) — ver db.js. Em produção é obrigatória.
+  // --- Base de dados ---
+  // Em dev, se DATABASE_URL não estiver definida, o arranque cai para SQLite
+  // (driver dual — ver db.js): zero dependências externas para desenvolver.
+  // Em produção, DATABASE_URL (PostgreSQL) é obrigatória.
   database: {
-    url: req('DATABASE_URL', env.DATABASE_URL, {
-      allowDevDefault: 'postgres://fpl:fpl@localhost:5432/fpl',
-    }),
+    url: req('DATABASE_URL', env.DATABASE_URL, { allowDevDefault: '' }),
     poolMax: int(env.DB_POOL_MAX, 10),
     ssl: bool(env.DB_SSL, false),
-    // Permite forçar o modo legado SQLite mesmo com DATABASE_URL definida
+    // Força o modo SQLite mesmo com DATABASE_URL definida (transição/diagnóstico)
     forceSqlite: bool(env.DB_FORCE_SQLITE, false),
   },
 

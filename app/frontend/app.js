@@ -20,6 +20,7 @@ const state = {
   notificacoes: { items: [], nao_lidas: 0 },
   anexos: [],
   auditorias: [],
+  comprovativos: [],
   pending2FA: null,
 };
 
@@ -174,6 +175,7 @@ async function loadFpl(id) {
   state.eventos = await api(`/fpl/${id}/eventos`).catch(() => []);
   state.anexos = await api(`/fpl/${id}/anexos`).catch(() => []);
   state.auditorias = await api(`/fpl/${id}/auditoria`).catch(() => []);
+  state.comprovativos = await api(`/fpl/${id}/comprovativos`).catch(() => []);
 }
 
 async function loadDashboard() {
@@ -192,7 +194,7 @@ function renderLogin() {
       <div class="login-card" role="main" aria-labelledby="loginTitle">
         <div class="crest" aria-hidden="true">RP</div>
         <h1 id="loginTitle">Pegada Legislativa do Governo</h1>
-        <div class="sub">FPL Ponte v0.1 · Aplicação de demonstração</div>
+        <div class="sub">FPL Ponte v1.0-rc · Aplicação de demonstração</div>
         <button id="cmdBtn" class="btn" type="button" style="width:100%;justify-content:center;padding:10px;margin-bottom:8px;border-color:#3b66c4;color:#3b66c4">
           <span aria-hidden="true">🪪</span> Entrar com Cartão de Cidadão / CMD
         </button>
@@ -268,7 +270,7 @@ function renderShell() {
   const bellCount = state.notificacoes?.nao_lidas || 0;
   document.getElementById('root').innerHTML = `
     <a href="#main" class="skip-link">Saltar para o conteúdo principal</a>
-    <div class="demo-banner" role="banner">DEMONSTRAÇÃO · FPL Ponte v0.1 · Sistema funcional ligado a SQLite real</div>
+    <div class="demo-banner" role="banner">DEMONSTRAÇÃO · FPL Ponte v1.0-rc · Sistema funcional ligado a SQLite real</div>
     <header class="topbar" role="banner">
       <div class="brand">
         <div class="crest" aria-hidden="true">RP</div>
@@ -316,15 +318,16 @@ function renderShell() {
             ${isAdmin ? `<a class="side-link ${state.view === 'outbox' ? 'active' : ''}" data-nav="outbox" tabindex="0" role="link">Outbox de email</a>` : ''}
           </nav>
         </div>` : ''}
+        ${sggov ? `
         <div class="side-section">
-          <div class="side-title" id="sec-res">Recursos</div>
+          <div class="side-title" id="sec-res">Exportação · Portal do Governo</div>
           <nav aria-labelledby="sec-res">
-            <a class="side-link" href="/api/publico/fpl" target="_blank" rel="noopener">Portal público (API)</a>
-            <a class="side-link" href="/api/publico/datasets/fpl.json" target="_blank" rel="noopener">Dataset JSON</a>
-            <a class="side-link" href="/api/publico/datasets/fpl.csv" target="_blank" rel="noopener">Dataset CSV</a>
-            <a class="side-link" href="/api/publico/datasets/fpl.jsonld" target="_blank" rel="noopener">JSON-LD (OCDE)</a>
+            <a class="side-link ${state.view === 'exportacao' ? 'active' : ''}" data-nav="exportacao" tabindex="0" role="link">Painel de exportação</a>
+            <a class="side-link" href="/api/export/datasets/fpl.json" target="_blank" rel="noopener">Dataset JSON</a>
+            <a class="side-link" href="/api/export/datasets/fpl.csv" target="_blank" rel="noopener">Dataset CSV</a>
+            <a class="side-link" href="/api/export/datasets/fpl.jsonld" target="_blank" rel="noopener">JSON-LD (vocabulário OCDE)</a>
           </nav>
-        </div>
+        </div>` : ''}
       </aside>
       <main class="main" id="main" tabindex="-1"></main>
     </div>
@@ -421,13 +424,13 @@ function viewDashboardSggov() {
   return `
     <div class="page-head">
       <div><div class="page-title">Dashboard SGGOV</div><div class="page-sub">Visão consolidada do regime de Pegada Legislativa</div></div>
-      <a class="btn" href="/api/publico/datasets/fpl.csv" target="_blank">↓ Exportar CSV</a>
+      <a class="btn" href="/api/export/datasets/fpl.csv" target="_blank" rel="noopener">↓ Exportar CSV</a>
     </div>
     <div class="kpis">
       <div class="kpi"><div class="lbl">Total FPL</div><div class="val">${d.total}</div></div>
       <div class="kpi"><div class="lbl">Publicadas</div><div class="val" style="color:var(--success)">${d.publicadas}</div></div>
+      <div class="kpi"><div class="lbl">Comprovativos emitidos</div><div class="val">${d.comprovativos ?? '—'}</div></div>
       <div class="kpi"><div class="lbl">Em revisão QA</div><div class="val" style="color:var(--warning)">${d.em_revisao}</div></div>
-      <div class="kpi"><div class="lbl">Cobertura RTRI</div><div class="val" style="color:var(--success)">99,2%</div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
       <div class="card">
@@ -613,6 +616,10 @@ async function viewDetalhe() {
   else if (!marcosVal.M3 && ['EM_ELABORACAO', 'EM_CONSULTA_INTERNA', 'EM_CONSULTA_PUBLICA'].includes(f.estado_workflow)) acaoMarco = 'M3';
   else if (!marcosVal.M4 && f.estado_workflow === 'EM_RSE') acaoMarco = 'M4';
   else if (!marcosVal.M5 && f.estado_workflow === 'APROVADO') acaoMarco = 'M5';
+  // Aprovação em Conselho de Ministros (passo entre M4 e M5) — papel GSEPCM/SGGOV_ADMIN
+  const podeAprovarCM = f.estado_workflow === 'EM_CM'
+    && state.user.papeis.some(p => ['GSEPCM', 'SGGOV_ADMIN'].includes(p.papel));
+  const marcosBloq = ['M0', 'M3', 'M4', 'M5'];
 
   return `
     <div class="fpl-head">
@@ -626,16 +633,19 @@ async function viewDetalhe() {
         <span><strong>Versão:</strong> ${f.versao_atual}</span>
       </div>
       <div class="actions">
-        ${acaoMarco ? `<button class="btn primary" onclick="abrirValidacaoMarco('${acaoMarco}')">Validar ${acaoMarco}</button>` : ''}
+        ${acaoMarco ? `<button class="btn primary" onclick="abrirValidacaoMarco('${acaoMarco}')">Validar ${acaoMarco}${marcosBloq.includes(acaoMarco) ? ' — emite comprovativo' : ''}</button>` : ''}
+        ${podeAprovarCM ? `<button class="btn primary" onclick="abrirAprovarCM()">Registar aprovação em Conselho de Ministros</button>` : ''}
+        <button class="btn" onclick="setTab('CMP')">Comprovativos</button>
         <button class="btn" onclick="setTab('H')">Histórico</button>
       </div>
     </div>
-    <div class="marcos">
+    <div class="marcos" role="img" aria-label="Progresso dos marcos M0 a M5">
       ${marcosArr.map((m, i) => {
         const done = !!marcosVal[m]; const cur = i === next && !done;
-        return `<div class="marco ${done ? 'done' : ''} ${cur ? 'current' : ''}">
+        const bloq = marcosBloq.includes(m);
+        return `<div class="marco ${done ? 'done' : ''} ${cur ? 'current' : ''}" title="${m} · ${marcosLbl[m]}${bloq ? ' · marco bloqueante (emite comprovativo)' : ''}">
           <div class="dot">${done ? '✓' : m.replace('M', '')}</div>
-          <div class="lbl">${m}</div>
+          <div class="lbl">${m}${bloq ? ' ⚿' : ''}</div>
           <div class="sub">${marcosLbl[m]}</div>
           ${done ? `<div class="sub">${fmtData(marcosVal[m])}</div>` : ''}
         </div>`;
@@ -648,6 +658,7 @@ async function viewDetalhe() {
       <button class="tab" data-tab="D" role="tab" aria-selected="false">Bloco D · Externos <span class="pill">${(f.bloco_d || []).length}</span></button>
       <button class="tab" data-tab="E" role="tab" aria-selected="false">Bloco E · Consulta pública</button>
       <button class="tab" data-tab="F" role="tab" aria-selected="false">Bloco F · Declaração</button>
+      <button class="tab" data-tab="CMP" role="tab" aria-selected="false">Comprovativos <span class="pill">${state.comprovativos.length}</span></button>
       <button class="tab" data-tab="G" role="tab" aria-selected="false">Bloco G · QA <span class="pill">${state.auditorias.length}</span></button>
       <button class="tab" data-tab="N" role="tab" aria-selected="false">Anexos <span class="pill">${state.anexos.length}</span></button>
       <button class="tab" data-tab="H" role="tab" aria-selected="false">Histórico <span class="pill">${state.versoes.length}</span></button>
@@ -658,10 +669,50 @@ async function viewDetalhe() {
     <div id="tab-D" role="tabpanel" hidden>${blocoD(f)}</div>
     <div id="tab-E" role="tabpanel" hidden>${blocoE(f)}</div>
     <div id="tab-F" role="tabpanel" hidden>${blocoF(f)}</div>
+    <div id="tab-CMP" role="tabpanel" hidden>${blocoCMP(f)}</div>
     <div id="tab-G" role="tabpanel" hidden>${blocoG(f)}</div>
     <div id="tab-N" role="tabpanel" hidden>${blocoAnexos(f)}</div>
     <div id="tab-H" role="tabpanel" hidden>${blocoH(f)}</div>
   `;
+}
+
+// Bloco de comprovativos criptográficos
+function blocoCMP(f) {
+  const marcos = ['M0', 'M3', 'M4', 'M5'];
+  const marcosLbl = { M0: 'Abertura', M3: 'Pré-RSE', M4: 'Pré-CM', M5: 'Publicação' };
+  const cmps = state.comprovativos || [];
+  return `<div class="bloco-section">
+    <div class="bloco-head">
+      <div class="ttl"><div class="letra" style="background:var(--gov-gold);color:var(--gov-blue-dark)">⚿</div>
+        <div><h3>Comprovativos criptográficos</h3><div class="desc">JWS Ed25519 · verificáveis offline pelo SmartLegis</div></div></div>
+    </div>
+    <div class="bloco-body">
+      <div class="alert info"><div><span class="ttl">Acoplamento ao SmartLegis</span>Cada marco bloqueante (M0/M3/M4/M5) emite um comprovativo assinado. O ponto focal copia-o para o SmartLegis, que o verifica com a chave pública partilhada e bloqueia a tramitação se a verificação falhar — sem integração síncrona entre os sistemas.</div></div>
+      ${marcos.map(m => {
+        const c = cmps.find(x => x.marco === m);
+        return `<div class="entrada ${c ? 'open' : ''}">
+          <div class="entrada-head">
+            <div class="ttl">
+              <strong>${m} · ${marcosLbl[m]}</strong>
+              ${c
+                ? `<span class="rtri-status validado">✓ emitido</span><span class="tag">${esc(c.estado)}</span>`
+                : '<span class="tag" style="background:#f5f6f8">Será emitido ao validar ' + m + '</span>'}
+            </div>
+            ${c ? `<div class="data">${fmtDH(c.emitido_em)}</div>` : ''}
+          </div>
+          ${c ? `<div class="entrada-body">
+            <div class="row"><div class="lbl">Identificador (jti)</div><div><code>${esc(c.jti)}</code></div></div>
+            <div class="row"><div class="lbl">Chave de assinatura</div><div><code>${esc(c.kid)}</code> · EdDSA (Ed25519)</div></div>
+            <div class="row"><div class="lbl">Validado por</div><div>${esc(c.validado_por)}</div></div>
+            <div class="row"><div class="lbl">Validade</div><div>${fmtData(c.emitido_em)} — ${fmtData(c.expira_em)}</div></div>
+            <div class="flex gap-8 mt-12">
+              <button class="btn sm primary" onclick="verComprovativo('${esc(c.jti)}')">Ver comprovativo e copiar para o SmartLegis</button>
+            </div>
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
 }
 
 function blocoG(f) {
@@ -904,7 +955,7 @@ window.setTab = (id) => {
     t.classList.toggle('active', active);
     t.setAttribute('aria-selected', active ? 'true' : 'false');
   });
-  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'N', 'H'].forEach(x => {
+  ['A', 'B', 'C', 'D', 'E', 'F', 'CMP', 'G', 'N', 'H'].forEach(x => {
     const el = document.getElementById('tab-' + x);
     if (el) {
       if (x === id) el.removeAttribute('hidden');
@@ -1152,40 +1203,37 @@ window.salvarDecisaoD = async (eid) => {
   }
 };
 
+const MARCO_PRECISA_DECLARACAO = m => ['M3', 'M4'].includes(m);
+const MARCO_BLOQUEANTE = m => ['M0', 'M3', 'M4', 'M5'].includes(m);
+
 window.abrirValidacaoMarco = async (marco) => {
-  // Tenta validar primeiro sem assinatura para obter pendências
+  // Primeira chamada: sem declaração. Para M0/M1/M2/M5 isto valida logo (não
+  // exigem declaração); para M3/M4 devolve as pendências ou a exigência de
+  // declaração. Em qualquer caso, captura-se o resultado.
   let pendencias = [];
-  if (['M3', 'M4'].includes(marco)) {
-    try {
-      const r = await api(`/fpl/${state.fpl.id}/marcos/${marco}/validar`, { method: 'POST', body: {} });
-      // Se passou, esperar declaração explícita
-    } catch (e) {
-      pendencias = e.data?.pendencias || [];
-    }
-  } else {
-    try {
-      await api(`/fpl/${state.fpl.id}/marcos/${marco}/validar`, { method: 'POST', body: {} });
-    } catch (e) {
-      pendencias = e.data?.pendencias || [];
-    }
+  let resultado = null;
+  try {
+    resultado = await api(`/fpl/${state.fpl.id}/marcos/${marco}/validar`, { method: 'POST', body: {} });
+  } catch (e) {
+    pendencias = e.data?.pendencias || [];
   }
-  // Filtra a "declaracao_obrigatoria" — não é bloqueante, é o que estamos prestes a fazer
-  const realPend = pendencias.filter(p => p.regra !== 'declaracao_obrigatoria');
-  const isBlocking = realPend.length > 0;
-  // Se não é bloqueante e não é M3/M4, marco já foi validado
-  if (pendencias.length === 0 && !['M3', 'M4'].includes(marco)) {
-    toast(marco + ' validado.', 'success');
+  // Marco que não exige declaração e passou: já está validado.
+  if (resultado && resultado.ok) {
+    closeModal();
     await loadFpl(state.fpl.id);
-    render();
+    if (resultado.comprovativo) mostrarComprovativoModal(resultado.comprovativo, marco);
+    else { toast(marco + ' validado.', 'success'); render(); }
     return;
   }
+  const realPend = pendencias.filter(p => p.regra !== 'declaracao_obrigatoria');
+  const isBlocking = realPend.length > 0;
   openModal(`
-    <div class="modal-head"><h3>Validar Marco ${marco}</h3><button class="btn ghost sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-head"><h3>Validar Marco ${marco}</h3><button class="btn ghost sm" onclick="closeModal()" aria-label="Fechar">✕</button></div>
     <div class="modal-body">
       ${isBlocking ? `
-        <div class="alert danger"><div><span class="ttl">Não é possível validar ${marco}</span>O sistema bloqueia a transição até as ${realPend.length} pendência(s) abaixo serem resolvidas. <strong>Esta é a "submissão bloqueante" prevista no regime.</strong></div></div>
+        <div class="alert danger"><div><span class="ttl">Não é possível validar ${marco}</span>O sistema bloqueia a transição até as ${realPend.length} pendência(s) abaixo serem resolvidas. <strong>Esta é a submissão bloqueante prevista no regime — sem validação não há comprovativo, e sem comprovativo o SmartLegis bloqueia a tramitação.</strong></div></div>
       ` : `
-        <div class="alert success"><div><span class="ttl">Verificações OK</span>Todas as condições estão satisfeitas. Necessária a sua assinatura da declaração de completude (Bloco F).</div></div>
+        <div class="alert success"><div><span class="ttl">Verificações automáticas cumpridas</span>${MARCO_PRECISA_DECLARACAO(marco) ? 'Falta a sua assinatura da declaração de completude (Bloco F).' : 'A FPL cumpre os requisitos.'}${MARCO_BLOQUEANTE(marco) ? ' Ao validar, o sistema emite o comprovativo criptográfico.' : ''}</div></div>
       `}
       <h4 style="font-size:13px;margin:12px 0 4px">${realPend.length === 0 ? 'Verificações' : 'Pendências bloqueantes'}</h4>
       <ul class="checklist">
@@ -1193,31 +1241,105 @@ window.abrirValidacaoMarco = async (marco) => {
           '<li class="ok"><div>Todas as verificações automáticas passaram</div></li>' :
           realPend.map(p => `<li class="fail"><div>${esc(p.detalhe)}<div class="det">Campo: ${esc(p.campo)} · Regra: ${esc(p.regra)}</div></div></li>`).join('')}
       </ul>
-      ${['M3', 'M4'].includes(marco) ? `
+      ${MARCO_PRECISA_DECLARACAO(marco) ? `
         <div class="declaration-box"><strong>Declaração:</strong> "Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
       ` : ''}
     </div>
     <div class="modal-foot">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn" onclick="closeModal()">${isBlocking ? 'Voltar e corrigir' : 'Cancelar'}</button>
       ${isBlocking ?
         '<button class="btn primary" disabled>Assinar e validar (bloqueado)</button>' :
-        `<button class="btn success" onclick="confirmarValidacao('${marco}')">Assinar e validar ${marco}</button>`}
+        `<button class="btn success" onclick="confirmarValidacao('${marco}')">${MARCO_PRECISA_DECLARACAO(marco) ? 'Assinar e validar' : 'Validar'} ${marco}</button>`}
     </div>
   `);
 };
 window.confirmarValidacao = async (marco) => {
   try {
-    await api(`/fpl/${state.fpl.id}/marcos/${marco}/validar`, {
-      method: 'POST',
-      body: { declaracao_assinada: true },
+    const r = await api(`/fpl/${state.fpl.id}/marcos/${marco}/validar`, {
+      method: 'POST', body: { declaracao_assinada: true },
     });
     closeModal();
-    toast(`${marco} validado com sucesso.`, 'success');
     await loadFpl(state.fpl.id);
-    render();
+    if (r.comprovativo) mostrarComprovativoModal(r.comprovativo, marco);
+    else { toast(`${marco} validado com sucesso.`, 'success'); render(); }
   } catch (e) {
     toast('Erro: ' + e.message, 'error');
   }
+};
+
+// Modal do comprovativo criptográfico (recém-emitido ou consultado)
+function mostrarComprovativoModal(c, marcoRecente) {
+  const jws = c.jws || '';
+  const partes = jws.split('.');
+  openModal(`
+    <div class="modal-head">
+      <h3>${marcoRecente ? marcoRecente + ' validado — comprovativo emitido' : 'Comprovativo criptográfico'}</h3>
+      <button class="btn ghost sm" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      ${marcoRecente ? `<div class="alert success"><div><span class="ttl">Marco ${marcoRecente} validado</span>O sistema gerou o comprovativo abaixo. Copie-o e cole-o no campo correspondente do SmartLegis.</div></div>` : ''}
+      <div class="field"><label>Comprovativo (JWS Ed25519)</label>
+        <textarea id="cmpJws" rows="5" readonly style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;word-break:break-all">${esc(jws)}</textarea>
+      </div>
+      <div class="field-grid mt-12">
+        <div class="field"><label>Identificador (jti)</label><div class="val"><code>${esc(c.jti || c.payload?.jti || '')}</code></div></div>
+        <div class="field"><label>Marco</label><div class="val">${esc(c.marco || c.payload?.marco || marcoRecente || '')}</div></div>
+        <div class="field"><label>Algoritmo</label><div class="val">EdDSA (Ed25519) · kid ${esc(c.kid || c.payload?.kid || '')}</div></div>
+        <div class="field"><label>Emitido em</label><div class="val">${fmtDH(c.emitido_em || c.payload?.validado_em || '')}</div></div>
+      </div>
+      <div class="alert info mt-12"><div><span class="ttl">Verificação offline</span>O SmartLegis verifica este comprovativo com a chave pública partilhada (endpoint <code>/api/.well-known/fpl-jwks.json</code>), sem qualquer chamada de rede a esta aplicação. Sem comprovativo válido, a tramitação fica bloqueada.</div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal();render()">Fechar</button>
+      <button class="btn primary" onclick="copiarComprovativo()">Copiar para a área de transferência</button>
+    </div>
+  `);
+}
+window.copiarComprovativo = async () => {
+  const ta = document.getElementById('cmpJws');
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    toast('Comprovativo copiado. Cole-o no SmartLegis.', 'success');
+  } catch {
+    ta.select();
+    toast('Selecione o texto e copie (Ctrl+C).', 'info');
+  }
+};
+window.verComprovativo = async (jti) => {
+  try {
+    const c = await api('/comprovativos/' + encodeURIComponent(jti));
+    mostrarComprovativoModal(c, null);
+  } catch (e) { toast('Erro: ' + e.message, 'error'); }
+};
+
+// Registar aprovação em Conselho de Ministros (passo entre M4 e M5)
+window.abrirAprovarCM = () => {
+  openModal(`
+    <div class="modal-head"><h3>Registar aprovação em Conselho de Ministros</h3><button class="btn ghost sm" onclick="closeModal()" aria-label="Fechar">✕</button></div>
+    <div class="modal-body">
+      <div class="alert info"><div>Após a aprovação do diploma em Conselho de Ministros, registe aqui a referência do Diário da República. Isto desbloqueia o marco M5 (publicação).</div></div>
+      <form id="cmForm">
+        <div class="field"><label for="cmDr">Referência do Diário da República *</label>
+          <input id="cmDr" placeholder="Ex.: DR n.º 78/2026, Série I, de 22-04-2026" required>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="confirmarAprovarCM()">Confirmar aprovação</button>
+    </div>
+  `);
+};
+window.confirmarAprovarCM = async () => {
+  const referencia_dr = document.getElementById('cmDr').value.trim();
+  if (!referencia_dr) return toast('Indique a referência do Diário da República.', 'warning');
+  try {
+    await api(`/fpl/${state.fpl.id}/aprovar-cm`, { method: 'POST', body: { referencia_dr } });
+    closeModal();
+    toast('Aprovação em CM registada. O marco M5 está agora disponível.', 'success');
+    await loadFpl(state.fpl.id);
+    render();
+  } catch (e) { toast('Erro: ' + e.message, 'error'); }
 };
 
 // ============ Entidades RTRI (SGGOV) ============
@@ -1225,21 +1347,33 @@ async function viewEntidades() {
   const list = await api('/rtri/entidades/all');
   return `
     <div class="page-head">
-      <div><div class="page-title">Entidades RTRI</div><div class="page-sub">${list.length} entidades · Cache local sincronizada com a API da AR</div></div>
-      <button class="btn">Forçar sincronização</button>
+      <div><div class="page-title">Entidades RTRI</div><div class="page-sub">${list.length} entidades · cache local sincronizada com a API da Assembleia da República</div></div>
+      <button class="btn" onclick="sincronizarRtri(this)">Forçar sincronização</button>
     </div>
+    <div class="alert info"><div><span class="ttl">Degradação graciosa</span>O RTRI é a única dependência externa crítica. Se a API da AR estiver indisponível, o ponto focal insere a entidade manualmente com validação pendente — a operação nunca fica bloqueada por falha externa.</div></div>
     <div class="card">
       <table class="tbl">
-        <thead><tr><th>RTRI</th><th>Designação</th><th>Natureza</th><th>Estado</th></tr></thead>
+        <thead><tr><th scope="col">RTRI</th><th scope="col">Designação</th><th scope="col">Natureza</th><th scope="col">Estado</th></tr></thead>
         <tbody>
           ${list.map(e => `
-            <tr><td><strong>${e.rtri_id}</strong></td><td>${esc(e.designacao)}</td><td>${esc(e.natureza_juridica || '')}</td><td><span class="rtri-status validado">✓ Ativo</span></td></tr>
+            <tr><td><strong>${esc(e.rtri_id)}</strong></td><td>${esc(e.designacao)}</td><td>${esc(e.natureza_juridica || '')}</td><td><span class="rtri-status validado">✓ Ativo</span></td></tr>
           `).join('')}
         </tbody>
       </table>
     </div>
   `;
 }
+window.sincronizarRtri = async (btn) => {
+  if (btn) { btn.disabled = true; btn.textContent = 'A sincronizar…'; }
+  try {
+    const r = await api('/rtri/sincronizar', { method: 'POST' });
+    toast(r.modo === 'http' ? `Sincronizadas ${r.sincronizadas} entidades do RTRI.` : 'Modo mock — cache local já está atualizada.', 'success');
+  } catch (e) {
+    toast('Sincronização indisponível: ' + e.message, 'warning');
+  } finally {
+    render();
+  }
+};
 
 // ============ Auditoria QA ============
 async function viewAuditoriaQa() {
@@ -1274,6 +1408,53 @@ async function viewAuditoriaQa() {
               <td>${fmtData(a.data_auditoria)}</td>
               <td><strong style="color:${a.pontuacao >= 80 ? 'var(--success)' : 'var(--warning)'}">${a.pontuacao}</strong>/100</td>
               <td>${a.pedido_correcao ? `<span class="badge revisao dot">${a.estado_correcao || 'PENDENTE'}</span>` : '<span class="badge aprovado dot">Sem correções</span>'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ============ Exportação para o Portal do Governo (SGGOV) ============
+async function viewExportacao() {
+  const publicadas = await api('/export/fpl').catch(() => []);
+  return `
+    <div class="page-head">
+      <div><h1 class="page-title">Exportação para o Portal do Governo</h1>
+      <div class="page-sub">A aplicação opera confinada à RING e não serve a face pública. Após M5, gera pacotes estruturados que são transferidos para o Portal do Governo, ao lado da Agenda Pública dos membros do Governo.</div></div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">FPL publicadas</div><div class="val">${publicadas.length}</div></div>
+      <div class="kpi"><div class="lbl">Formatos</div><div class="val" style="font-size:18px">JSON · CSV · JSON-LD</div></div>
+      <div class="kpi"><div class="lbl">Vocabulário</div><div class="val" style="font-size:18px">OCDE 2024</div></div>
+      <div class="kpi"><div class="lbl">Transferência</div><div class="val" style="font-size:18px">Manual → automática</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Datasets agregados</h3></div>
+      <div class="card-body">
+        <p class="small muted">Pacotes prontos para transferência para o Portal do Governo. Em formatos abertos, atualizados a cada publicação.</p>
+        <div class="flex gap-8 mt-12" style="flex-wrap:wrap">
+          <a class="btn" href="/api/export/datasets/fpl.json" target="_blank" rel="noopener">↓ Dataset JSON</a>
+          <a class="btn" href="/api/export/datasets/fpl.csv" target="_blank" rel="noopener">↓ Dataset CSV</a>
+          <a class="btn" href="/api/export/datasets/fpl.jsonld" target="_blank" rel="noopener">↓ JSON-LD (vocabulário OCDE)</a>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-12">
+      <div class="card-head"><h3>FPL publicadas — prontas para o Portal do Governo</h3></div>
+      <table class="tbl">
+        <thead><tr><th scope="col">N.º Processo</th><th scope="col">Título</th><th scope="col">Gabinete</th><th scope="col">DR</th><th scope="col">Publicado</th><th scope="col"></th></tr></thead>
+        <tbody>
+          ${publicadas.length === 0 ? '<tr><td colspan="6" class="card-empty">Ainda não há FPL publicadas (M5).</td></tr>' :
+          publicadas.map(f => `
+            <tr>
+              <td><strong>${esc(f.numero_processo)}</strong></td>
+              <td class="cell-titulo">${esc(f.titulo_curto || f.titulo)}</td>
+              <td>${esc(f.gabinete_sigla)}</td>
+              <td class="muted small">${esc(f.referencia_dr || '—')}</td>
+              <td class="muted small">${fmtData(f.data_publicacao)}</td>
+              <td><a class="btn ghost sm" href="/api/export/fpl/${f.id}" target="_blank" rel="noopener">Ver pacote</a></td>
             </tr>
           `).join('')}
         </tbody>
@@ -1471,6 +1652,7 @@ async function render() {
       case 'detalhe': html = await viewDetalhe(); break;
       case 'entidades': html = await viewEntidades(); break;
       case 'auditoria': html = await viewAuditoriaQa(); break;
+      case 'exportacao': html = await viewExportacao(); break;
       case 'perfil': html = await viewPerfil(); break;
       case 'outbox': html = await viewOutbox(); break;
       default: html = await viewDashboard();
