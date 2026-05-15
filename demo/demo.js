@@ -526,34 +526,74 @@ function render() {
 
 /* ---------- LOGIN ---------- */
 function renderLogin() {
+  // Agrupar os perfis por contexto (PF, SGGOV, Público) para um login mais legível
+  const pfs   = PERFIS.filter(p => p.papel === 'PONTO_FOCAL' || p.papel === 'PONTO_FOCAL_ALT');
+  const sggov = PERFIS.filter(p => p.papel === 'SGGOV_QA' || p.papel === 'SGGOV_ADMIN' || p.papel === 'GSEPCM');
+  const pub   = PERFIS.filter(p => p.papel === 'PUBLICO');
+
+  const card = (p, destaque = false) => `
+    <button class="role-card ${destaque ? 'destaque' : ''}" onclick="login('${p.id}')">
+      <span class="avatar" style="background:${p.cor}">${inits(p.nome)}</span>
+      <span class="meta">
+        <span class="nome">${esc(p.nome)}</span>
+        <span class="papel">${PAPEL_LBL[p.papel]}${p.gabinete ? ' · ' + gab(p.gabinete).sigla : ''}</span>
+        ${p.email !== '—' ? `<span class="email">${esc(p.email)}</span>` : ''}
+      </span>
+      <span class="seta" aria-hidden="true">→</span>
+    </button>`;
+
   return `
-  <div class="login">
-    <div class="demo-banner">DEMONSTRAÇÃO INTERATIVA · corre inteiramente no seu navegador · dados fictícios · nenhuma informação é enviada para servidores</div>
-    <div class="login-body">
-      <div class="login-card">
-        <div class="login-head">
-          <div class="crest">${svg(I.shield)}</div>
-          <h1>Pegada Legislativa do Governo</h1>
-          <p>Demonstração interativa da aplicação FPL Ponte. Escolha um perfil para entrar e experimentar a plataforma — pode criar fichas, validar marcos, emitir comprovativos e mudar de perspetiva a qualquer momento.</p>
-        </div>
-        <div class="login-roles">
-          <div class="lbl">Entrar como</div>
-          <div class="role-grid">
-            ${PERFIS.map(p=>`
-              <button class="role-card" onclick="login('${p.id}')">
-                <span class="avatar" style="background:${p.cor}">${inits(p.nome)}</span>
-                <span class="meta">
-                  <span class="nome">${esc(p.nome)}</span>
-                  <span class="papel">${PAPEL_LBL[p.papel]}${p.gabinete?' · '+gab(p.gabinete).sigla:''}</span>
-                </span>
-              </button>`).join('')}
-          </div>
-        </div>
-        <div class="login-foot">
-          Numa instalação real, a autenticação faz-se contra o diretório interno dos serviços (LDAP/AD), com a aplicação confinada à Rede Informática do Governo. Aqui simula-se essa escolha de perfil.
+  <div class="entrada-painel">
+    <aside class="entrada-side">
+      <div class="entrada-brand">
+        <div class="brand-crest">${svg(I.shield)}</div>
+        <div class="brand-name">FPL · SGGOV</div>
+        <div class="brand-sub">Pegada Legislativa do Governo</div>
+      </div>
+      <div class="entrada-tagline">
+        <h2>Documentar quem influencia a lei.</h2>
+        <p>Em execução do art.º 4.º da Lei n.º 5-A/2026 e da RCM da Pegada Legislativa, todos os diplomas do Governo passam a registar — bloco a bloco — quem foi ouvido, o que foi dito, e o que foi acolhido.</p>
+        <ul class="entrada-feat">
+          <li><span class="ico">⚿</span><span><strong>Comprovativos criptográficos</strong> em cada marco bloqueante (M0, M3, M4, M5)</span></li>
+          <li><span class="ico">▤</span><span><strong>Painel + cronograma</strong> da tramitação de cada FPL</span></li>
+          <li><span class="ico">↗</span><span><strong>Exportação automática</strong> para o Portal do Governo após M5</span></li>
+        </ul>
+      </div>
+      <div class="entrada-foot">
+        Demonstração interativa autónoma · v1.2<br>
+        Corre inteiramente no seu navegador · dados fictícios<br>
+        XXV Governo Constitucional
+      </div>
+    </aside>
+    <main class="entrada-main">
+      <div class="entrada-corpo">
+        <header>
+          <span class="kicker">Demonstração técnica · sem compromisso oficial</span>
+          <h1>Escolha um perfil para entrar.</h1>
+          <p>Numa instalação real, o login faz-se contra o diretório interno dos serviços (LDAP/AD do Governo) e a aplicação está confinada à Rede Informática do Governo. Aqui pode trocar de perspetiva a qualquer momento.</p>
+        </header>
+
+        <section>
+          <div class="grupo-titulo"><span class="num">1</span>Pontos focais dos gabinetes ministeriais</div>
+          <div class="role-grid">${pfs.slice(0,4).map(p => card(p, p.id === 'u-maria')).join('')}</div>
+          ${pfs.length > 4 ? `<details class="mais-perfis"><summary>Mostrar mais ${pfs.length-4} ponto(s) focal(is)</summary><div class="role-grid mt-12">${pfs.slice(4).map(p => card(p)).join('')}</div></details>` : ''}
+        </section>
+
+        <section>
+          <div class="grupo-titulo"><span class="num">2</span>Secretaria-Geral do Governo (SGGOV)</div>
+          <div class="role-grid">${sggov.map(p => card(p)).join('')}</div>
+        </section>
+
+        <section>
+          <div class="grupo-titulo"><span class="num">3</span>Vista pública</div>
+          <div class="role-grid">${pub.map(p => card(p)).join('')}</div>
+        </section>
+
+        <div class="entrada-aviso">
+          <strong>O estado é guardado apenas no seu navegador.</strong> Pode reiniciar a demonstração em qualquer momento através do menu do utilizador (canto inferior esquerdo, depois de entrar).
         </div>
       </div>
-    </div>
+    </main>
   </div>`;
 }
 function bindLogin() {}
@@ -659,19 +699,31 @@ function renderSidebar(nUnread) {
       <button class="link" onclick="S.user=PERFIS.find(p=>p.id==='u-cidadao');go('portal')">${svg(I.globe)}<span>Portal do Governo</span></button>
       <button class="link" onclick="toggleTheme();render()">${svg(I.moon)}<span>Tema claro/escuro</span></button>
     </div>
-    <div class="bottom">
+    <button class="bottom user-trigger" onclick="S.dropdown=S.dropdown==='user'?null:'user';render()" aria-label="Abrir menu do utilizador" aria-haspopup="true" aria-expanded="${S.dropdown==='user'}">
       <div class="av" style="background:${u.cor}">${inits(u.nome)}</div>
       <div class="nm"><strong>${esc(u.nome)}</strong><span>${PAPEL_LBL[u.papel]}${u.gabinete?' · '+gab(u.gabinete).sigla:''}</span></div>
-      <button onclick="logout()" title="Terminar sessão" aria-label="Terminar sessão">${svg(I.out)}</button>
-    </div>
+      <span class="caret" aria-hidden="true">⌃</span>
+    </button>
   </aside>`;
 }
 function renderUserMenu() {
+  const u = S.user;
+  const tema = document.documentElement.dataset.theme === 'dark' ? 'escuro' : 'claro';
   return `<div class="dropdown">
-    <div class="dh"><div class="n">${esc(S.user.nome)}</div><div class="e">${esc(S.user.email)}</div></div>
-    <button onclick="S.dropdown=null;logout()">${svg(I.out)} Sair / trocar de perfil</button>
+    <div class="dh">
+      <div class="dh-top">
+        <div class="dh-avatar" style="background:${u.cor}">${inits(u.nome)}</div>
+        <div>
+          <div class="n">${esc(u.nome)}</div>
+          <div class="e">${esc(u.email)}</div>
+        </div>
+      </div>
+      <div class="dh-papel">${PAPEL_LBL[u.papel]}${u.gabinete?' · '+esc(gab(u.gabinete).nome):''}</div>
+    </div>
+    <button onclick="S.dropdown=null;toggleTheme();render()">${svg(I.moon)} Tema ${tema} → ${tema==='claro'?'escuro':'claro'}</button>
     <div class="sep"></div>
-    <button onclick="S.dropdown=null;confirmReset()">${svg(I.refresh)} Reiniciar demonstração</button>
+    <button onclick="S.dropdown=null;logout()">${svg(I.out)} <span>Terminar sessão · trocar perfil</span></button>
+    <button onclick="S.dropdown=null;confirmReset()" class="danger">${svg(I.refresh)} <span>Reiniciar demonstração</span></button>
   </div>`;
 }
 function renderNotifPanel() {
