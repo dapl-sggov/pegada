@@ -18,11 +18,14 @@ jobs:
       - name: node --check (backend)
         working-directory: app/backend
         run: |
-          for f in $(find src -name '*.js'); do echo "→ $f"; node --check "$f"; done
-      - name: node --check (frontend + demo)
+          set -euo pipefail
+          for f in $(find src test -name '*.js'); do echo "→ $f"; node --check "$f"; done
+      - name: node --check (frontend modular)
         run: |
-          node --check app/frontend/app.js
-          node --check demo/demo.js
+          set -euo pipefail
+          for f in $(find app/frontend/src -name '*.js'); do echo "→ $f"; node --check "$f"; done
+      - name: node --check (demo standalone)
+        run: node --check demo/demo.js
 
   test:
     name: Testes de domínio
@@ -71,22 +74,26 @@ jobs:
           echo "✓ health + JWKS"
       - name: Fluxo de login + criação + M0 + comprovativo
         run: |
-          curl -s -c /tmp/ck.txt http://localhost:3717/api/auth/csrf > /dev/null
+          set -euo pipefail
+          curl -sf -c /tmp/ck.txt http://localhost:3717/api/auth/csrf > /dev/null
           CSRF=$(grep fpl_csrf /tmp/ck.txt | awk '{print $7}')
-          curl -s -b /tmp/ck.txt -c /tmp/ck.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
-            -d '{"email":"maria.silva@gov.pt","password":"demo1234"}' http://localhost:3717/api/auth/login | grep -q maria.silva
-          FID=$(curl -s -b /tmp/ck.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
-            -d '{"tipo_diploma":"DL","titulo":"FPL de smoke test do CI","gabinete_id":"mae"}' \
+          # Login com o email oficial (XXV Governo): nome.sobrenome@<sigla-ministério>.gov.pt
+          curl -sf -b /tmp/ck.txt -c /tmp/ck.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
+            -d '{"email":"maria.silva@maen.gov.pt","password":"demo1234"}' \
+            http://localhost:3717/api/auth/login | grep -q '"email":"maria.silva@maen.gov.pt"'
+          FID=$(curl -sf -b /tmp/ck.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
+            -d '{"tipo_diploma":"DL","titulo":"FPL de smoke test do CI","gabinete_id":"maen"}' \
             http://localhost:3717/api/fpl | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).id))")
+          echo "FPL criada: $FID"
           # M0 sem Bloco B → 422
           ST=$(curl -s -o /dev/null -w "%{http_code}" -b /tmp/ck.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
             -d '{}' http://localhost:3717/api/fpl/$FID/marcos/M0/validar)
-          test "$ST" = "422" || (echo "Esperado 422, obtido $ST" && exit 1)
+          test "$ST" = "422" || { echo "Esperado 422 ao validar M0 sem Bloco B, obtido $ST"; exit 1; }
           # preencher Bloco B + validar M0 → emite comprovativo
-          curl -s -o /dev/null -b /tmp/ck.txt -X PATCH -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
+          curl -sf -o /dev/null -b /tmp/ck.txt -X PATCH -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
             -d '{"tipo_origem":"OUTRA","sintese_problema":"'"$(printf 'a%.0s' {1..220})"'"}' \
             http://localhost:3717/api/fpl/$FID/bloco-b
-          curl -s -b /tmp/ck.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
+          curl -sf -b /tmp/ck.txt -X POST -H "Content-Type: application/json" -H "x-csrf-token: $CSRF" \
             -d '{}' http://localhost:3717/api/fpl/$FID/marcos/M0/validar | grep -q '"comprovativo"'
           echo "✓ workflow bloqueante + emissão de comprovativo"
       - name: Parar servidor
