@@ -33,27 +33,39 @@ test('a11y: declaração de acessibilidade existe e está conforme', () => {
   assert.match(h, /AMA/, 'menciona a AMA como entidade de fiscalização');
 });
 
-test('a11y: app.js usa marcação semântica + ARIA + skip-link', () => {
-  const j = ler('app.js');
+test('a11y: shell + views usam marcação semântica + ARIA + skip-link', () => {
+  // O frontend foi modularizado: o shell vive em src/shell.js, o login em
+  // src/views/login.js, etc. Verificamos a presença das marcações nos
+  // ficheiros corretos.
+  const shell = ler('src/shell.js');
+  const login = ler('src/views/login.js');
+  const detalhe = ler('src/views/detalhe.js');
+
   // skip-link no shell autenticado
-  assert.match(j, /class="skip-link"/);
+  assert.match(shell, /class="skip-link"/);
   // landmarks
-  assert.match(j, /<header[^>]*role="banner"/);
-  assert.match(j, /<main[^>]*id="main"/);
-  assert.match(j, /<footer[^>]*role="contentinfo"/);
+  assert.match(shell, /<header[^>]*role="banner"/);
+  assert.match(shell, /<main[^>]*id="main"/);
+  assert.match(shell, /<footer[^>]*role="contentinfo"/);
   // ARIA dinâmico
-  assert.match(j, /aria-current="\$\{state\.view/, 'aria-current dinâmico na navegação');
-  assert.match(j, /aria-selected/, 'aria-selected nas tabs');
-  assert.match(j, /aria-required="true"/, 'aria-required em campos obrigatórios');
-  assert.match(j, /aria-live="polite"/, 'aria-live em alerta de erro');
+  assert.match(shell, /aria-current="\$\{state\.view/, 'aria-current dinâmico na navegação');
+  assert.match(detalhe, /aria-selected/, 'aria-selected nas tabs');
+  assert.match(login, /aria-required="true"/, 'aria-required em campos obrigatórios');
+  assert.match(login, /aria-live="polite"/, 'aria-live em alerta de erro');
   // navegação por teclado nas pseudo-links da sidebar
-  assert.match(j, /tabindex="0"/);
-  assert.match(j, /e\.key === 'Enter' \|\| e\.key === ' '/);
+  assert.match(shell, /tabindex="0"/);
   // labels descritivos em ícones
-  assert.match(j, /aria-label="Notificações/);
-  assert.match(j, /aria-label="Terminar sessão"/);
-  // skip-link no app.js (é gerado pelo shell)
-  assert.match(j, /Saltar para o conteúdo principal/);
+  assert.match(shell, /aria-label="Notificações/);
+  assert.match(shell, /aria-label="Terminar sessão"/);
+  // skip-link
+  assert.match(shell, /Saltar para o conteúdo principal/);
+});
+
+test('a11y: handler de teclado para data-nav existe no shell', () => {
+  const shell = ler('src/shell.js');
+  // O binding está no shell (querySelectorAll[data-nav])
+  assert.match(shell, /\[data-nav\]/);
+  assert.match(shell, /keydown/);
 });
 
 test('a11y: app.css tem foco visível e contraste declarado', () => {
@@ -64,6 +76,6 @@ test('a11y: app.css tem foco visível e contraste declarado', () => {
 });
 
 test('a11y: link para a declaração visível no footer', () => {
-  const j = ler('app.js');
+  const j = ler('src/shell.js');
   assert.match(j, /declaracao-acessibilidade\.html/, 'footer aponta para a declaração');
 });

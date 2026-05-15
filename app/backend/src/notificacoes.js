@@ -42,6 +42,27 @@ const TEMPLATES = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// Subscritores SSE — mapa userId → Set<callback>. Cada subscribe devolve
+// uma função que cancela a inscrição. Usado por /notificacoes/stream.
+// ---------------------------------------------------------------------------
+const _subs = new Map();
+
+export function subscribe(userId, cb) {
+  if (!_subs.has(userId)) _subs.set(userId, new Set());
+  _subs.get(userId).add(cb);
+  return () => {
+    const s = _subs.get(userId);
+    if (s) { s.delete(cb); if (!s.size) _subs.delete(userId); }
+  };
+}
+
+function publicar(userId, payload) {
+  const s = _subs.get(userId);
+  if (!s) return;
+  for (const cb of s) { try { cb(payload); } catch (e) { /* ignore */ } }
+}
+
 export async function notificar({ tipo, destinatarios, fpl, ctx = {} }) {
   const tpl = TEMPLATES[tipo];
   if (!tpl) { console.warn('[notif] Tipo desconhecido:', tipo); return; }
@@ -55,6 +76,7 @@ export async function notificar({ tipo, destinatarios, fpl, ctx = {} }) {
       'INSERT INTO notificacao (id, destinatario_id, fpl_id, tipo, titulo, corpo, payload) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [id, destId, fpl?.id || null, tipo, titulo, corpo, jsonStringify(ctx)]
     );
+    publicar(destId, { id, tipo, titulo, corpo, fpl_id: fpl?.id || null, criada_em: new Date().toISOString() });
     const u = await db.get('SELECT email, nome_completo FROM utilizador WHERE id = ?', [destId]);
     if (u && u.email) {
       const html = `<p>Olá ${u.nome_completo},</p><p>${corpo}</p>` +

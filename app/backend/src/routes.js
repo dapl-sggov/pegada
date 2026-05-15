@@ -190,6 +190,18 @@ router.get('/fpl/:id/versoes', requireAuth, ah(async (req, res) => {
   res.json(await fpl.listarVersoes(req.params.id));
 }));
 
+// Snapshot de uma versão concreta — usado pelo diff viewer do frontend.
+router.get('/fpl/:id/versoes/:vid', requireAuth, ah(async (req, res) => {
+  const f = await fplComEscopo(req, res); if (!f) return;
+  const v = await db.get(
+    `SELECT id, numero, autor_id, timestamp, marco_validado, descricao, snapshot
+     FROM versao_fpl WHERE id = ? AND fpl_id = ?`, [req.params.vid, req.params.id]);
+  if (!v) return res.status(404).json({ error: 'Versão não encontrada' });
+  let snapshot = null;
+  try { snapshot = v.snapshot ? JSON.parse(v.snapshot) : null; } catch { snapshot = v.snapshot; }
+  res.json({ ...v, snapshot });
+}));
+
 router.get('/fpl/:id/eventos', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
   res.json(await fpl.listarEventos(req.params.id));
@@ -348,6 +360,27 @@ router.get('/notificacoes', requireAuth, ah(async (req, res) => {
 }));
 router.post('/notificacoes/:id/lida', requireAuth, ah(async (req, res) => { await notif.marcarLida(req.params.id, req.user.id); res.json({ ok: true }); }));
 router.post('/notificacoes/lidas-todas', requireAuth, ah(async (req, res) => { await notif.marcarTodasLidas(req.user.id); res.json({ ok: true }); }));
+
+// SSE de notificações em tempo real. Mantém uma ligação por utilizador
+// (via cookie de sessão) e empurra eventos `nova` quando o subscriber
+// publica em `notif.subscribe(userId, fn)`. Em ambiente confinado RING
+// há reverse-proxy compatível com SSE; fora disso o frontend cai para
+// polling automaticamente.
+router.get('/notificacoes/stream', requireAuth, ah(async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Nginx
+  res.flushHeaders?.();
+  res.write(': ping\n\n');
+
+  const off = notif.subscribe(req.user.id, (n) => {
+    try { res.write(`event: nova\ndata: ${JSON.stringify(n)}\n\n`); } catch {}
+  });
+  const ka = setInterval(() => { try { res.write('event: ping\ndata: {}\n\n'); } catch {} }, 20_000);
+
+  req.on('close', () => { off(); clearInterval(ka); });
+}));
 router.get('/admin/outbox', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => res.json(await notif.listarOutbox({ limit: 200 }))));
 router.post('/admin/outbox/processar', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => res.json({ enviados: await notif.processarOutbox() })));
 
@@ -395,16 +428,37 @@ router.get('/admin/dashboard', requireAuth, requireRole('SGGOV_QA', 'SGGOV_ADMIN
   const publicadas = (await db.get("SELECT COUNT(*) as n FROM fpl WHERE estado_workflow = 'PUBLICADO'")).n;
   const em_revisao = (await db.get("SELECT COUNT(*) as n FROM fpl WHERE estado_workflow = 'EM_REVISAO_QA'")).n;
   const comprovativos = (await db.get('SELECT COUNT(*) as n FROM comprovativo')).n;
+  // Top gabinetes com `id` para drill-down do dashboard (não só sigla)
   const top_gabinetes = await db.all(
-    `SELECT g.sigla, COUNT(f.id) as n FROM fpl f JOIN gabinete g ON g.id = f.gabinete_id GROUP BY g.sigla ORDER BY n DESC LIMIT 5`
+    `SELECT g.id, g.sigla, COUNT(f.id) as n FROM fpl f JOIN gabinete g ON g.id = f.gabinete_id
+     GROUP BY g.id, g.sigla ORDER BY n DESC LIMIT 5`
   );
   const top_entidades = await db.all(
     `SELECT entidade_designacao as entidade, rtri_id, COUNT(*) as n FROM entrada_bloco_d
      WHERE entidade_designacao IS NOT NULL GROUP BY entidade_designacao, rtri_id ORDER BY n DESC LIMIT 10`
   );
   const aud = await db.get('SELECT AVG(pontuacao) as m, COUNT(*) as n FROM auditoria_qa');
+
+  // Timeline mensal (últimos 12 meses) com marcos M0/M3/M4/M5 emitidos.
+  // Lê de `versao_fpl.marco_validado` que é populado a cada validação.
+  const timelineRows = await db.all(`
+    SELECT substr(timestamp, 1, 7) as mes, marco_validado as marco, COUNT(*) as n
+    FROM versao_fpl
+    WHERE marco_validado IN ('M0','M3','M4','M5')
+      AND timestamp >= ?
+    GROUP BY mes, marco_validado
+    ORDER BY mes
+  `, [new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString().slice(0, 7) + '-01']);
+  const mesesMap = new Map();
+  for (const r of timelineRows) {
+    if (!mesesMap.has(r.mes)) mesesMap.set(r.mes, { mes: r.mes, M0: 0, M3: 0, M4: 0, M5: 0 });
+    mesesMap.get(r.mes)[r.marco] = r.n;
+  }
+  const timeline_marcos = [...mesesMap.values()];
+
   res.json({
-    total, publicadas, em_revisao, comprovativos, por_estado, top_gabinetes, top_entidades,
+    total, publicadas, em_revisao, comprovativos, por_estado,
+    top_gabinetes, top_entidades, timeline_marcos,
     auditorias: { media: aud?.m || 0, total: aud?.n || 0 },
   });
 }));

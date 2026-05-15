@@ -287,3 +287,118 @@ test('reposicionamento: /api/publico/datasets/fpl.csv não existe (404)', async 
   const r = await fetch(baseUrl + '/api/publico/datasets/fpl.csv');
   assert.equal(r.status, 404);
 });
+
+// ---------------------------------------------------------------------------
+// Funcionalidades v1.1 — snapshot de versão para diff viewer
+// ---------------------------------------------------------------------------
+test('versao snapshot: GET /api/fpl/:id/versoes/:vid devolve snapshot completo', async () => {
+  const c = novoCliente();
+  await login(c, 'maria@gov.pt');
+
+  // Cria FPL + Bloco B (gera 2 versões)
+  const cria = await c.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'Teste snapshot diff', gabinete_id: 'mae' });
+  assert.equal(cria.status, 201);
+  const fplId = cria.body.id;
+
+  await c.PATCH(`/api/fpl/${fplId}/bloco-b`, {
+    tipo_origem: 'OUTRA',
+    sintese_problema: 'a'.repeat(220),
+  });
+
+  const versoes = await c.GET(`/api/fpl/${fplId}/versoes`);
+  assert.equal(versoes.status, 200);
+  assert.ok(versoes.body.length >= 2, 'devem existir pelo menos 2 versões');
+
+  const snap = await c.GET(`/api/fpl/${fplId}/versoes/${versoes.body[0].id}`);
+  assert.equal(snap.status, 200);
+  assert.ok(snap.body.snapshot, 'snapshot deve estar presente');
+  // snapshotFpl devolve { fpl, bloco_c, bloco_d }
+  assert.equal(snap.body.snapshot.fpl?.id, fplId);
+  assert.ok(Array.isArray(snap.body.snapshot.bloco_c));
+  assert.ok(Array.isArray(snap.body.snapshot.bloco_d));
+});
+
+test('dashboard SGGOV: traz timeline_marcos e top_gabinetes com id', async () => {
+  const c = novoCliente();
+  await login(c, 'rui@gov.pt');
+  const r = await c.GET('/api/admin/dashboard');
+  assert.equal(r.status, 200);
+  assert.ok(Array.isArray(r.body.timeline_marcos), 'timeline_marcos é array');
+  assert.ok(Array.isArray(r.body.top_gabinetes), 'top_gabinetes é array');
+  // Top gabinetes deve incluir `id` para drill-down
+  if (r.body.top_gabinetes.length) {
+    assert.ok('id' in r.body.top_gabinetes[0], 'top_gabinetes[i].id presente');
+  }
+});
+
+// ---------------------------------------------------------------------------
+// SSE de notificações — confirma que o endpoint responde com text/event-stream
+// e empurra eventos quando há nova notificação.
+// ---------------------------------------------------------------------------
+test('SSE: GET /api/notificacoes/stream estabelece event-stream e empurra eventos', async () => {
+  const c = novoCliente();
+  await login(c, 'maria@gov.pt');
+  const cookies = [...c.jar.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
+
+  const ctrl = new AbortController();
+  const res = await fetch(baseUrl + '/api/notificacoes/stream', {
+    headers: { cookie: cookies, accept: 'text/event-stream' },
+    signal: ctrl.signal,
+  });
+  assert.equal(res.status, 200);
+  assert.ok((res.headers.get('content-type') || '').includes('text/event-stream'),
+    'content-type deve ser text/event-stream');
+
+  // Lê o primeiro chunk (ping inicial), depois publica uma notif via subscribe
+  // direto e confirma que chega um evento `nova` em < 1 s.
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  // Publicamos via API de notificacoes diretamente (atalho de teste)
+  const { subscribe } = await import('../src/notificacoes.js');
+  // não usamos subscribe diretamente — usamos `notificar` para o utilizador maria
+  const { notificar } = await import('../src/notificacoes.js');
+  const { db } = await import('../src/db.js');
+  const u = await db.get("SELECT id FROM utilizador WHERE email = 'maria@gov.pt'");
+
+  // Espera o ping inicial (deve chegar imediatamente)
+  let recebido = '';
+  const t0 = Date.now();
+  // Lê até receber pelo menos uma mensagem ou esgotar 2s
+  const lerAlgumaCoisa = async () => {
+    while (Date.now() - t0 < 2000) {
+      const { value, done } = await Promise.race([
+        reader.read(),
+        new Promise(r => setTimeout(() => r({ value: null, done: true }), 1000)),
+      ]);
+      if (done) break;
+      if (value) recebido += decoder.decode(value, { stream: true });
+      if (recebido.includes('ping') || recebido.includes('nova')) break;
+    }
+  };
+  await lerAlgumaCoisa();
+  assert.ok(recebido.length > 0, 'deve receber pelo menos algum chunk');
+
+  // Dispara uma notificação para o utilizador
+  await notificar({
+    tipo: 'M3_VALIDADO',
+    destinatarios: [u.id],
+    fpl: { id: 'x', numero_processo: '2026/MAE/SSE', titulo: 'Teste SSE', titulo_curto: 'SSE' },
+  });
+
+  // Lê mais chunks à procura do evento "nova"
+  recebido = '';
+  const t1 = Date.now();
+  while (Date.now() - t1 < 2000 && !recebido.includes('event: nova')) {
+    const { value, done } = await Promise.race([
+      reader.read(),
+      new Promise(r => setTimeout(() => r({ value: null, done: true }), 800)),
+    ]);
+    if (done) break;
+    if (value) recebido += decoder.decode(value, { stream: true });
+  }
+  ctrl.abort();
+  assert.match(recebido, /event: nova/, 'deve ter sido empurrado um evento "nova"');
+  // O template ignora o título passado e usa um título fixo; verificamos pelo
+  // numero_processo que vai no corpo da notificação.
+  assert.match(recebido, /2026\/MAE\/SSE/, 'payload deve incluir o número de processo');
+});
