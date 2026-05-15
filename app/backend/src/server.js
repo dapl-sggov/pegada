@@ -130,12 +130,15 @@ if(r.ok)location='/';else{const j=await r.json().catch(()=>({}));alert('Falha: '
   if (servirFrontend) {
     const frontendDir = path.resolve(__dirname, '../../frontend');
     const demoDir = path.resolve(__dirname, '../../../demo');
-    // /demo/* serve a demonstração interativa autónoma (HTML + JS + CSS),
-    // útil para mostrar externamente sem dependências do backend.
+    const mockDir = path.resolve(__dirname, '../../../mock');
+    // /demo/* serve a demonstração interativa autónoma (HTML + JS + CSS).
+    // /mock/* serve a página de apresentação institucional.
+    // Ambas úteis para mostrar externamente sem dependências do backend.
     app.use('/demo', express.static(demoDir));
+    app.use('/mock', express.static(mockDir));
     app.use(express.static(frontendDir));
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api') || req.path.startsWith('/demo')) return next();
+      if (req.path.startsWith('/api') || req.path.startsWith('/demo') || req.path.startsWith('/mock')) return next();
       res.sendFile(path.join(frontendDir, 'index.html'), err => err && next());
     });
   }

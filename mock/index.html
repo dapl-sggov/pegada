@@ -3,2133 +3,386 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Pegada Legislativa do Governo — registo público das interações com representantes de interesses na fase preparatória dos diplomas, em execução da Lei n.º 5-A/2026.">
-<meta name="theme-color" content="#1d3461">
-<title>FPL · Pegada Legislativa do Governo</title>
-
+<meta name="description" content="FPL — Pegada Legislativa do Governo. Apresentação do projeto, da proposta de RCM e da demonstração interativa.">
+<meta name="theme-color" content="#0c1729">
+<title>FPL — Pegada Legislativa do Governo</title>
 <style>
-:root{
-  /* Paleta institucional */
-  --gov:#1d3461;
-  --gov-dark:#11203f;
-  --gov-light:#e8eef7;
-  --gov-mid:#2f4f8a;
-  --accent:#c9a227;
-  --red:#a71728;
-  --green:#0f7858;
-  --warning:#a36507;
-  --ink:#11151c;
-  --ink-2:#3a4252;
-  --ink-3:#5e6573;
-  --ink-4:#8b919c;
-  --line:#d9dee5;
-  --line-2:#edf0f4;
-  --bg:#fbfbfa;
-  --surface:#ffffff;
-  --surface-2:#f6f7f9;
-
-  /* Tipografia */
-  --serif: 'Source Serif Pro', 'Iowan Old Style', 'Charter', 'Georgia', 'Times New Roman', serif;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
-
-  /* Geometria */
-  --r: 4px;
-  --r-lg: 8px;
-  --shadow-sm: 0 1px 2px rgba(17,32,63,.06);
-  --shadow: 0 4px 16px rgba(17,32,63,.08);
-  --shadow-lg: 0 16px 48px rgba(17,32,63,.14);
-  --max: 1200px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root[data-theme="auto"] {
-    --bg:#0e131c;
-    --surface:#161c28;
-    --surface-2:#1c2331;
-    --ink:#e7eaf0;
-    --ink-2:#c0c6d2;
-    --ink-3:#9aa1ae;
-    --ink-4:#6c7383;
-    --line:#26303f;
-    --line-2:#1c2331;
-    --gov-light:#1a2740;
+  /* Tokens — alinhados com o painel oficial v1.2 */
+  :root {
+    --bg:#f1f4f8;
+    --side:#0c1729;
+    --side-soft:#1f2945;
+    --text:#0c1729;
+    --text-mute:#5b6478;
+    --text-faint:#9aa5b6;
+    --border:#d9e0ea;
+    --border-hair:#eef0f3;
+    --surface:#fff;
+    --surface-alt:#fafbfc;
+    --gold:#b08020;
+    --gold-bg:#fff8e6;
+    --gold-border:#f3d27a;
+    --success:#1a7f3c;
+    --danger:#b81e2d;
+    --blue:#0a3161;
+    --red:#c8102e;
+    --sans:-apple-system,'Inter','Segoe UI',Roboto,sans-serif;
+    --mono:ui-monospace,'SF Mono','JetBrains Mono',Consolas,monospace;
+    --r:6px;
   }
-}
-:root[data-theme="dark"] {
-  --bg:#0e131c;
-  --surface:#161c28;
-  --surface-2:#1c2331;
-  --ink:#e7eaf0;
-  --ink-2:#c0c6d2;
-  --ink-3:#9aa1ae;
-  --ink-4:#6c7383;
-  --line:#26303f;
-  --line-2:#1c2331;
-  --gov-light:#1a2740;
-}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font:14.5px/1.65 var(--sans);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .mono{font-family:var(--mono)}
 
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:var(--sans);
-  font-size:16px;
-  line-height:1.6;
-  color:var(--ink);
-  background:var(--bg);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  text-rendering:optimizeLegibility;
-}
+  .topbar{background:var(--side);color:#cdd5e3;padding:10px 0;border-bottom:3px solid var(--gold);font-size:12px}
+  .topbar-inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;align-items:center;gap:16px}
+  .topbar .crest{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px}
+  .topbar strong{color:#fff;font-weight:600}
+  .topbar nav{margin-left:auto;display:flex;gap:18px}
+  .topbar nav a{color:#cdd5e3}
+  .topbar nav a:hover{color:#fff;text-decoration:none}
 
-/* === Tipografia === */
-h1, h2, h3, h4 { font-family: var(--serif); font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
-h1 { font-size: clamp(2rem, 4.5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; }
-h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); line-height: 1.2; }
-h3 { font-size: 1.25rem; line-height: 1.3; }
-h4 { font-size: 1rem; line-height: 1.4; }
-p { line-height: 1.7; }
-.lead { font-size: 1.2rem; color: var(--ink-2); line-height: 1.6; font-weight: 400; }
-.eyebrow { font-family: var(--sans); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gov); }
-.mono { font-family: var(--mono); font-size: 0.92em; }
-a { color: var(--gov); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s; }
-a:hover { border-bottom-color: var(--gov); }
+  .hero{background:linear-gradient(135deg,var(--side) 0%,#06122a 100%);color:#fff;padding:64px 32px 56px;border-bottom:1px solid var(--side-soft)}
+  .hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center}
+  .hero .kicker{font-size:11.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:14px}
+  .hero h1{font-size:42px;line-height:1.1;letter-spacing:-.6px;font-weight:600;margin-bottom:18px}
+  .hero .lead{font-size:17px;line-height:1.55;color:#cdd5e3;margin-bottom:28px;max-width:580px}
+  .hero .ctas{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:6px;font-size:14px;font-weight:600;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:all .15s;font-family:inherit}
+  .btn.primary{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .btn.primary:hover{background:#8f6818;border-color:#8f6818;text-decoration:none;color:#fff}
+  .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.3)}
+  .btn.ghost:hover{background:rgba(255,255,255,.08);text-decoration:none;color:#fff}
+  .btn .arrow{transition:transform .15s}
+  .btn:hover .arrow{transform:translateX(3px)}
 
-button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-:focus-visible { outline: 2px solid var(--gov); outline-offset: 3px; border-radius: 2px; }
+  .hero-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:24px}
+  .hero-card h3{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:18px}
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .stat .num{font-size:28px;font-weight:600;color:#fff;letter-spacing:-.5px;line-height:1;font-family:var(--mono)}
+  .stat .lbl{font-size:11px;color:#7886a0;margin-top:6px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
 
-/* === Skip link === */
-.skip { position:absolute; top:-40px; left:0; background:var(--gov); color:#fff; padding:10px 16px; z-index:1000; font-weight:600; }
-.skip:focus { top:0; }
+  main{max-width:1200px;margin:0 auto;padding:64px 32px 80px}
+  section{margin-bottom:64px;scroll-margin-top:80px}
+  section h2{font-size:26px;font-weight:600;letter-spacing:-.3px;color:var(--text);margin-bottom:8px;line-height:1.25}
+  section .secao-sub{font-size:15px;color:var(--text-mute);margin-bottom:28px;max-width:740px;line-height:1.55}
 
-/* === Demo strip === */
-.demo-strip {
-  background: var(--accent);
-  color: #2a1f00;
-  text-align: center;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 6px 16px;
-}
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .feat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+  .feat .ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:16px;font-weight:700}
+  .feat .ico.gold{background:var(--gold-bg);color:var(--gold)}
+  .feat .ico.blue{background:#e6f0fb;color:var(--blue)}
+  .feat .ico.green{background:#e6fcf0;color:var(--success)}
+  .feat h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3}
+  .feat p{font-size:13px;color:var(--text-mute);line-height:1.55}
 
-/* === Top bar === */
-.topbar {
-  position: sticky;
-  top: 0;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-  z-index: 100;
-  backdrop-filter: saturate(180%) blur(12px);
-}
-.topbar-inner {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 14px 24px;
-  display: flex;
-  align-items: center;
-  gap: 28px;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--serif);
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: var(--ink);
-  border: none !important;
-}
-.crest {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  background: var(--gov);
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.crest svg { width: 22px; height: 22px; }
-.brand .meta {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-}
-.brand .meta .top {
-  font-family: var(--sans);
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--ink-3);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.topbar nav {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-}
-.topbar nav a {
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--ink-2);
-  border-radius: var(--r);
-  border: none !important;
-}
-.topbar nav a:hover {
-  background: var(--surface-2);
-  color: var(--ink);
-}
-.topbar .right-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 12px;
-}
-.theme-btn {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink-3);
-}
-.theme-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .demo-cta{background:linear-gradient(135deg,#fff 0%,#fff8e6 100%);border:2px solid var(--gold);border-radius:10px;padding:28px 32px;display:flex;align-items:center;gap:32px}
+  .demo-cta .corpo{flex:1}
+  .demo-cta h2{margin:0 0 6px;font-size:22px}
+  .demo-cta p{font-size:14px;color:var(--text-mute);margin-bottom:0;max-width:640px;line-height:1.55}
+  .demo-cta .acoes{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+  .demo-link{font-size:11.5px;color:var(--text-mute);font-family:var(--mono)}
 
-/* === Layout === */
-.section {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 88px 24px;
-}
-.section-narrow {
-  max-width: 820px;
-  margin: 0 auto;
-}
-.section + .section { padding-top: 0; }
+  .doc-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .doc{display:flex;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);transition:all .15s;text-decoration:none;color:var(--text);align-items:flex-start}
+  .doc:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:0 4px 12px rgba(10,49,97,.06);text-decoration:none}
+  .doc .doc-ico{width:32px;height:32px;background:var(--surface-alt);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:var(--text-mute);font-weight:700}
+  .doc .doc-meta h4{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.3}
+  .doc .doc-meta p{font-size:12px;color:var(--text-mute);line-height:1.5}
+  .doc.feat-doc{grid-column:1/-1;border-color:var(--blue);background:#fafdff}
+  .doc.feat-doc .doc-ico{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .doc.feat-doc h4{font-size:15px}
 
-/* === Hero === */
-.hero {
-  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
-  padding-top: 96px;
-  padding-bottom: 96px;
-  border-bottom: 1px solid var(--line);
-  position: relative;
-  overflow: hidden;
-}
-.hero-inner {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 0 24px;
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 64px;
-  align-items: center;
-}
-.hero h1 {
-  margin-top: 16px;
-  margin-bottom: 24px;
-}
-.hero h1 strong {
-  font-weight: 600;
-  color: var(--gov);
-  font-style: italic;
-}
-.hero .lead {
-  margin-bottom: 32px;
-  max-width: 36em;
-}
-.hero .ctas {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 22px;
-  font-family: var(--sans);
-  font-size: 0.95rem;
-  font-weight: 500;
-  border-radius: var(--r);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink);
-  transition: all 0.15s;
-  border-bottom: 1px solid var(--line) !important;
-}
-.btn:hover { background: var(--surface-2); border-color: var(--ink-4) !important; }
-.btn.primary {
-  background: var(--gov);
-  color: #fff;
-  border-color: var(--gov) !important;
-}
-.btn.primary:hover { background: var(--gov-dark); border-color: var(--gov-dark) !important; }
-.btn svg { width: 16px; height: 16px; }
+  .timeline{display:grid;grid-template-columns:repeat(6,1fr);gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+  .marco{position:relative;text-align:center;padding:0 8px;border-right:1px solid var(--border-hair)}
+  .marco:last-child{border-right:none}
+  .marco .dot{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-weight:700;font-size:12px;font-family:var(--mono)}
+  .marco.bloq .dot{background:var(--gold)}
+  .marco .lbl{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px}
+  .marco .sub{font-size:11px;color:var(--text-mute);line-height:1.4}
+  .marco .bloq-tag{display:inline-block;font-size:9.5px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:4px}
 
-.hero-illustration {
-  position: relative;
-  aspect-ratio: 4/5;
-  background: linear-gradient(135deg, var(--gov) 0%, var(--gov-dark) 100%);
-  border-radius: var(--r-lg);
-  padding: 40px;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-.hero-illustration::before {
-  content: "";
-  position: absolute;
-  top: -50%; right: -30%;
-  width: 80%; height: 100%;
-  background: radial-gradient(circle, rgba(201,162,39,0.18) 0%, transparent 60%);
-  pointer-events: none;
-}
-.hero-illustration .top {
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  opacity: 0.7;
-  text-transform: uppercase;
-}
-.hero-illustration .quote {
-  font-family: var(--serif);
-  font-size: 1.4rem;
-  font-style: italic;
-  line-height: 1.4;
-  position: relative;
-  z-index: 1;
-}
-.hero-illustration .quote::before {
-  content: "“";
-  font-size: 4rem;
-  font-family: var(--serif);
-  opacity: 0.3;
-  position: absolute;
-  top: -32px;
-  left: -10px;
-}
-.hero-illustration .source {
-  font-size: 0.78rem;
-  opacity: 0.7;
-  margin-top: 16px;
-}
-.hero-illustration .stamp {
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border: 1px solid rgba(255,255,255,0.3);
-  padding: 4px 10px;
-  align-self: flex-start;
-  border-radius: 2px;
-  margin-bottom: 16px;
-}
+  .calendar{display:grid;grid-template-columns:140px 1fr;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+  .cal-row{display:contents}
+  .cal-row .data{padding:14px 16px;border-left:3px solid var(--gold);border-bottom:1px solid var(--border-hair);font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--text);background:var(--surface-alt)}
+  .cal-row .info{padding:14px 18px;border-bottom:1px solid var(--border-hair);font-size:13.5px;color:var(--text)}
+  .cal-row:last-child .data,.cal-row:last-child .info{border-bottom:none}
+  .cal-row .info strong{font-weight:600}
+  .cal-row .info span{display:block;color:var(--text-mute);font-size:12px;margin-top:3px;line-height:1.5}
 
-/* === Stats bar === */
-.stats {
-  background: var(--gov-dark);
-  color: #fff;
-  padding: 48px 24px;
-}
-.stats-inner {
-  max-width: var(--max);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
-}
-.stat {
-  border-left: 2px solid var(--accent);
-  padding-left: 18px;
-}
-.stat .num {
-  font-family: var(--serif);
-  font-size: 2.4rem;
-  font-weight: 600;
-  line-height: 1;
-  color: #fff;
-}
-.stat .lbl {
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.75);
-  margin-top: 8px;
-  line-height: 1.4;
-}
+  footer{background:var(--side);color:#7886a0;padding:32px;font-size:12px;line-height:1.6}
+  footer .footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px}
+  footer a{color:#cdd5e3}
+  footer strong{color:#fff;font-weight:600}
 
-/* === Section header === */
-.section-header {
-  text-align: center;
-  max-width: 720px;
-  margin: 0 auto 64px;
-}
-.section-header h2 { margin: 14px 0 16px; }
-.section-header p { color: var(--ink-2); font-size: 1.1rem; line-height: 1.6; }
-
-/* === Cards (Porquê) === */
-.cards-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 48px;
-}
-.card-why {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 32px 28px;
-  position: relative;
-  transition: all 0.2s;
-}
-.card-why:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-.card-why .icon {
-  width: 44px; height: 44px;
-  background: var(--gov-light);
-  color: var(--gov);
-  border-radius: var(--r);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-.card-why .icon svg { width: 22px; height: 22px; }
-.card-why h3 { margin-bottom: 10px; }
-.card-why p { color: var(--ink-2); font-size: 0.95rem; }
-.card-why .ref {
-  margin-top: 16px;
-  font-size: 0.78rem;
-  color: var(--ink-4);
-  font-family: var(--mono);
-}
-
-/* === Pipeline M0-M5 === */
-.pipeline-block {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 56px 48px;
-  margin-top: 48px;
-  box-shadow: var(--shadow-sm);
-}
-.pipeline {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  position: relative;
-  margin-bottom: 32px;
-}
-.pipeline::before {
-  content: "";
-  position: absolute;
-  top: 22px;
-  left: 8.33%;
-  right: 8.33%;
-  height: 2px;
-  background: var(--line);
-  z-index: 0;
-}
-.pl-step {
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-.pl-step .dot {
-  width: 44px; height: 44px;
-  background: var(--surface);
-  border: 2px solid var(--line);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--ink-3);
-  margin: 0 auto 12px;
-  transition: all 0.2s;
-}
-.pl-step.bloqueante .dot {
-  background: var(--gov);
-  border-color: var(--gov);
-  color: #fff;
-}
-.pl-step .lbl {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.pl-step .sub {
-  font-size: 0.7rem;
-  color: var(--ink-3);
-  margin-top: 4px;
-  line-height: 1.4;
-}
-.pl-step.bloqueante .lbl { color: var(--gov); }
-.pl-legend {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  font-size: 0.85rem;
-  color: var(--ink-3);
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-}
-.pl-legend .item { display: flex; align-items: center; gap: 8px; }
-.pl-legend .swatch { width: 12px; height: 12px; border-radius: 50%; }
-
-/* === Demo viva === */
-.demo-app {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  margin-top: 48px;
-}
-.demo-tabbar {
-  display: flex;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
-  padding: 0 8px;
-}
-.demo-tab {
-  padding: 16px 22px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--ink-3);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.demo-tab svg { width: 16px; height: 16px; }
-.demo-tab:hover { color: var(--ink); }
-.demo-tab.active {
-  color: var(--gov);
-  border-bottom-color: var(--gov);
-  background: var(--surface);
-  font-weight: 600;
-}
-.demo-content { padding: 0; min-height: 600px; }
-
-/* === Mini-app inside demo === */
-.app-shell {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  min-height: 620px;
-}
-.app-side {
-  background: var(--surface-2);
-  border-right: 1px solid var(--line);
-  padding: 24px 0;
-}
-.app-side .section-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-4);
-  padding: 0 20px;
-  margin-bottom: 8px;
-}
-.app-side .section-title:not(:first-child) { margin-top: 24px; }
-.app-side a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 20px;
-  font-size: 0.9rem;
-  color: var(--ink-2);
-  border-left: 3px solid transparent;
-  border-bottom: none !important;
-}
-.app-side a:hover { background: var(--surface); color: var(--ink); }
-.app-side a.active {
-  background: var(--surface);
-  color: var(--gov);
-  border-left-color: var(--gov);
-  font-weight: 600;
-}
-.app-side a svg { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
-.app-side a .badge-num {
-  margin-left: auto;
-  background: var(--gov);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 10px;
-  font-family: var(--mono);
-}
-
-.app-main {
-  padding: 28px 32px;
-  overflow-y: auto;
-  max-height: 620px;
-}
-.app-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--line);
-}
-.app-head h3 { font-family: var(--sans); font-size: 1.4rem; font-weight: 600; }
-.app-head .subt { color: var(--ink-3); font-size: 0.9rem; margin-top: 4px; }
-
-/* === Tabela === */
-.tbl {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-}
-.tbl th {
-  text-align: left;
-  padding: 10px 14px;
-  font-weight: 600;
-  color: var(--ink-3);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
-}
-.tbl td {
-  padding: 14px;
-  border-bottom: 1px solid var(--line-2);
-  vertical-align: middle;
-}
-.tbl tr:last-child td { border-bottom: none; }
-.tbl tr:hover td { background: var(--surface-2); cursor: pointer; }
-.tbl .cel-num { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-3); }
-.tbl .cel-titulo { font-weight: 500; max-width: 360px; }
-.tbl .cel-titulo .sub { font-size: 0.78rem; color: var(--ink-4); margin-top: 2px; font-weight: 400; }
-
-/* === Badges === */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  border: 1px solid;
-}
-.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
-.badge.elaboracao { color: #8a5a00; background: #fff7e0; border-color: #f3d997; }
-.badge.consulta   { color: #1e3a8a; background: #e0e9fb; border-color: #b9caf0; }
-.badge.rse        { color: #5a23a8; background: #f0e2ff; border-color: #d6bcf6; }
-.badge.cm         { color: #8a1c1c; background: #ffe2e2; border-color: #f0b8b8; }
-.badge.publicado  { color: #fff; background: var(--gov); border-color: var(--gov); }
-.badge.publicado::before { background: var(--accent); }
-.badge.aprovado   { color: #0a4520; background: #d8f5e3; border-color: #a8d6b8; }
-.badge.revisao    { color: #8a3a00; background: #ffe5d2; border-color: #f0bf95; }
-
-.tag {
-  display: inline-block;
-  padding: 2px 8px;
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  border-radius: 3px;
-  background: var(--surface-2);
-  color: var(--ink-2);
-  border: 1px solid var(--line);
-}
-
-/* === FPL detail === */
-.fpl-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 28px 32px;
-  margin-bottom: 20px;
-}
-.fpl-card .breadcrumb {
-  font-size: 0.82rem;
-  color: var(--ink-3);
-  margin-bottom: 12px;
-}
-.fpl-card .breadcrumb a { color: var(--ink-3); border: none !important; }
-.fpl-card h2 {
-  font-size: 1.5rem;
-  margin-bottom: 14px;
-  line-height: 1.35;
-}
-.fpl-card .meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  font-size: 0.85rem;
-  color: var(--ink-3);
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line-2);
-}
-.fpl-card .meta div { display: flex; flex-direction: column; gap: 2px; }
-.fpl-card .meta .l {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-4);
-}
-.fpl-card .meta .v { color: var(--ink-2); font-weight: 500; }
-
-/* Pequeno pipeline horizontal numa FPL */
-.fpl-pipe {
-  display: flex;
-  gap: 4px;
-  background: var(--surface-2);
-  border-radius: var(--r);
-  padding: 12px;
-  margin: 16px 0;
-}
-.fpl-pipe .step {
-  flex: 1;
-  text-align: center;
-  padding: 8px;
-  border-radius: 3px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: var(--surface);
-  color: var(--ink-4);
-  border: 1px solid var(--line);
-}
-.fpl-pipe .step.done { background: var(--gov); color: #fff; border-color: var(--gov); }
-.fpl-pipe .step.cur { background: var(--accent); color: #2a1f00; border-color: var(--accent); }
-
-/* === Bloco === */
-.bloco {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-.bloco-h {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
-}
-.bloco-h .ttl {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.bloco-h .letra {
-  width: 32px; height: 32px;
-  background: var(--gov);
-  color: #fff;
-  font-family: var(--serif);
-  font-weight: 600;
-  font-size: 1rem;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.bloco-h h4 { font-family: var(--sans); font-size: 1rem; font-weight: 600; margin: 0; }
-.bloco-h .sub { font-size: 0.8rem; color: var(--ink-3); margin-top: 2px; }
-.bloco-b { padding: 24px; }
-
-.field-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px 32px;
-}
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field.full { grid-column: 1 / -1; }
-.field label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-3);
-}
-.field .v {
-  font-size: 0.92rem;
-  color: var(--ink);
-  line-height: 1.5;
-}
-
-/* Entrada Bloco D */
-.entrada {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  margin-bottom: 12px;
-}
-.entrada-h {
-  padding: 14px 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  gap: 14px;
-}
-.entrada-h:hover { background: var(--surface-2); }
-.entrada-h .info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-}
-.entrada-h .info .ent { font-weight: 600; font-size: 0.92rem; }
-.entrada-h .data {
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-.entrada-b {
-  padding: 18px;
-  border-top: 1px solid var(--line);
-  display: none;
-}
-.entrada.open .entrada-b { display: block; }
-.entrada-b .row {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 8px 20px;
-  margin-bottom: 12px;
-  font-size: 0.9rem;
-}
-.entrada-b .row .l {
-  font-size: 0.78rem;
-  color: var(--ink-3);
-  font-weight: 600;
-}
-.rtri-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 3px;
-  background: #d8f5e3;
-  color: #0a4520;
-  border: 1px solid #a8d6b8;
-}
-.divider-pl { height:1px; background:var(--line); margin:14px 0; }
-
-/* === Modal === */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(11, 19, 33, 0.6);
-  backdrop-filter: blur(4px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 20px;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--surface);
-  border-radius: var(--r-lg);
-  width: 100%;
-  max-width: 620px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-}
-.modal-h {
-  padding: 22px 28px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.modal-h h3 { font-family: var(--sans); font-size: 1.15rem; font-weight: 600; margin: 0; }
-.modal-b { padding: 24px 28px; }
-.modal-f {
-  padding: 18px 28px;
-  border-top: 1px solid var(--line);
-  background: var(--surface-2);
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.alert {
-  padding: 14px 18px;
-  border-radius: var(--r);
-  font-size: 0.92rem;
-  margin-bottom: 16px;
-  border-left: 3px solid;
-  background: var(--surface-2);
-}
-.alert.danger { border-color: var(--red); background: #fef2f2; color: #7a1421; }
-.alert.success { border-color: var(--green); background: #ecfdf5; color: #065f46; }
-.alert.warning { border-color: var(--warning); background: #fef9e7; color: #78350f; }
-.alert.info { border-color: var(--gov); background: var(--gov-light); color: var(--gov-dark); }
-.alert .ttl { font-weight: 600; display: block; margin-bottom: 4px; }
-
-.checklist { list-style: none; margin: 12px 0; }
-.checklist li {
-  padding: 8px 0;
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  font-size: 0.92rem;
-}
-.checklist li::before {
-  content: "";
-  display: inline-block;
-  width: 18px; height: 18px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.checklist li.ok::before {
-  background: var(--green);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E");
-  background-size: 14px;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.checklist li.fail::before {
-  background: var(--red);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
-  background-size: 12px;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.checklist li.fail { color: var(--red); }
-.checklist .det { font-size: 0.82rem; color: var(--ink-3); margin-top: 2px; }
-
-.declaracao-box {
-  background: var(--gov-light);
-  border-left: 3px solid var(--gov);
-  padding: 16px 20px;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--gov-dark);
-  margin: 16px 0;
-}
-
-/* === Comprovativo criptográfico === */
-.comprovativo-code {
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  background: var(--gov-dark);
-  color: #e7eaf0;
-  padding: 14px 16px;
-  border-radius: var(--r);
-  word-break: break-all;
-  line-height: 1.8;
-  border: 1px solid var(--gov);
-}
-.comprovativo-code .seg-h { color: #8fb4e8; }
-.comprovativo-code .seg-p { color: #e7eaf0; }
-.comprovativo-code .seg-s { color: var(--accent); }
-.comprovativo-meta {
-  display: flex; flex-wrap: wrap; gap: 14px;
-  font-size: 0.78rem; color: var(--ink-3); margin-top: 10px;
-}
-.comprovativo-meta b { color: var(--ink-2); font-weight: 600; }
-.cmp-flow {
-  display: flex; align-items: stretch; gap: 8px; margin: 18px 0;
-}
-.cmp-flow .node {
-  flex: 1; border: 1px solid var(--line); border-radius: var(--r);
-  padding: 14px 12px; text-align: center; background: var(--surface-2);
-}
-.cmp-flow .node .ic {
-  width: 32px; height: 32px; margin: 0 auto 8px;
-  border-radius: 50%; background: var(--gov); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-}
-.cmp-flow .node .ic svg { width: 17px; height: 17px; }
-.cmp-flow .node.smartlegis .ic { background: var(--accent); color: #2a1f00; }
-.cmp-flow .node .t { font-size: 0.82rem; font-weight: 600; }
-.cmp-flow .node .d { font-size: 0.72rem; color: var(--ink-3); margin-top: 3px; line-height: 1.4; }
-.cmp-flow .arrow {
-  display: flex; align-items: center; color: var(--ink-4);
-  font-size: 0.7rem; font-weight: 600; padding: 0 2px;
-}
-.cmp-list { width: 100%; }
-.cmp-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; border-bottom: 1px solid var(--line-2); font-size: 0.85rem;
-}
-.cmp-row:last-child { border-bottom: none; }
-.cmp-row .marco-dot {
-  width: 30px; height: 30px; flex-shrink: 0; border-radius: 6px;
-  background: var(--gov); color: #fff; font-family: var(--mono);
-  font-weight: 700; font-size: 0.78rem;
-  display: flex; align-items: center; justify-content: center;
-}
-.cmp-row .marco-dot.pend { background: var(--surface-2); color: var(--ink-4); border: 1px dashed var(--line); }
-.cmp-row .jti { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-3); }
-.cmp-badge {
-  font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.cmp-badge.valido { background: #d8f5e3; color: #0a4520; }
-.cmp-badge.pend { background: var(--surface-2); color: var(--ink-4); }
-.cmp-badge.verificado { background: var(--gov); color: #fff; }
-
-/* === Public portal === */
-.public-shell {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-}
-.public-hero {
-  background: linear-gradient(135deg, var(--gov-dark) 0%, var(--gov) 100%);
-  color: #fff;
-  padding: 56px 48px;
-  position: relative;
-  overflow: hidden;
-}
-.public-hero::before {
-  content: "";
-  position: absolute;
-  top: -30%;
-  right: -10%;
-  width: 50%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(201,162,39,0.15) 0%, transparent 70%);
-}
-.public-hero h3 { font-size: 2rem; margin-bottom: 14px; color: #fff; }
-.public-hero p { color: rgba(255,255,255,0.85); max-width: 56ch; line-height: 1.6; font-size: 1.05rem; }
-.public-hero .stats-mini {
-  display: flex;
-  gap: 36px;
-  margin-top: 32px;
-  position: relative;
-}
-.public-hero .stats-mini .stm { font-size: 0.85rem; color: rgba(255,255,255,0.85); }
-.public-hero .stats-mini .stm strong {
-  display: block;
-  font-family: var(--serif);
-  font-size: 1.8rem;
-  color: var(--accent);
-  font-weight: 600;
-}
-.public-list { padding: 24px 32px; }
-.public-list-title {
-  font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-3);
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
-}
-.publication {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--line-2);
-}
-.publication:last-child { border-bottom: none; }
-.publication .pl-tags {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-.publication h4 {
-  font-family: var(--serif);
-  font-size: 1.15rem;
-  margin-bottom: 6px;
-  line-height: 1.4;
-}
-.publication h4 a { color: var(--ink); }
-.publication h4 a:hover { color: var(--gov); }
-.publication .meta {
-  font-size: 0.82rem;
-  color: var(--ink-3);
-}
-
-/* === Roadmap === */
-.roadmap {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 48px;
-}
-.rm-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 32px 28px;
-  position: relative;
-}
-.rm-card .when {
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-.rm-card.now .when { color: var(--green); }
-.rm-card h4 { margin-bottom: 12px; font-family: var(--sans); font-size: 1.05rem; }
-.rm-card ul { list-style: none; padding: 0; }
-.rm-card li {
-  padding: 6px 0 6px 18px;
-  font-size: 0.9rem;
-  color: var(--ink-2);
-  position: relative;
-}
-.rm-card li::before {
-  content: "›";
-  position: absolute;
-  left: 0;
-  color: var(--gov);
-  font-weight: 600;
-}
-
-/* === Quote block === */
-.quote-block {
-  background: var(--surface);
-  border-left: 4px solid var(--gov);
-  padding: 32px 36px;
-  margin: 48px auto;
-  max-width: 720px;
-  border-radius: 0 var(--r-lg) var(--r-lg) 0;
-}
-.quote-block blockquote {
-  font-family: var(--serif);
-  font-size: 1.4rem;
-  font-style: italic;
-  line-height: 1.5;
-  color: var(--ink);
-  margin-bottom: 16px;
-}
-.quote-block cite {
-  font-style: normal;
-  font-size: 0.85rem;
-  color: var(--ink-3);
-  font-family: var(--sans);
-}
-
-/* === Footer === */
-.footer {
-  background: var(--gov-dark);
-  color: rgba(255,255,255,0.85);
-  padding: 56px 24px 32px;
-  margin-top: 88px;
-}
-.footer-inner {
-  max-width: var(--max);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 40px;
-}
-.footer h5 {
-  font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.5);
-  margin-bottom: 14px;
-}
-.footer ul { list-style: none; padding: 0; }
-.footer li { padding: 4px 0; font-size: 0.88rem; }
-.footer a { color: rgba(255,255,255,0.85); border: none !important; }
-.footer a:hover { color: var(--accent); }
-.footer .brand-block {
-  font-family: var(--serif);
-}
-.footer .brand-block .crest-f {
-  width: 48px; height: 48px;
-  background: var(--accent);
-  color: var(--gov-dark);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-.footer .brand-block .crest-f svg { width: 26px; height: 26px; }
-.footer .brand-block .name { font-size: 1.3rem; color: #fff; margin-bottom: 8px; font-weight: 600; }
-.footer .brand-block p {
-  font-family: var(--sans);
-  font-size: 0.88rem;
-  line-height: 1.6;
-  max-width: 36ch;
-  color: rgba(255,255,255,0.7);
-}
-.footer-bottom {
-  border-top: 1px solid rgba(255,255,255,0.15);
-  padding-top: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.78rem;
-  color: rgba(255,255,255,0.5);
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.footer-bottom .legal { display: flex; gap: 18px; }
-
-/* === Responsive === */
-@media (max-width: 900px) {
-  .hero-inner { grid-template-columns: 1fr; gap: 40px; }
-  .hero-illustration { aspect-ratio: 16/10; }
-  .stats-inner { grid-template-columns: repeat(2, 1fr); gap: 24px; }
-  .cards-3 { grid-template-columns: 1fr; }
-  .roadmap { grid-template-columns: 1fr; }
-  .pipeline { grid-template-columns: repeat(3, 1fr); row-gap: 24px; }
-  .pipeline::before { display: none; }
-  .app-shell { grid-template-columns: 1fr; }
-  .app-side { display: none; }
-  .field-grid { grid-template-columns: 1fr; }
-  .footer-inner { grid-template-columns: 1fr; gap: 32px; }
-  .pipeline-block { padding: 32px 20px; }
-  .public-hero { padding: 36px 24px; }
-  .public-hero .stats-mini { flex-wrap: wrap; gap: 24px; }
-  .topbar nav { display: none; }
-  .section { padding: 56px 20px; }
-}
-
-/* === Animação subtil === */
-.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s, transform 0.6s; }
-.reveal.in { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; transition: none; }
-  html { scroll-behavior: auto; }
-}
-
-/* === Floating dock === */
-.dock {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--gov-dark);
-  color: #fff;
-  padding: 8px 8px 8px 20px;
-  border-radius: 32px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: var(--shadow-lg);
-  z-index: 50;
-  font-size: 0.85rem;
-  opacity: 0;
-  transition: opacity 0.3s, transform 0.3s;
-  pointer-events: none;
-  flex-wrap: wrap;
-  max-width: 92vw;
-  justify-content: center;
-}
-.dock.visible { opacity: 1; pointer-events: auto; }
-.dock .dock-btn {
-  background: rgba(255,255,255,0.1);
-  border-radius: 24px;
-  padding: 8px 14px;
-  color: #fff;
-  font-size: 0.82rem;
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-}
-.dock .dock-btn:hover { background: rgba(255,255,255,0.2); }
-.dock .dock-btn.primary { background: var(--accent); color: #2a1f00; font-weight: 600; }
-.dock .dock-btn.primary:hover { background: #d6b033; }
-
-/* === Misc === */
-.flex { display: flex; }
-.flex-c { display: flex; align-items: center; }
-.gap-8 { gap: 8px; }
-.gap-12 { gap: 12px; }
-.spacer { flex: 1; }
-.mt-12 { margin-top: 12px; }
-.mt-16 { margin-top: 16px; }
-.mb-12 { margin-bottom: 12px; }
-.muted { color: var(--ink-3); }
-.small { font-size: 0.85rem; }
-.tiny { font-size: 0.75rem; }
+  @media (max-width:1024px) {
+    .hero-inner{grid-template-columns:1fr;gap:32px}
+    .hero h1{font-size:32px}
+    .feat-grid{grid-template-columns:1fr}
+    .doc-list{grid-template-columns:1fr}
+    .demo-cta{flex-direction:column;align-items:flex-start}
+    .timeline{grid-template-columns:repeat(3,1fr)}
+    .marco{padding:12px 6px;border-right:none;border-bottom:1px solid var(--border-hair)}
+    .calendar{grid-template-columns:90px 1fr}
+  }
 </style>
 </head>
 <body>
 
-<a class="skip" href="#main">Saltar para o conteúdo principal</a>
-
-<div class="demo-strip" role="banner">Demonstração técnica · Maio 2026 · v0.2 · Não substitui comunicação oficial</div>
-
-<header class="topbar" role="banner">
+<div class="topbar">
   <div class="topbar-inner">
-    <a href="#" class="brand">
-      <span class="crest" aria-hidden="true">
-        <!-- Escudo PT estilizado -->
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M12 2 L4 5 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V5 Z" stroke="currentColor" stroke-width="2" fill="none"/>
-          <circle cx="12" cy="11" r="2.5" fill="currentColor"/>
-        </svg>
-      </span>
-      <div class="meta">
-        <span class="top">República Portuguesa · SGGOV</span>
-        <span>Pegada Legislativa</span>
-      </div>
-    </a>
-    <nav aria-label="Navegação primária">
-      <a href="#porque">Porquê</a>
-      <a href="#como">Como funciona</a>
-      <a href="#demo">Demonstração</a>
-      <a href="#publico">Transparência</a>
-      <a href="#roadmap">Roadmap</a>
+    <span class="crest">RP</span>
+    <strong>República Portuguesa</strong>
+    <span>·</span>
+    <span>Secretaria-Geral do Governo</span>
+    <nav>
+      <a href="#contexto">Contexto</a>
+      <a href="#funciona">Como funciona</a>
+      <a href="#documentos">Documentos</a>
+      <a href="#calendario">Próximos passos</a>
     </nav>
-    <div class="right-actions">
-      <button class="theme-btn" id="themeBtn" aria-label="Alternar tema claro/escuro">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-      <a class="btn primary" href="https://github.com/dapl-sggov/pegada" target="_blank" rel="noopener">
-        Código no GitHub
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l10-10M9 7h8v8"/></svg>
-      </a>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="kicker">Operacionalização da Lei n.º 5-A/2026 · XXV Governo Constitucional</div>
+      <h1>Documentar quem influencia a lei.</h1>
+      <p class="lead">A <strong style="color:#fff">Pegada Legislativa do Governo</strong> torna público, ficha a ficha, quem foi ouvido pelo Governo na fase preparatória de cada diploma — quando, como, e o que dessa contribuição foi acolhido. Em execução do art.º 4.º da Lei n.º 5-A/2026, com infraestrutura própria, comprovativo criptográfico e exportação automática para o Portal do Governo.</p>
+      <div class="ctas">
+        <a href="../demo/" class="btn primary">Abrir demonstração interativa <span class="arrow">→</span></a>
+        <a href="#documentos" class="btn ghost">Ver documentos</a>
+      </div>
     </div>
+    <aside class="hero-card">
+      <h3>Em números</h3>
+      <div class="hero-stats">
+        <div class="stat"><div class="num">17</div><div class="lbl">Ministérios</div></div>
+        <div class="stat"><div class="num">M0–M5</div><div class="lbl">Marcos do ciclo</div></div>
+        <div class="stat"><div class="num">4</div><div class="lbl">Comprovativos por FPL</div></div>
+        <div class="stat"><div class="num">7</div><div class="lbl">Blocos por ficha</div></div>
+      </div>
+    </aside>
   </div>
 </header>
 
-<main id="main">
+<main>
 
-<!-- ============== HERO ============== -->
-<section class="hero">
-  <div class="hero-inner">
-    <div>
-      <span class="eyebrow">Em execução da Lei n.º 5-A/2026</span>
-      <h1>O Governo passa a registar, <strong>publicamente</strong>, com quem fala antes de cada diploma.</h1>
-      <p class="lead">A Ficha de Pegada Legislativa documenta todas as interações com representantes de interesses na fase preparatória dos projetos de diploma. Sem ficha validada, o sistema não permite a submissão.</p>
-      <div class="ctas">
-        <a href="#demo" class="btn primary">
-          Ver a aplicação
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-        <a href="#publico" class="btn">
-          Como o cidadão consulta
-        </a>
-      </div>
+<section id="contexto">
+  <h2>Contexto</h2>
+  <p class="secao-sub">A Lei n.º 5-A/2026 fixou a obrigação. A presente proposta de RCM define como o Governo a cumpre.</p>
+
+  <div class="feat-grid">
+    <div class="feat">
+      <div class="ico gold">⚖</div>
+      <h3>Lei n.º 5-A/2026, de 28 de janeiro</h3>
+      <p>Institui o regime jurídico da representação de interesses junto de entidades públicas, criando o RTRI, o Código de Conduta e o Mecanismo de Pegada Legislativa. O Governo está abrangido — quer no exercício do poder legislativo próprio (art.º 198.º CRP), quer no direito de iniciativa.</p>
     </div>
-    <aside class="hero-illustration" aria-hidden="true">
-      <div>
-        <div class="stamp">RCM n.º [XX]/2026</div>
-        <div class="top">Princípio estruturante</div>
-      </div>
-      <p class="quote">A submissão fica tecnicamente impedida no sistema sem a validação do ponto focal e o cumprimento dos campos obrigatórios.</p>
-      <p class="source">— Resolução do Conselho de Ministros, anexo ao manual operacional</p>
-    </aside>
-  </div>
-</section>
-
-<!-- ============== STATS ============== -->
-<section class="stats">
-  <div class="stats-inner">
-    <div class="stat reveal"><div class="num">~520</div><div class="lbl">FPL/ano estimadas (Fase 1)</div></div>
-    <div class="stat reveal"><div class="num">5+5+5</div><div class="lbl">Marcos de validação obrigatória<br>+ blocos da ficha + objetivos</div></div>
-    <div class="stat reveal"><div class="num">15</div><div class="lbl">Ministérios abrangidos<br>desde o primeiro dia</div></div>
-    <div class="stat reveal"><div class="num">27 Jul</div><div class="lbl">Data de entrada em vigor<br>(2026)</div></div>
-  </div>
-</section>
-
-<!-- ============== PORQUÊ ============== -->
-<section class="section" id="porque">
-  <div class="section-header reveal">
-    <span class="eyebrow">Porquê agora</span>
-    <h2>O contexto legal e democrático que torna isto inadiável</h2>
-    <p>Três forças convergem em 2026 para que o registo sistemático de interações com lobistas deixe de ser opcional.</p>
-  </div>
-  <div class="cards-3">
-    <article class="card-why reveal">
-      <div class="icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12L12 3l9 9M5 10v10h14V10M9 21V13h6v8"/></svg>
-      </div>
-      <h3>Lei n.º 5-A/2026</h3>
-      <p>Cria o Registo de Transparência (RTRI) na Assembleia da República, definindo quem é representante de interesses e impondo a sua inscrição. Sem registo, sem interlocução.</p>
-      <div class="ref">→ Já em vigor desde 1 de janeiro de 2026</div>
-    </article>
-    <article class="card-why reveal">
-      <div class="icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
-      </div>
-      <h3>Recomendação OCDE 2024</h3>
-      <p>Estabelece como padrão internacional a "legislative footprint": registo público, estruturado e auditável das interações entre poder executivo e grupos de interesse na produção legislativa.</p>
-      <div class="ref">→ Portugal acompanha 14 países UE</div>
-    </article>
-    <article class="card-why reveal">
-      <div class="icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-      </div>
-      <h3>RCM n.º [XX]/2026</h3>
-      <p>Operacionaliza o regime no Governo: cria a Ficha de Pegada Legislativa, define os marcos M0–M5 bloqueantes, atribui à SGGOV o controlo de qualidade por amostra.</p>
-      <div class="ref">→ Em vigor a 27 de julho de 2026</div>
-    </article>
-  </div>
-</section>
-
-<div class="quote-block reveal">
-  <blockquote>"Sem FPL atualizada e validada nos campos obrigatórios, o sistema não permite a submissão do projeto de diploma."</blockquote>
-  <cite>Princípio fundador, Modelo da Ficha de Pegada Legislativa, §1</cite>
-</div>
-
-<!-- ============== COMO ============== -->
-<section class="section" id="como">
-  <div class="section-header reveal">
-    <span class="eyebrow">Como funciona</span>
-    <h2>Seis marcos. Quatro bloqueantes. Um caminho claro.</h2>
-    <p>A ficha acompanha o ciclo de vida do diploma desde a abertura até à publicação. Em cada marco bloqueante, depois de o sistema verificar todas as regras de completude e fundamentação, é emitido um <strong>comprovativo criptográfico</strong> — que o SmartLegis verifica antes de deixar a tramitação avançar. Sem comprovativo válido, o diploma não passa.</p>
-  </div>
-  <div class="pipeline-block reveal">
-    <div class="pipeline" role="list" aria-label="Marcos de validação M0 a M5">
-      <div class="pl-step bloqueante" role="listitem">
-        <div class="dot">M0</div>
-        <div class="lbl">Abertura</div>
-        <div class="sub">Bloco A + B</div>
-      </div>
-      <div class="pl-step" role="listitem">
-        <div class="dot">M1</div>
-        <div class="lbl">Pré-CP</div>
-        <div class="sub">Antes da consulta</div>
-      </div>
-      <div class="pl-step" role="listitem">
-        <div class="dot">M2</div>
-        <div class="lbl">Pós-CP</div>
-        <div class="sub">Síntese da CP</div>
-      </div>
-      <div class="pl-step bloqueante" role="listitem">
-        <div class="dot">M3</div>
-        <div class="lbl">Pré-RSE</div>
-        <div class="sub">Bloco D + decisões</div>
-      </div>
-      <div class="pl-step bloqueante" role="listitem">
-        <div class="dot">M4</div>
-        <div class="lbl">Pré-CM</div>
-        <div class="sub">Tudo completo</div>
-      </div>
-      <div class="pl-step bloqueante" role="listitem">
-        <div class="dot">M5</div>
-        <div class="lbl">Publicação</div>
-        <div class="sub">Diário da República</div>
-      </div>
+    <div class="feat">
+      <div class="ico blue">📜</div>
+      <h3>RCM n.º 143/2021 — projeto-piloto</h3>
+      <p>Projeto-piloto de pegada legislativa via Registo de Pegada Legislativa (RPL), executado entre abril 2022 e fevereiro 2024. Identificou três fatores críticos: cumprimento bloqueante no sistema, pontos focais formados, e acompanhamento ativo da SGGOV.</p>
     </div>
-    <div class="pl-legend">
-      <div class="item"><span class="swatch" style="background:var(--gov)"></span> Marco bloqueante — emite comprovativo criptográfico</div>
-      <div class="item"><span class="swatch" style="background:var(--line)"></span> Marco registado — não bloqueia</div>
+    <div class="feat">
+      <div class="ico green">🛡</div>
+      <h3>Estratégia Nacional Anticorrupção</h3>
+      <p>O presente regime concretiza a Agenda Anticorrupção do Governo (junho 2024), passando do regime experimental para um regime operacional definitivo, integrado no procedimento legislativo desmaterializado.</p>
     </div>
   </div>
 </section>
 
-<!-- ============== DEMO VIVA ============== -->
-<section class="section" id="demo">
-  <div class="section-header reveal">
-    <span class="eyebrow">Demonstração interactiva</span>
-    <h2>A mesma ficha, vista por três olhos</h2>
-    <p>Toda a aplicação serve três audiências em simultâneo. Mude de perspectiva clicando nas abas abaixo. Na vista do ponto focal pode <strong>validar o marco M4 e ver o comprovativo criptográfico ser emitido</strong>; no dock flutuante pode também tentar validar um marco incompleto e ver o sistema bloquear.</p>
-  </div>
-  <div class="demo-app reveal" role="region" aria-label="Demonstração da aplicação">
-    <div class="demo-tabbar" role="tablist">
-      <button class="demo-tab active" data-role="pf" role="tab" aria-selected="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Ponto Focal
-      </button>
-      <button class="demo-tab" data-role="qa" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        Auditoria SGGOV
-      </button>
-      <button class="demo-tab" data-role="pub" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
-        Cidadão
-      </button>
+<section id="funciona">
+  <h2>Como funciona</h2>
+  <p class="secao-sub">Cada projeto de diploma tem uma <strong>Ficha de Pegada Legislativa (FPL)</strong> — registo único integrado na tramitação desmaterializada. A FPL atravessa seis marcos. Quatro são bloqueantes e emitem comprovativo criptográfico.</p>
+
+  <div class="timeline">
+    <div class="marco bloq">
+      <div class="dot">M0</div>
+      <div class="lbl">Abertura</div>
+      <div class="sub">Bloco A · B preenchidos</div>
+      <div class="bloq-tag">⚿ bloqueante</div>
     </div>
-    <div class="demo-content" id="demoContent"><!-- preenchido por JS --></div>
+    <div class="marco">
+      <div class="dot">M1</div>
+      <div class="lbl">Pré-CP</div>
+      <div class="sub">Antes da consulta pública</div>
+    </div>
+    <div class="marco">
+      <div class="dot">M2</div>
+      <div class="lbl">Pós-CP</div>
+      <div class="sub">Síntese dos contributos</div>
+    </div>
+    <div class="marco bloq">
+      <div class="dot">M3</div>
+      <div class="lbl">Pré-RSE</div>
+      <div class="sub">Antes da Reunião de Sec. Estado</div>
+      <div class="bloq-tag">⚿ bloqueante</div>
+    </div>
+    <div class="marco bloq">
+      <div class="dot">M4</div>
+      <div class="lbl">Pré-CM</div>
+      <div class="sub">Antes do Conselho de Ministros</div>
+      <div class="bloq-tag">⚿ bloqueante</div>
+    </div>
+    <div class="marco bloq">
+      <div class="dot">M5</div>
+      <div class="lbl">Publicação</div>
+      <div class="sub">Após publicação em DR</div>
+      <div class="bloq-tag">⚿ bloqueante</div>
+    </div>
+  </div>
+
+  <div class="feat-grid" style="margin-top:24px">
+    <div class="feat">
+      <div class="ico gold">⚿</div>
+      <h3>Comprovativo criptográfico</h3>
+      <p>Cada marco bloqueante emite um JWS Ed25519 assinado. O SmartLegis verifica-o com a chave pública partilhada — sem comprovativo, a tramitação fica bloqueada. Sem dependência síncrona entre sistemas.</p>
+    </div>
+    <div class="feat">
+      <div class="ico blue">📋</div>
+      <h3>Sete blocos por FPL</h3>
+      <p>A · Identificação · B · Origem e motivação · C · Contributos internos · D · <strong>Interações externas (núcleo)</strong> · E · Consulta pública · F · Declaração · G · Auditoria QA SGGOV.</p>
+    </div>
+    <div class="feat">
+      <div class="ico green">↗</div>
+      <h3>Exportação para o Portal do Governo</h3>
+      <p>Após M5, a FPL é exportada automaticamente em formatos abertos (JSON, CSV, JSON-LD com vocabulário OCDE 2024) para o Portal do Governo, ao lado da Agenda Pública dos membros do Governo.</p>
+    </div>
   </div>
 </section>
 
-<!-- ============== TRANSPARÊNCIA ============== -->
-<section class="section" id="publico">
-  <div class="section-header reveal">
-    <span class="eyebrow">Transparência por construção</span>
-    <h2>O que o cidadão e o jornalista veem</h2>
-    <p>Após a publicação no Diário da República (M5), a ficha completa é publicada no <strong>Portal do Governo</strong>, ao lado da Agenda Pública dos membros do Governo — juntos, o repositório integrado de transparência do Executivo. Com a integralidade das interações e das decisões de incorporação. Sem login. Em formatos abertos.</p>
-  </div>
-
-  <div class="public-shell reveal">
-    <div class="public-hero">
-      <h3>Pegada Legislativa · Portal do Governo</h3>
-      <p>Todas as Fichas de Pegada Legislativa publicadas após aprovação dos diplomas, ao lado da Agenda Pública dos membros do Governo. Pesquise por palavra-chave, ministério, entidade interlocutora ou período.</p>
-      <div class="stats-mini">
-        <div class="stm"><strong>87</strong>FPL publicadas (2026)</div>
-        <div class="stm"><strong>1.247</strong>Interações documentadas</div>
-        <div class="stm"><strong>284</strong>Entidades interlocutadas</div>
-        <div class="stm"><strong>15</strong>Ministérios</div>
-      </div>
+<section id="demo">
+  <div class="demo-cta">
+    <div class="corpo">
+      <h2>Experimente a aplicação</h2>
+      <p>Demonstração interativa autónoma — corre 100% no seu navegador, com 9 FPL fictícias e 9 perfis pré-preenchidos. Pode trocar de perspetiva (ponto focal, SGGOV, cidadão), criar novas fichas, validar marcos, emitir comprovativos e ver o Portal do Governo. O estado é guardado apenas no navegador.</p>
     </div>
-    <div class="public-list">
-      <div class="public-list-title">Mais recentes</div>
-      <div class="publication">
-        <div class="pl-tags">
-          <span class="tag">DL</span>
-          <span class="tag">MAE</span>
-          <span class="badge publicado">Publicado · DR n.º 78/2026</span>
-        </div>
-        <h4><a href="#" onclick="abrirFplDetalhe();return false">Decreto-Lei que aprova o regime jurídico das comunidades de energia renovável</a></h4>
-        <div class="meta">5 interações externas · 67 contributos da consulta pública · publicado a 22/04/2026 · gabinete do MAE</div>
-      </div>
-      <div class="publication">
-        <div class="pl-tags">
-          <span class="tag">RCM</span>
-          <span class="tag">MECIC</span>
-          <span class="badge publicado">Publicado · DR n.º 65/2026</span>
-        </div>
-        <h4><a href="#">Estratégia Nacional para a Inteligência Artificial 2026-2030</a></h4>
-        <div class="meta">12 interações externas · 145 contributos · publicado a 03/04/2026 · gabinete do MECIC</div>
-      </div>
-      <div class="publication">
-        <div class="pl-tags">
-          <span class="tag">DL</span>
-          <span class="tag">MJ</span>
-          <span class="badge publicado">Publicado · DR n.º 78/2026</span>
-        </div>
-        <h4><a href="#">Decreto-Lei que aprova o regime jurídico da mediação civil e comercial</a></h4>
-        <div class="meta">3 interações externas · 28 contributos · publicado a 22/04/2026 · gabinete do MJ</div>
-      </div>
-      <div class="publication">
-        <div class="pl-tags">
-          <span class="tag">PL</span>
-          <span class="tag">MTSSS</span>
-          <span class="badge publicado">Publicado · DR n.º 71/2026</span>
-        </div>
-        <h4><a href="#">Proposta de Lei sobre teletrabalho e direito à desconexão</a></h4>
-        <div class="meta">8 interações externas · 142 contributos · publicado a 12/04/2026 · gabinete do MTSSS</div>
-      </div>
+    <div class="acoes">
+      <a href="../demo/" class="btn primary">Abrir demonstração <span class="arrow">→</span></a>
+      <span class="demo-link">/demo/</span>
     </div>
-  </div>
-
-  <div class="flex gap-12 mt-16" style="justify-content:center;flex-wrap:wrap">
-    <a class="btn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Descarregar dataset (CSV)</a>
-    <a class="btn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Vocabulário OCDE (JSON-LD)</a>
-    <a class="btn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg> API REST documentada</a>
   </div>
 </section>
 
-<!-- ============== ROADMAP ============== -->
-<section class="section" id="roadmap">
-  <div class="section-header reveal">
-    <span class="eyebrow">O que vem a seguir</span>
-    <h2>Três entregas até 2027</h2>
-    <p>A FPL Ponte está construída para ser substituída — quando o módulo nativo do SmartLegis estiver pronto, a aplicação cede o lugar sem perda de dados.</p>
+<section id="documentos">
+  <h2>Documentos do projeto</h2>
+  <p class="secao-sub">Toda a documentação técnica, jurídica e operacional. A proposta de RCM é a peça-chave para a apresentação ao Conselho de Ministros.</p>
+
+  <div class="doc-list">
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/00_Proposta_RCM_Modelo.md" class="doc feat-doc" target="_blank" rel="noopener">
+      <div class="doc-ico">📜</div>
+      <div class="doc-meta">
+        <h4>Proposta de Resolução do Conselho de Ministros</h4>
+        <p>Minuta da RCM que operacionaliza a Lei n.º 5-A/2026 no procedimento legislativo governamental — substitui a RCM n.º 143/2021, define a FPL, o regime de submissão bloqueante e a governação pelo grupo de coordenação SGGOV.</p>
+      </div>
+    </a>
+
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/02_Arquitetura.md" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">🏛</div>
+      <div class="doc-meta">
+        <h4>Arquitetura técnica</h4>
+        <p>Backend Node.js + PostgreSQL · máquina de estados M0–M5 · modelo de dados · API REST · degradação graciosa.</p>
+      </div>
+    </a>
+
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/12_Especificacao_Comprovativo_SmartLegis.md" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">⚿</div>
+      <div class="doc-meta">
+        <h4>Comprovativo criptográfico — contrato com SmartLegis</h4>
+        <p>Especificação técnica do JWS Ed25519 emitido em cada marco bloqueante. Verificável offline pelo SmartLegis com chave pública partilhada.</p>
+      </div>
+    </a>
+
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/10_DPIA.md" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">🔒</div>
+      <div class="doc-meta">
+        <h4>DPIA — Avaliação de Impacto sobre Proteção de Dados</h4>
+        <p>Análise de impacto RGPD, base legal, categorias de dados, fluxos, riscos e mitigações. Para submissão à CNPD.</p>
+      </div>
+    </a>
+
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/11_Threat_Model_Sistema.md" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">🛡</div>
+      <div class="doc-meta">
+        <h4>Modelo de ameaças sistémico</h4>
+        <p>STRIDE por elemento da arquitetura · ameaças e mitigações de autenticação, autorização, comprovativo, BD, frontend.</p>
+      </div>
+    </a>
+
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/06_Operacao.md" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">⚙</div>
+      <div class="doc-meta">
+        <h4>Runbook de operação</h4>
+        <p>Implantação na RING, observabilidade Prometheus, segurança operacional, rotação de chaves, checklist de go-live.</p>
+      </div>
+    </a>
+
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/13_Contratos_Integracao_Externa.md" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">🔌</div>
+      <div class="doc-meta">
+        <h4>Contratos de integração externa</h4>
+        <p>Adapters LDAP/AD, RTRI (AR), Consulta.Lex (HMAC), SMTP, DRE — modos mock e produção, sem refactor.</p>
+      </div>
+    </a>
+
+    <a href="https://github.com/dapl-sggov/pegada" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">⌥</div>
+      <div class="doc-meta">
+        <h4>Repositório completo (código-fonte)</h4>
+        <p>Backend + frontend + demo + testes + workflows. Licenciado sob EUPL-1.2.</p>
+      </div>
+    </a>
   </div>
-  <div class="roadmap">
-    <article class="rm-card now reveal">
-      <div class="when">Maio – Julho 2026 · Em curso</div>
-      <h4>v1.0 — FPL Ponte mínima viável</h4>
-      <ul>
-        <li>Workflow bloqueante M0–M5</li>
-        <li>Bloco D + cache RTRI local</li>
-        <li>Importação manual da consulta pública</li>
-        <li>Auditoria SGGOV (Bloco G)</li>
-        <li>Comprovativo criptográfico para o SmartLegis</li>
-        <li>Exportação para o Portal do Governo após M5</li>
-      </ul>
-    </article>
-    <article class="rm-card reveal">
-      <div class="when">Outubro 2026</div>
-      <h4>v2.0 — Integrações maturadas</h4>
-      <ul>
-        <li>Sincronização plena com o RTRI da Assembleia</li>
-        <li>Exportação automatizada para o Portal do Governo</li>
-        <li>Webhook Consulta.Lex</li>
-        <li>Dataset OCDE (JSON-LD) e API para investigadores</li>
-        <li>Dashboards SGGOV completos</li>
-      </ul>
-    </article>
-    <article class="rm-card reveal">
-      <div class="when">Março 2027</div>
-      <h4>v3.0 — Coexistência SmartLegis</h4>
-      <ul>
-        <li>Suporte a Regulamentos (Fase 2)</li>
-        <li>Integração nativa SmartLegis</li>
-        <li>API para investigadores</li>
-        <li>Visualizações públicas comparadas</li>
-        <li>Migração progressiva de FPL</li>
-      </ul>
-    </article>
+</section>
+
+<section id="calendario">
+  <h2>Próximos passos</h2>
+  <p class="secao-sub">Calendário indicativo até ao go-live em produção.</p>
+
+  <div class="calendar">
+    <div class="cal-row">
+      <div class="data">Maio 2026</div>
+      <div class="info"><strong>Validação interna SGGOV.</strong><span>Revisão jurídica da minuta de RCM pelo Departamento Jurídico. Validação técnica da arquitetura e da DPIA pelo EPD da SGGOV.</span></div>
+    </div>
+    <div class="cal-row">
+      <div class="data">Junho 2026</div>
+      <div class="info"><strong>Submissão à CNPD e à reunião preparatória do CM.</strong><span>DPIA submetida à CNPD para parecer prévio. Reunião conjunta com a equipa do SmartLegis para fechar o contrato técnico do comprovativo.</span></div>
+    </div>
+    <div class="cal-row">
+      <div class="data">Julho 2026</div>
+      <div class="info"><strong>Aprovação em Conselho de Ministros.</strong><span>Designação de pontos focais por cada gabinete (15 dias). Início da formação dos PF dos ministérios-piloto.</span></div>
+    </div>
+    <div class="cal-row">
+      <div class="data">Ago–Set 2026</div>
+      <div class="info"><strong>Modo "sombra" e auditoria externa.</strong><span>Operação em modo sombra com 2 ministérios. Auditoria externa de acessibilidade WCAG 2.2 AA. Pen-test externo.</span></div>
+    </div>
+    <div class="cal-row">
+      <div class="data">Outubro 2026</div>
+      <div class="info"><strong>Go-live em produção.</strong><span>Aplicação aberta a todos os gabinetes. Primeira FPL publicada no Portal do Governo. SmartLegis verifica os primeiros comprovativos.</span></div>
+    </div>
   </div>
 </section>
 
 </main>
 
-<footer class="footer">
+<footer>
   <div class="footer-inner">
-    <div class="brand-block">
-      <div class="crest-f" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M12 2 L4 5 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V5 Z" stroke="currentColor" stroke-width="2"/>
-          <circle cx="12" cy="11" r="2.5" fill="currentColor"/>
-        </svg>
-      </div>
-      <div class="name">Pegada Legislativa do Governo</div>
-      <p>Sistema autónomo da Secretaria-Geral do Governo, em execução da Lei n.º 5-A/2026 e da Resolução do Conselho de Ministros n.º [XX]/2026.</p>
-    </div>
     <div>
-      <h5>Documentação</h5>
-      <ul>
-        <li><a href="../docs/01_Analise_Critica.md">Análise crítica</a></li>
-        <li><a href="../docs/02_Arquitetura.md">Arquitetura</a></li>
-        <li><a href="../docs/03_Plano_Implementacao.md">Plano de implementação</a></li>
-        <li><a href="../docs/04_Analise_Mock_e_Propostas.md">Análise UX</a></li>
-      </ul>
+      <strong>FPL — Pegada Legislativa do Governo</strong><br>
+      Secretaria-Geral do Governo · República Portuguesa<br>
+      v1.2 · Maio 2026 · Documento de trabalho
     </div>
-    <div>
-      <h5>Sistema</h5>
-      <ul>
-        <li><a href="https://github.com/dapl-sggov/pegada">Código no GitHub</a></li>
-        <li><a href="../README.md">README técnico</a></li>
-        <li><a href="v1-operacional.html">Versão operacional anterior</a></li>
-        <li><a href="../LICENSE">Licença EUPL-1.2</a></li>
-      </ul>
-    </div>
-    <div>
-      <h5>Quadro jurídico</h5>
-      <ul>
-        <li><a href="#">Lei n.º 5-A/2026</a></li>
-        <li><a href="#">RCM n.º [XX]/2026</a></li>
-        <li><a href="#">Manual operacional</a></li>
-        <li><a href="#">Recomendação OCDE 2024</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <div>FPL Ponte v0.2 · Demonstração técnica · Maio 2026</div>
-    <div class="legal">
-      <a href="#">Acessibilidade</a>
-      <a href="#">Privacidade</a>
-      <a href="#">Termos</a>
+    <div style="text-align:right">
+      <a href="https://github.com/dapl-sggov/pegada">Repositório no GitHub</a> ·
+      <a href="../demo/">Demonstração</a> ·
+      <a href="https://github.com/dapl-sggov/pegada/blob/main/LICENSE">Licença EUPL-1.2</a>
     </div>
   </div>
 </footer>
 
-<!-- Floating dock -->
-<div class="dock" id="dock" role="navigation" aria-label="Navegação contextual">
-  <span style="opacity:0.7">Demonstração interactiva</span>
-  <button class="dock-btn primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Tentar validar M3</button>
-  <button class="dock-btn" onclick="document.getElementById('publico').scrollIntoView({behavior:'smooth'})">Ver portal público</button>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-  <div class="modal" id="modalInner"></div>
-</div>
-
-<script>
-// ============ DADOS REALISTAS ============
-const FPL_DEMO = {
-  numero: '2026/MAE/0042',
-  tipo: 'DL',
-  titulo: 'Decreto-Lei que aprova o regime jurídico da produção descentralizada de energia a partir de fontes renováveis em comunidades de energia',
-  titulo_curto: 'Comunidades de energia renovável',
-  ministerio: 'Ministério do Ambiente e da Energia (MAE)',
-  estado: 'Em RSE',
-  origem: 'Programa do Governo, Eixo III, medida 4.2',
-  abertura: '10 de janeiro de 2026',
-  m3_validado: '30 de abril de 2026',
-  ponto_focal: 'Maria Silva',
-  bloco_d: [
-    { data: '12/02/2026', forma: 'Reunião presencial', entidade: 'APREN — Associação Portuguesa de Energias Renováveis', rtri: 'RTRI/2025/00142', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente', 'Adjunta SE'], decisao: 'Parcialmente incorporada', objeto: 'Apresentação de proposta de regime para CER e simplificação do licenciamento até 1 MW.', sintese: 'A APREN propôs regime único para CER (autoconsumo coletivo + partilha entre membros + venda de excedentes), sem distinção por origem solar/eólica. Defendeu simplificação do licenciamento até 1 MW (modelo espanhol e francês).', justificacao: 'A proposta de regime único foi acolhida na arquitetura do diploma. Não se acolheu a simplificação até 1 MW por divergir das obrigações de comunicação à ERSE.' },
-    { data: '19/02/2026', forma: 'Videoconferência', entidade: 'EDP — Energias de Portugal, S.A.', rtri: 'RTRI/2025/00088', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente', 'Chefe de gabinete'], decisao: 'Não incorporada', objeto: 'Análise dos efeitos do diploma na operação da rede de distribuição.', sintese: 'A EDP manifestou preocupação com a complexidade da gestão de fluxos bidirecionais em zonas de elevada penetração solar. Propôs período transitório de 24 meses para adaptação dos sistemas de medição.', justificacao: 'O período transitório é incompatível com o calendário das metas PNEC 2030. A questão tarifária é da competência regulatória da ERSE e não cabe no presente diploma.' },
-    { data: '26/02/2026', forma: 'Reunião presencial', entidade: 'ZERO — Associação Sistema Terrestre Sustentável', rtri: 'RTRI/2025/00214', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente', 'Adjunta SE'], decisao: 'Incorporada', objeto: 'Contributos sobre a participação de cidadãos com baixos rendimentos em CER.', sintese: 'A ZERO propôs mecanismo de comparticipação para participação de cidadãos em situação de pobreza energética, com financiamento via Fundo Ambiental, e obrigatoriedade de pelo menos 10% dos membros de CER municipais serem agregados elegíveis.', justificacao: 'A criação do mecanismo de comparticipação foi acolhida no art. 17.º. A obrigatoriedade de 10% foi acolhida no art. 12.º/3. A avaliação de impacto distributivo foi incluída no RIA.' },
-    { data: '05/03/2026', forma: 'Audiência presencial', entidade: 'Confederação Geral dos Trabalhadores Portugueses (CGTP)', rtri: 'RTRI/2025/00027', natureza: 'Inscrita no RTRI', gov: ['SE Ambiente'], decisao: 'Parcialmente incorporada', objeto: 'Posição da CGTP sobre transição energética justa.', sintese: 'A CGTP manifestou apoio ao princípio das comunidades de energia mas questionou a inexistência de cláusulas de proteção de emprego. Solicitou inclusão de mecanismo de diálogo social no Conselho Consultivo.', justificacao: 'A inclusão de representação sindical no Conselho Consultivo foi acolhida no art. 22.º. Não se acolheu cláusulas adicionais por divergir do escopo do diploma.' },
-    { data: '21/03/2026', forma: 'Correspondência', entidade: 'Prof. António Sá da Costa (Universidade de Évora)', rtri: '', natureza: 'Academia', gov: ['Adjunta SE'], decisao: 'Incorporada', objeto: 'Parecer técnico sobre modelo de cálculo de coeficientes de partilha em autoconsumo coletivo.', sintese: 'O parecer propõe modelo de cálculo dinâmico baseado em consumo histórico ponderado, em alternativa ao modelo estático inicial. Apresenta análise comparativa com modelos italiano e alemão.', justificacao: 'Modelo dinâmico acolhido no anexo I, com simplificação para CER até 50 membros conforme proposto.' }
-  ]
-};
-
-// ============ Theme ============
-function applyTheme(t) {
-  document.documentElement.dataset.theme = t;
-  try { localStorage.setItem('fpl-theme', t); } catch {}
-}
-const savedTheme = (() => { try { return localStorage.getItem('fpl-theme'); } catch { return null; } })();
-applyTheme(savedTheme || 'auto');
-document.getElementById('themeBtn').addEventListener('click', () => {
-  const cur = document.documentElement.dataset.theme;
-  applyTheme(cur === 'dark' ? 'auto' : 'dark');
-});
-
-// ============ Modal ============
-function openModal(html) {
-  document.getElementById('modalInner').innerHTML = html;
-  document.getElementById('modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-window.closeModal = closeModal;
-document.getElementById('modal').addEventListener('click', e => {
-  if (e.target.id === 'modal') closeModal();
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-// ============ Demo viva ============
-const demoContent = document.getElementById('demoContent');
-
-function renderPF() {
-  const f = FPL_DEMO;
-  return `
-    <div class="app-shell">
-      <aside class="app-side">
-        <div class="section-title">Trabalho</div>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Início</a>
-        <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> As minhas FPL <span class="badge-num">7</span></a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> Notificações <span class="badge-num">3</span></a>
-        <div class="section-title">Conta</div>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> O meu perfil</a>
-      </aside>
-      <div class="app-main">
-        <div class="app-head">
-          <div>
-            <h3>FPL aberta · ${f.numero}</h3>
-            <div class="subt">Maria Silva, ponto focal · ${f.ministerio}</div>
-          </div>
-          <button class="btn primary" onclick="abrirValidacaoM4()">Validar M4 — submeter para CM</button>
-        </div>
-
-        <div class="fpl-card">
-          <div class="breadcrumb"><a href="#">As minhas FPL</a> › ${f.numero}</div>
-          <div class="flex gap-8 mb-12" style="flex-wrap:wrap">
-            <span class="tag">${f.tipo}</span>
-            <span class="badge rse">${f.estado}</span>
-          </div>
-          <h2>${f.titulo}</h2>
-          <div class="fpl-pipe" aria-label="Marcos">
-            <div class="step done">M0</div>
-            <div class="step done">M1</div>
-            <div class="step done">M2</div>
-            <div class="step done">M3</div>
-            <div class="step cur">M4</div>
-            <div class="step">M5</div>
-          </div>
-          <div class="meta">
-            <div><span class="l">Origem</span><span class="v">${f.origem}</span></div>
-            <div><span class="l">Aberta em</span><span class="v">${f.abertura}</span></div>
-            <div><span class="l">M3 validado</span><span class="v">${f.m3_validado}</span></div>
-            <div><span class="l">Ponto focal</span><span class="v">${f.ponto_focal}</span></div>
-          </div>
-        </div>
-
-        <div class="bloco">
-          <div class="bloco-h">
-            <div class="ttl">
-              <span class="letra">D</span>
-              <div>
-                <h4>Bloco D · Interações externas</h4>
-                <div class="sub">Núcleo da pegada · ${f.bloco_d.length} entradas · todas com decisão preenchida</div>
-              </div>
-            </div>
-            <button class="btn">+ Adicionar interação</button>
-          </div>
-          <div class="bloco-b">
-            ${f.bloco_d.map((e, i) => `
-              <div class="entrada ${i === 0 ? 'open' : ''}" id="e${i}">
-                <div class="entrada-h" onclick="document.getElementById('e${i}').classList.toggle('open')">
-                  <div class="info">
-                    <span class="ent">${e.entidade}</span>
-                    <span class="tag">${e.forma}</span>
-                    ${e.rtri ? `<span class="rtri-status">✓ ${e.rtri}</span>` : '<span class="tag" style="background:#f5e9d8;color:#5a3a00;border-color:#d8c08a">Academia</span>'}
-                  </div>
-                  <span class="data">${e.data}</span>
-                </div>
-                <div class="entrada-b">
-                  <div class="row"><span class="l">Forma</span><span>${e.forma}</span></div>
-                  <div class="row"><span class="l">Pelo Governo</span><span>${e.gov.join('; ')}</span></div>
-                  <div class="row"><span class="l">Objeto</span><span>${e.objeto}</span></div>
-                  <div class="row"><span class="l">Síntese da posição</span><span>${e.sintese}</span></div>
-                  <div class="divider-pl"></div>
-                  <div class="row"><span class="l">Decisão</span><span><strong>${e.decisao}</strong></span></div>
-                  <div class="row"><span class="l">Justificação</span><span>${e.justificacao}</span></div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="bloco">
-          <div class="bloco-h">
-            <div class="ttl">
-              <span class="letra" style="background:var(--accent);color:#2a1f00">⚿</span>
-              <div>
-                <h4>Comprovativos criptográficos</h4>
-                <div class="sub">Emitidos a cada marco bloqueante · copiados para o SmartLegis</div>
-              </div>
-            </div>
-          </div>
-          <div class="cmp-list">
-            <div class="cmp-row">
-              <span class="marco-dot">M0</span>
-              <div style="flex:1"><strong>Abertura</strong><div class="jti">cmp_M0-a3F27Kx9bMnQ · emitido 10/01/2026</div></div>
-              <span class="cmp-badge verificado">Verificado pelo SmartLegis</span>
-            </div>
-            <div class="cmp-row">
-              <span class="marco-dot">M3</span>
-              <div style="flex:1"><strong>Pré-RSE</strong><div class="jti">cmp_M3-9fK2bL7xQw4p · emitido 30/04/2026</div></div>
-              <span class="cmp-badge verificado">Verificado pelo SmartLegis</span>
-            </div>
-            <div class="cmp-row">
-              <span class="marco-dot pend">M4</span>
-              <div style="flex:1"><strong>Pré-CM</strong><div class="jti">Será emitido ao validar M4</div></div>
-              <span class="cmp-badge pend">Pendente</span>
-            </div>
-            <div class="cmp-row">
-              <span class="marco-dot pend">M5</span>
-              <div style="flex:1"><strong>Publicação</strong><div class="jti">Será emitido após aprovação em CM</div></div>
-              <span class="cmp-badge pend">Pendente</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderQA() {
-  return `
-    <div class="app-shell">
-      <aside class="app-side">
-        <div class="section-title">SGGOV — auditoria</div>
-        <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Auditorias QA</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> KPIs do regime</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Cache RTRI</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Comprovativos</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Exportar p/ Portal Gov</a>
-        <div class="section-title">Análise</div>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg> Distribuição por estado</a>
-      </aside>
-      <div class="app-main">
-        <div class="app-head">
-          <div>
-            <h3>Dashboard executivo</h3>
-            <div class="subt">Visão consolidada do regime · atualizado há 2 minutos</div>
-          </div>
-          <button class="btn">Exportar relatório trimestral</button>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
-          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
-            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">FPL ativas</div>
-            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--gov)">312</div>
-            <div style="font-size:0.78rem;color:var(--green);margin-top:4px">+18 esta semana</div>
-          </div>
-          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
-            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Publicadas YTD</div>
-            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--gov)">87</div>
-            <div style="font-size:0.78rem;color:var(--ink-3);margin-top:4px">2026</div>
-          </div>
-          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
-            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Submissões bloqueadas</div>
-            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--red)">23</div>
-            <div style="font-size:0.78rem;color:var(--ink-3);margin-top:4px">A pegada está a funcionar</div>
-          </div>
-          <div style="padding:18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)">
-            <div style="font-size:0.7rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Cobertura RTRI</div>
-            <div style="font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--green)">99,2%</div>
-            <div style="font-size:0.78rem;color:var(--ink-3);margin-top:4px">Validação automática</div>
-          </div>
-        </div>
-
-        <div class="bloco">
-          <div class="bloco-h">
-            <div class="ttl"><div>
-              <h4>Top 5 entidades mais interlocutadas em 2026</h4>
-              <div class="sub">Por número de interações registadas no Bloco D</div>
-            </div></div>
-          </div>
-          <table class="tbl">
-            <thead><tr><th>Entidade</th><th>RTRI</th><th>Reuniões</th><th>Diplomas</th><th>Ministérios</th></tr></thead>
-            <tbody>
-              <tr><td><strong>Confederação da Indústria Portuguesa (CIP)</strong></td><td class="cel-num">RTRI/2025/00018</td><td>42</td><td>28</td><td>9</td></tr>
-              <tr><td><strong>CGTP</strong></td><td class="cel-num">RTRI/2025/00027</td><td>38</td><td>26</td><td>8</td></tr>
-              <tr><td><strong>União Geral de Trabalhadores</strong></td><td class="cel-num">RTRI/2025/00031</td><td>35</td><td>24</td><td>8</td></tr>
-              <tr><td><strong>Ordem dos Médicos</strong></td><td class="cel-num">RTRI/2025/00061</td><td>21</td><td>12</td><td>3</td></tr>
-              <tr><td><strong>EDP — Energias de Portugal</strong></td><td class="cel-num">RTRI/2025/00088</td><td>18</td><td>9</td><td>3</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="bloco mt-16">
-          <div class="bloco-h">
-            <div class="ttl"><div>
-              <h4>Auditorias recentes · Bloco G</h4>
-              <div class="sub">Pontuação 0–100 · pedidos de correção</div>
-            </div></div>
-            <button class="btn">+ Nova amostragem</button>
-          </div>
-          <table class="tbl">
-            <thead><tr><th>FPL</th><th>Gabinete</th><th>Pontuação</th><th>Estado</th></tr></thead>
-            <tbody>
-              <tr><td><strong>2026/MAE/0042</strong> Comunidades de energia</td><td>MAE</td><td><strong style="color:var(--green)">94/100</strong></td><td><span class="badge aprovado">Sem correções</span></td></tr>
-              <tr><td><strong>2026/MS/0011</strong> Partilha dados saúde</td><td>MS</td><td><strong style="color:var(--warning)">76/100</strong></td><td><span class="badge revisao">Correção pedida</span></td></tr>
-              <tr><td><strong>2026/MTSSS/0007</strong> Teletrabalho</td><td>MTSSS</td><td><strong style="color:var(--green)">91/100</strong></td><td><span class="badge aprovado">Sem correções</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="bloco mt-16">
-          <div class="bloco-h">
-            <div class="ttl"><div>
-              <h4>Comprovativos criptográficos · últimas emissões</h4>
-              <div class="sub">Cada marco bloqueante (M0/M3/M4/M5) emite um JWS Ed25519 verificável offline pelo SmartLegis</div>
-            </div></div>
-            <button class="btn" onclick="mostrarFluxoComprovativo()">Como funciona</button>
-          </div>
-          <table class="tbl">
-            <thead><tr><th>FPL</th><th>Marco</th><th>Identificador (jti)</th><th>Emitido</th><th>Estado</th></tr></thead>
-            <tbody>
-              <tr><td><strong>2026/MAE/0042</strong></td><td>M3</td><td class="cel-num">cmp_M3-9fK2bL7xQw4p</td><td class="cel-num">30/04/2026</td><td><span class="cmp-badge verificado">Verificado</span></td></tr>
-              <tr><td><strong>2026/MTSSS/0007</strong></td><td>M4</td><td class="cel-num">cmp_M4-3pR8vN2kHy6t</td><td class="cel-num">25/04/2026</td><td><span class="cmp-badge verificado">Verificado</span></td></tr>
-              <tr><td><strong>2026/MJ/0058</strong></td><td>M5</td><td class="cel-num">cmp_M5-7wQx1aF9bL3m</td><td class="cel-num">22/04/2026</td><td><span class="cmp-badge verificado">Verificado</span></td></tr>
-              <tr><td><strong>2026/ME/0019</strong></td><td>M0</td><td class="cel-num">cmp_M0-5kT2yB8nQp1r</td><td class="cel-num">02/05/2026</td><td><span class="cmp-badge valido">Válido</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderPub() {
-  return `
-    <div style="padding:48px 56px;max-height:620px;overflow-y:auto">
-      <div style="text-align:center;margin-bottom:36px">
-        <span class="eyebrow">Portal do Governo · ao lado da Agenda Pública</span>
-        <h2 style="margin:14px 0 12px;font-size:2rem">Decreto-Lei das comunidades de energia renovável</h2>
-        <p class="muted" style="font-size:0.95rem">Publicado no Diário da República a 22 de abril de 2026 · DR n.º 78/2026, Série I</p>
-      </div>
-
-      <div class="alert info" style="margin-bottom:24px">
-        <span class="ttl">Como esta ficha chegou aqui</span>
-        Após o marco M5, a aplicação FPL — que opera confinada à Rede Informática do Governo — exportou um pacote estruturado que foi transferido para o Portal do Governo. Aqui fica acessível ao público, sem login, ao lado da Agenda Pública dos membros do Governo.
-      </div>
-
-      <div class="bloco" style="margin-bottom:18px">
-        <div class="bloco-h"><div class="ttl"><span class="letra">A</span><div><h4>Identificação</h4></div></div></div>
-        <div class="bloco-b">
-          <div class="field-grid">
-            <div class="field"><label>Tipo de diploma</label><div class="v">Decreto-Lei</div></div>
-            <div class="field"><label>Número de processo</label><div class="v mono">2026/MAE/0042</div></div>
-            <div class="field"><label>Área governativa</label><div class="v">Ministério do Ambiente e da Energia</div></div>
-            <div class="field"><label>Aberto em</label><div class="v">10 de janeiro de 2026</div></div>
-            <div class="field full"><label>Origem e motivação</label><div class="v">Programa do Governo, Eixo III, medida 4.2 — transição energética justa.</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bloco">
-        <div class="bloco-h"><div class="ttl"><span class="letra">D</span><div><h4>5 interações com representantes de interesses</h4><div class="sub">Núcleo da pegada</div></div></div></div>
-        <div class="bloco-b" style="padding:0">
-          <table class="tbl">
-            <thead><tr><th>Data</th><th>Entidade</th><th>RTRI</th><th>Forma</th><th>Decisão</th></tr></thead>
-            <tbody>
-              <tr><td class="cel-num">12/02</td><td><strong>APREN</strong></td><td class="cel-num">RTRI/2025/00142</td><td>Reunião</td><td><span class="rtri-status" style="background:#fef9e7;color:#78350f;border-color:#f3d997">Parcialmente incorporada</span></td></tr>
-              <tr><td class="cel-num">19/02</td><td><strong>EDP</strong></td><td class="cel-num">RTRI/2025/00088</td><td>Videoconferência</td><td><span class="rtri-status" style="background:#fef2f2;color:#7a1421;border-color:#f0b8b8">Não incorporada</span></td></tr>
-              <tr><td class="cel-num">26/02</td><td><strong>ZERO</strong></td><td class="cel-num">RTRI/2025/00214</td><td>Reunião</td><td><span class="rtri-status">Incorporada</span></td></tr>
-              <tr><td class="cel-num">05/03</td><td><strong>CGTP</strong></td><td class="cel-num">RTRI/2025/00027</td><td>Audiência</td><td><span class="rtri-status" style="background:#fef9e7;color:#78350f;border-color:#f3d997">Parcialmente incorporada</span></td></tr>
-              <tr><td class="cel-num">21/03</td><td><strong>Prof. António Sá da Costa</strong></td><td class="cel-num">—</td><td>Correspondência</td><td><span class="rtri-status">Incorporada</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="quote-block" style="margin:24px 0">
-        <blockquote>"O cidadão pode agora saber, antes da publicação no Diário da República, quem o Governo ouviu sobre cada diploma e que peso essas posições tiveram na versão final."</blockquote>
-        <cite>Princípio de transparência por construção</cite>
-      </div>
-
-      <div style="text-align:center;margin-top:24px">
-        <a class="btn primary" href="#">Ver ficha completa em formato JSON-LD (OCDE)</a>
-      </div>
-    </div>
-  `;
-}
-
-const renders = { pf: renderPF, qa: renderQA, pub: renderPub };
-function setRole(role) {
-  document.querySelectorAll('.demo-tab').forEach(t => {
-    const active = t.dataset.role === role;
-    t.classList.toggle('active', active);
-    t.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
-  demoContent.innerHTML = renders[role]();
-}
-document.querySelectorAll('.demo-tab').forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
-setRole('pf');
-
-// ============ Validação M3/M4 + comprovativo ============
-window.abrirValidacaoM4 = () => {
-  openModal(`
-    <div class="modal-h">
-      <h3 id="modalTitle">Validar Marco M4 — submissão para Conselho de Ministros</h3>
-      <button class="btn" onclick="closeModal()" aria-label="Fechar">✕</button>
-    </div>
-    <div class="modal-b">
-      <div class="alert success">
-        <span class="ttl">Verificações automáticas: 5 de 5 cumpridas</span>
-        Todas as condições estão satisfeitas. Falta a sua assinatura da declaração de completude (Bloco F). Ao assinar, o sistema emite o <strong>comprovativo criptográfico de M4</strong>.
-      </div>
-      <ul class="checklist">
-        <li class="ok"><div>M3 validado em 30/04/2026 — comprovativo emitido e verificado</div></li>
-        <li class="ok"><div>Bloco D: 5 entradas com decisão de incorporação preenchida</div></li>
-        <li class="ok"><div>Bloco E: síntese (387 caracteres) e decisão (218 caracteres)</div></li>
-        <li class="ok"><div>Sem pedidos de correção pendentes da SGGOV</div></li>
-        <li class="ok"><div>Pontuação QA: 94/100 (≥80 exigida)</div></li>
-      </ul>
-      <div class="declaracao-box">
-        Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.
-      </div>
-      <div class="alert info">
-        <span class="ttl">Enforcement por comprovativo criptográfico</span>
-        A validação corre no servidor. Cumprida, o sistema emite um JWS assinado (Ed25519) que o ponto focal cola no SmartLegis — que o verifica offline e só então deixa o diploma avançar. Sem comprovativo válido, a tramitação fica bloqueada.
-      </div>
-    </div>
-    <div class="modal-f">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn primary" onclick="emitirComprovativo('M4')">Assinar e validar M4</button>
-    </div>
-  `);
-};
-
-// Comprovativo emitido após validação de um marco bloqueante
-window.emitirComprovativo = (marco) => {
-  const jtis = { M0: 'cmp_M0-a3F27Kx9bMnQ', M3: 'cmp_M3-9fK2bL7xQw4p', M4: 'cmp_M4-3pR8vN2kHy6t', M5: 'cmp_M5-7wQx1aF9bL3m' };
-  const jti = jtis[marco] || 'cmp_' + marco + '-7Kx9bMnQ';
-  openModal(`
-    <div class="modal-h">
-      <h3 id="modalTitle">${marco} validado — comprovativo criptográfico emitido</h3>
-      <button class="btn" onclick="closeModal()" aria-label="Fechar">✕</button>
-    </div>
-    <div class="modal-b">
-      <div class="alert success">
-        <span class="ttl">Marco ${marco} validado em ambiente de demonstração</span>
-        O sistema gerou o comprovativo abaixo. Copie-o e cole-o no campo correspondente do SmartLegis.
-      </div>
-      <div class="comprovativo-code">
-        <span class="seg-h">eyJhbGciOiJFZERTQSIsInR5cCI6ImZwbC1jb21wcm92YXRpdm8ran9zIiwia2lkIjoiZnBsLTIwMjYtMDEifQ</span>.<span class="seg-p">eyJpc3MiOiJmcGwuc2dnb3YucmluZyIsInN1YiI6IjIwMjYvTUFFLzAwNDIiLCJtYXJjbyI6Ii${marco}IiwiamlkIjoi${jti}In0</span>.<span class="seg-s">k7Qx9aF2bLnQmR4vP8wZ3yT6sN1uH0eK5cB7dG2fXa9JpYrW3M8tL4QvciZoExS</span>
-      </div>
-      <div class="comprovativo-meta">
-        <span><b>Algoritmo</b> EdDSA (Ed25519)</span>
-        <span><b>Emissor</b> fpl.sggov.ring</span>
-        <span><b>Marco</b> ${marco}</span>
-        <span><b>jti</b> ${jti}</span>
-        <span><b>kid</b> fpl-2026-01</span>
-      </div>
-      <div class="cmp-flow">
-        <div class="node">
-          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
-          <div class="t">FPL</div><div class="d">Emite o JWS assinado</div>
-        </div>
-        <div class="arrow">copia ▶</div>
-        <div class="node">
-          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-          <div class="t">Ponto focal</div><div class="d">Cola no SmartLegis</div>
-        </div>
-        <div class="arrow">cola ▶</div>
-        <div class="node smartlegis">
-          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7z"/></svg></div>
-          <div class="t">SmartLegis</div><div class="d">Verifica offline com a chave pública</div>
-        </div>
-      </div>
-      <div class="alert info">
-        <span class="ttl">Verificação offline, sem chamada de rede</span>
-        O SmartLegis valida a assinatura com a chave pública partilhada. Não há integração síncrona entre os sistemas — o <em>handoff</em> é máquina-a-máquina. Sem comprovativo válido, o SmartLegis bloqueia a progressão.
-      </div>
-    </div>
-    <div class="modal-f">
-      <button class="btn" onclick="closeModal()">Fechar</button>
-      <button class="btn primary" onclick="closeModal()">Copiar comprovativo</button>
-    </div>
-  `);
-};
-
-// Fluxo do comprovativo (a partir do dashboard SGGOV)
-window.mostrarFluxoComprovativo = () => emitirComprovativo('M3');
-
-// Demonstração de bloqueio
-window.abrirBloqueioDemo = () => {
-  openModal(`
-    <div class="modal-h">
-      <h3>Validar M3 — exemplo de bloqueio</h3>
-      <button class="btn" onclick="closeModal()" aria-label="Fechar">✕</button>
-    </div>
-    <div class="modal-b">
-      <div class="alert danger">
-        <span class="ttl">Não é possível validar M3 — 3 pendências bloqueantes</span>
-        O sistema impede a validação até resolver as falhas abaixo. Sem validação <strong>não é emitido comprovativo criptográfico</strong> — e sem comprovativo, o SmartLegis bloqueia a tramitação (RCM v2, n.º 4).
-      </div>
-      <ul class="checklist">
-        <li class="ok"><div>Bloco A (Identificação) completo</div></li>
-        <li class="ok"><div>Bloco B: tipo de origem definido</div></li>
-        <li class="fail"><div>Bloco B: síntese do problema (mínimo 200 caracteres)<div class="det">Atual: 87 caracteres — faltam 113</div></div></li>
-        <li class="fail"><div>Bloco D: decisão de incorporação em todas as entradas<div class="det">2 entradas pendentes: APREN, EDP</div></li>
-        <li class="fail"><div>Bloco F: declaração de completude assinada<div class="det">Assinatura pendente</div></li>
-      </ul>
-      <div class="alert info">
-        <span class="ttl">É aqui que o regime se torna efetivo</span>
-        Não há forma de contornar pelo cliente. O comprovativo só existe se a FPL estiver validada — e o SmartLegis só deixa avançar com comprovativo válido.
-      </div>
-    </div>
-    <div class="modal-f">
-      <button class="btn" onclick="closeModal()">Voltar e corrigir</button>
-      <button class="btn primary" disabled style="opacity:0.5;cursor:not-allowed">Assinar e validar M3</button>
-    </div>
-  `);
-};
-
-window.abrirFplDetalhe = () => {
-  document.getElementById('demo').scrollIntoView({behavior:'smooth'});
-  setRole('pub');
-};
-
-// ============ Reveal on scroll ============
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
-}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// ============ Floating dock ============
-const dock = document.getElementById('dock');
-const heroSection = document.querySelector('.hero');
-const footerSection = document.querySelector('.footer');
-window.addEventListener('scroll', () => {
-  const y = window.scrollY;
-  const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
-  const footerTop = footerSection.offsetTop - window.innerHeight;
-  dock.classList.toggle('visible', y > heroBottom && y < footerTop);
-}, { passive: true });
-
-// Botão "Tentar validar M3" no dock
-document.querySelector('#dock .dock-btn.primary').onclick = () => {
-  document.getElementById('demo').scrollIntoView({behavior:'smooth'});
-  setTimeout(() => abrirBloqueioDemo(), 800);
-};
-</script>
 </body>
 </html>
