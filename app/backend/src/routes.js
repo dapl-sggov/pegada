@@ -377,7 +377,11 @@ router.get('/notificacoes/stream', requireAuth, ah(async (req, res) => {
   const off = notif.subscribe(req.user.id, (n) => {
     try { res.write(`event: nova\ndata: ${JSON.stringify(n)}\n\n`); } catch {}
   });
+  // `.unref()` permite ao processo Node terminar mesmo com a ligação SSE
+  // aberta — necessário para que `node --test` não fique pendurado quando
+  // a request fica "viva" entre testes.
   const ka = setInterval(() => { try { res.write('event: ping\ndata: {}\n\n'); } catch {} }, 20_000);
+  ka.unref?.();
 
   req.on('close', () => { off(); clearInterval(ka); });
 }));
