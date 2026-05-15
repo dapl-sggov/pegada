@@ -331,7 +331,10 @@ function renderShell() {
       </aside>
       <main class="main" id="main" tabindex="-1"></main>
     </div>
-    <footer class="footer" role="contentinfo">FPL Ponte · SGGOV · Lei n.º 5-A/2026 · Demonstração</footer>
+    <footer class="footer" role="contentinfo">
+      FPL Ponte · SGGOV · Lei n.º 5-A/2026 · Demonstração
+      · <a href="/declaracao-acessibilidade.html">Declaração de Acessibilidade</a>
+    </footer>
   `;
   document.querySelectorAll('[data-nav]').forEach(el => {
     el.addEventListener('click', () => setView(el.dataset.nav));

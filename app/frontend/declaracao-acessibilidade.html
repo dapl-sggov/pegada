@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Declaração de Acessibilidade — FPL Ponte</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  body { background: var(--bg); }
+  .doc { max-width: 760px; margin: 32px auto; padding: 32px 36px; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-sm); }
+  .doc h1 { font-size: 24px; color: var(--gov-blue-dark); margin-bottom: 6px; }
+  .doc .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+  .doc h2 { font-size: 16px; color: var(--gov-blue); margin: 22px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .doc p, .doc li { font-size: 14px; line-height: 1.65; color: var(--text); }
+  .doc ul { margin: 8px 0 8px 22px; }
+  .doc dl { display: grid; grid-template-columns: 200px 1fr; gap: 6px 16px; font-size: 13.5px; margin: 8px 0; }
+  .doc dt { font-weight: 600; color: var(--text-muted); }
+  .doc .meta { background: var(--bg); border-left: 3px solid var(--gov-blue); padding: 12px 16px; border-radius: 4px; margin-bottom: 18px; font-size: 13px; }
+  .doc a { color: var(--gov-blue); }
+  .voltar { display: inline-block; margin-bottom: 16px; color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Saltar para o conteúdo</a>
+<div class="doc" id="main">
+<a class="voltar" href="/">← Voltar à aplicação</a>
+<h1>Declaração de Acessibilidade</h1>
+<div class="sub">Aplicação <strong>FPL — Pegada Legislativa do Governo</strong> · Secretaria-Geral do Governo</div>
+
+<div class="meta">
+Esta declaração é elaborada nos termos do <strong>Decreto-Lei n.º 83/2018, de 19 de outubro</strong>, que transpõe a Diretiva (UE) 2016/2102, relativa à acessibilidade dos sítios web e das aplicações móveis dos organismos do setor público.
+</div>
+
+<h2>1. Estado de conformidade</h2>
+<p>A aplicação <strong>esforça-se por cumprir o nível AA das Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2</strong>. À data desta declaração, encontra-se em <strong>processo de adequação</strong> — a auditoria de acessibilidade externa, certificada por entidade independente, está prevista antes do <em>go-live</em> em produção, conforme o plano de implementação (cronograma E15).</p>
+
+<h2>2. Conteúdos não acessíveis</h2>
+<p>Não foram identificados, à data desta declaração, conteúdos da aplicação que escapem ao âmbito da legislação aplicável ou que apresentem incumprimento. As limitações conhecidas serão atualizadas após a auditoria externa.</p>
+
+<h2>3. Medidas de acessibilidade implementadas</h2>
+<ul>
+  <li><strong>Estrutura semântica</strong>: marcação HTML5 com elementos <code>&lt;main&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;aside&gt;</code> e cabeçalhos hierárquicos.</li>
+  <li><strong>Navegação por teclado</strong>: todos os elementos interativos são alcançáveis e acionáveis com <kbd>Tab</kbd>, <kbd>Enter</kbd> e <kbd>Espaço</kbd>; foco visível em todos os controlos.</li>
+  <li><strong>Atalho "Saltar para o conteúdo"</strong> visível ao receber foco, no topo de cada página.</li>
+  <li><strong>Atributos ARIA</strong>: <code>role</code>, <code>aria-label</code>, <code>aria-current</code>, <code>aria-selected</code>, <code>aria-required</code>, <code>aria-live</code>, <code>aria-labelledby</code> aplicados onde a estrutura nativa não basta.</li>
+  <li><strong>Contraste de cor</strong>: texto principal ≥ 7:1 (AAA); texto secundário ≥ 4.5:1 (AA). Validado em modo claro e escuro do sistema operativo.</li>
+  <li><strong>Tabelas</strong>: cabeçalhos com <code>scope="col"</code>; identificação clara das colunas e linhas de dados.</li>
+  <li><strong>Formulários</strong>: rótulos associados a campos (<code>&lt;label for&gt;</code>); mensagens de erro através de <code>role="alert"</code> e <code>aria-live</code>; indicação clara de campos obrigatórios.</li>
+  <li><strong>Modais</strong>: foco capturado, fecho por <kbd>Esc</kbd>, botões de ação com <code>aria-label</code> descritivo.</li>
+  <li><strong>Imagens decorativas</strong>: marcadas com <code>aria-hidden="true"</code>; ícones essenciais têm alternativa textual.</li>
+  <li><strong>Idioma</strong>: <code>lang="pt-PT"</code> declarado em todas as páginas.</li>
+  <li><strong>Sem dependência de JavaScript para conteúdo essencial</strong> em páginas estáticas (declaração, federação simulada).</li>
+</ul>
+
+<h2>4. Tecnologias usadas</h2>
+<ul>
+  <li>HTML5, CSS3, JavaScript (ECMAScript 2020+)</li>
+  <li>Sem dependência de plug-ins externos ou tecnologias proprietárias</li>
+  <li>Compatível com leitores de ecrã NVDA, JAWS e VoiceOver</li>
+</ul>
+
+<h2>5. Avaliação</h2>
+<p>A presente declaração baseia-se em <strong>autoavaliação interna</strong>, conduzida pela equipa da SGGOV responsável pelo desenvolvimento, com recurso a:</p>
+<ul>
+  <li>Revisão manual de marcação contra as WCAG 2.2 AA</li>
+  <li>Verificação de contraste com ferramentas de cálculo automático</li>
+  <li>Teste de navegação exclusivamente por teclado</li>
+  <li>Inspeção dos atributos ARIA e ordem de tabulação</li>
+</ul>
+<p>A <strong>avaliação externa certificada</strong>, por entidade independente, está agendada para a fase final de homologação, antes da entrada em produção.</p>
+
+<h2>6. Mecanismo de comunicação e contacto</h2>
+<p>Os utilizadores que pretendam comunicar dificuldades de acesso, fazer pedidos de informação em formato alternativo ou apresentar reclamação relativa a barreiras de acessibilidade podem contactar a Secretaria-Geral do Governo através dos canais institucionais aplicáveis.</p>
+<p>Sem prejuízo do mecanismo institucional próprio, é possível recorrer à <strong>AMA — Agência para a Modernização Administrativa</strong>, enquanto entidade encarregada de fazer cumprir o regime de acessibilidade digital.</p>
+
+<dl>
+  <dt>Versão da aplicação</dt><dd>FPL Ponte v1.0-rc</dd>
+  <dt>Data desta declaração</dt><dd>Maio de 2026</dd>
+  <dt>Última atualização</dt><dd>Maio de 2026 — versão inicial</dd>
+  <dt>Norma aplicável</dt><dd>EN 301 549 / WCAG 2.2 nível AA</dd>
+  <dt>Entidade responsável</dt><dd>Secretaria-Geral do Governo (SGGOV)</dd>
+</dl>
+
+<p style="margin-top:24px;font-size:12px;color:var(--text-faint)">Esta declaração será atualizada após a auditoria externa e sempre que ocorrerem alterações materiais à aplicação que afetem o cumprimento dos critérios de acessibilidade.</p>
+</div>
+</body>
+</html>
