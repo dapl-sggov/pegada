@@ -48,8 +48,36 @@ async function makeRedis() {
   } catch {
     throw new Error('ioredis não está instalado');
   }
-  const client = new Redis(config.redis.url, { lazyConnect: true, maxRetriesPerRequest: 2 });
-  await client.connect();
+  // Configuração defensiva — em CI/dev o Redis pode não estar a correr:
+  //  • lazyConnect: não tenta ligar até `.connect()` ser chamado.
+  //  • retryStrategy null: NÃO tenta reconectar se a primeira ligação falhar
+  //    (caso contrário ioredis fica num loop infinito a emitir 'error'
+  //    events não-tratados, enchendo a CI com 25k+ linhas).
+  //  • maxRetriesPerRequest: 1 — falha rápido por comando.
+  //  • enableOfflineQueue: false — comandos rejeitam imediatamente se
+  //    o cliente estiver offline.
+  const client = new Redis(config.redis.url, {
+    lazyConnect: true,
+    maxRetriesPerRequest: 1,
+    retryStrategy: () => null,
+    enableOfflineQueue: false,
+    reconnectOnError: () => false,
+  });
+  // Handler de 'error' OBRIGATÓRIO antes de connect — ioredis emite
+  // estes eventos mesmo quando rejeitamos a Promise, e sem handler o
+  // Node trata como unhandled e gera ruído na consola.
+  client.on('error', (e) => {
+    if (e && e.code !== 'ECONNREFUSED' && e.code !== 'ENOTFOUND' && e.code !== 'ECONNRESET') {
+      console.warn('[cache:redis]', e.message);
+    }
+  });
+  try {
+    await client.connect();
+  } catch (e) {
+    // Garante que não fica handle aberto a tentar reconectar
+    try { client.disconnect(); } catch {}
+    throw e;
+  }
   return {
     kind: 'redis',
     async get(k) { return client.get(k); },
@@ -62,7 +90,7 @@ async function makeRedis() {
     },
     async expire(k, ttlSec) { await client.expire(k, ttlSec); },
     async ttl(k) { return client.ttl(k); },
-    async close() { await client.quit(); },
+    async close() { try { await client.quit(); } catch { client.disconnect(); } },
   };
 }
 
