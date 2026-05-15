@@ -11,7 +11,7 @@ test.describe('Fluxo M0 ponta-a-ponta', () => {
 
     // Login
     await expect(page.getByRole('heading', { name: 'Pegada Legislativa do Governo' })).toBeVisible();
-    await page.getByLabel('Email').fill('maria.silva@gov.pt');
+    await page.getByLabel('Email').fill('maria.silva@maen.gov.pt');
     await page.getByLabel('Palavra-passe').fill('demo1234');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
 

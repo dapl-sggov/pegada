@@ -4,7 +4,7 @@
 
 import { test, expect } from '@playwright/test';
 
-async function login(page, email = 'maria.silva@gov.pt') {
+async function login(page, email = 'maria.silva@maen.gov.pt') {
   await page.goto('/');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Palavra-passe').fill('demo1234');

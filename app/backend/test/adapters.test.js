@@ -17,7 +17,7 @@ process.env.NODE_ENV = 'test';
 process.env.COMPROVATIVO_ALLOW_EPHEMERAL = 'true';
 process.env.RATE_LIMIT_DISABLE = '1';
 process.env.CL_WEBHOOK_KEY = 'segredo-de-teste-32-bytes-x'.padEnd(32, '_');
-process.env.DIRECTORY_ROLE_MAP = 'CN=fpl-pf-mae,OU=Grupos,DC=gov,DC=pt:PONTO_FOCAL:mae';
+process.env.DIRECTORY_ROLE_MAP = 'CN=fpl-pf-maen,OU=Grupos,DC=gov,DC=pt:PONTO_FOCAL:maen';
 process.env.RTRI_MODE = 'http';
 process.env.RTRI_BASE_URL = 'https://rtri.test/api';
 process.env.DRE_MODE = 'http';
@@ -34,7 +34,7 @@ before(async () => {
   dre = await import('../src/dre.js');
   auth = await import('../src/auth.js');
   await migrate();
-  await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('mae','MAE','Ministério do Ambiente e da Energia')");
+  await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('maen','MAEN','Ministério do Ambiente e Energia')");
 });
 
 // ---------------------------------------------------------------------------
@@ -42,12 +42,12 @@ before(async () => {
 // ---------------------------------------------------------------------------
 test('diretorio: mapeia grupos LDAP para papéis com escopo de gabinete', () => {
   const papeis = diretorio.mapearGruposParaPapeis([
-    'CN=fpl-pf-mae,OU=Grupos,DC=gov,DC=pt',
+    'CN=fpl-pf-maen,OU=Grupos,DC=gov,DC=pt',
     'CN=outro-grupo,OU=Grupos,DC=gov,DC=pt',
   ]);
   assert.equal(papeis.length, 1);
   assert.equal(papeis[0].papel, 'PONTO_FOCAL');
-  assert.equal(papeis[0].gabinete_id, 'mae');
+  assert.equal(papeis[0].gabinete_id, 'maen');
 });
 
 test('diretorio: provisionamento just-in-time cria utilizador + papéis', async () => {
@@ -55,7 +55,7 @@ test('diretorio: provisionamento just-in-time cria utilizador + papéis', async 
     email: 'novo.pf@gov.pt',
     nome: 'Novo PF',
     nif: '999999999',
-    grupos: ['CN=fpl-pf-mae,OU=Grupos,DC=gov,DC=pt'],
+    grupos: ['CN=fpl-pf-maen,OU=Grupos,DC=gov,DC=pt'],
   };
   const u = await diretorio.sincronizarUtilizador(dirUser);
   assert.ok(u.id);
@@ -63,7 +63,7 @@ test('diretorio: provisionamento just-in-time cria utilizador + papéis', async 
   const papeis = await db.all('SELECT papel, gabinete_id, origem FROM atribuicao_papel WHERE utilizador_id = ?', [u.id]);
   assert.equal(papeis.length, 1);
   assert.equal(papeis[0].papel, 'PONTO_FOCAL');
-  assert.equal(papeis[0].gabinete_id, 'mae');
+  assert.equal(papeis[0].gabinete_id, 'maen');
   assert.equal(papeis[0].origem, 'DIRETORIO');
 
   // Idempotência: 2.ª chamada não duplica
@@ -98,10 +98,10 @@ function resMock() {
 
 test('consulta.lex: webhook aceita pedido com HMAC válido', async () => {
   // Cria FPL para receber o webhook
-  const f = { id: 'fpl-cl-1', numero: '2026/MAE/9999' };
+  const f = { id: 'fpl-cl-1', numero: '2026/MAEN/9999' };
   await db.run(
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, gabinete_id, estado_workflow, criado_por)
-     VALUES (?, ?, 'DL', 'Teste webhook', 'mae', 'EM_CONSULTA_PUBLICA', NULL)`,
+     VALUES (?, ?, 'DL', 'Teste webhook', 'maen', 'EM_CONSULTA_PUBLICA', NULL)`,
     [f.id, f.numero]
   );
   const ts = new Date().toISOString();
@@ -119,7 +119,7 @@ test('consulta.lex: webhook aceita pedido com HMAC válido', async () => {
 
 test('consulta.lex: webhook recusa assinatura adulterada', async () => {
   const ts = new Date().toISOString();
-  const corpo = { cl_ref: 'CL-T-002', fpl_numero: '2026/MAE/9999', contributos: [] };
+  const corpo = { cl_ref: 'CL-T-002', fpl_numero: '2026/MAEN/9999', contributos: [] };
   const { sig, body } = assinarWebhook(corpo, ts);
   // Adultera 1 byte da assinatura
   const sigMau = sig.replace(/.$/, c => (c === '0' ? '1' : '0'));
@@ -132,7 +132,7 @@ test('consulta.lex: webhook recusa assinatura adulterada', async () => {
 
 test('consulta.lex: webhook recusa timestamp expirado (replay > 5 min)', async () => {
   const ts = new Date(Date.now() - 10 * 60_000).toISOString();
-  const corpo = { cl_ref: 'CL-T-003', fpl_numero: '2026/MAE/9999', contributos: [] };
+  const corpo = { cl_ref: 'CL-T-003', fpl_numero: '2026/MAEN/9999', contributos: [] };
   const { sig, body } = assinarWebhook(corpo, ts);
   const req = reqMock({ 'x-cl-timestamp': ts, 'x-cl-signature': sig }, body, corpo);
   const res = resMock();
@@ -207,13 +207,13 @@ test('dre: polling deteta publicação e atualiza FPL', async () => {
   const fid = 'fpl-dre-1';
   await db.run(
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, gabinete_id, estado_workflow, criado_por)
-     VALUES (?, '2026/MAE/8888', 'DL', 'Diploma DRE teste', 'mae', 'APROVADO', NULL)`,
+     VALUES (?, '2026/MAEN/8888', 'DL', 'Diploma DRE teste', 'maen', 'APROVADO', NULL)`,
     [fid]
   );
   const original = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({
     resultados: [
-      { numero_dr: 'DR I, 88/2026', sumario: '2026/MAE/8888 — Diploma DRE teste',
+      { numero_dr: 'DR I, 88/2026', sumario: '2026/MAEN/8888 — Diploma DRE teste',
         data_publicacao: '2026-05-10', link: 'https://dre.pt/.../88-2026' },
     ],
   }), { status: 200, headers: { 'content-type': 'application/json' } });
@@ -233,7 +233,7 @@ test('dre: registo manual atualiza FPL e regista evento', async () => {
   const fid = 'fpl-dre-2';
   await db.run(
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, gabinete_id, estado_workflow, criado_por)
-     VALUES (?, '2026/MAE/7777', 'DL', 'Diploma manual', 'mae', 'APROVADO', NULL)`,
+     VALUES (?, '2026/MAEN/7777', 'DL', 'Diploma manual', 'maen', 'APROVADO', NULL)`,
     [fid]
   );
   const u = { id: null };

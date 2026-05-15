@@ -7,26 +7,38 @@ import { migrate } from './migrate.js';
 import { uuid, jsonStringify } from './util.js';
 import { hashPassword } from './auth.js';
 
+// XXV Governo Constitucional — siglas oficiais.
+// Fonte: SMARTBP · Tabela · Grupo Entidade: Governo (2026/02/11).
+// Os emails dos PF seguem o padrão `nome@<sigla>.gov.pt` (minúsculas);
+// a SGGOV usa `@sggoverno.gov.pt`.
 const GABINETES = [
-  ['mae', 'MAE', 'Ministério do Ambiente e da Energia'],
-  ['ms', 'MS', 'Ministério da Saúde'],
+  ['maen',  'MAEN',  'Ministério do Ambiente e Energia'],
+  ['ms',    'MS',    'Ministério da Saúde'],
   ['mtsss', 'MTSSS', 'Ministério do Trabalho, Solidariedade e Segurança Social'],
-  ['me', 'ME', 'Ministério da Economia'],
-  ['mj', 'MJ', 'Ministério da Justiça'],
-  ['mecic', 'MECIC', 'Ministério da Educação, Ciência e Inovação'],
-  ['mf', 'MF', 'Ministério das Finanças'],
-  ['mai', 'MAI', 'Ministério da Administração Interna'],
+  ['mect',  'MECT',  'Ministério da Economia e da Coesão Territorial'],
+  ['mj',    'MJ',    'Ministério da Justiça'],
+  ['meci',  'MECI',  'Ministério da Educação, Ciência e Inovação'],
+  ['mef',   'MEF',   'Ministério de Estado e das Finanças'],
+  ['mai',   'MAI',   'Ministério da Administração Interna'],
+  ['mih',   'MIH',   'Ministério das Infraestruturas e Habitação'],
+  ['mcjd',  'MCJD',  'Ministério da Cultura, Juventude e Desporto'],
+  ['mam',   'MAM',   'Ministério da Agricultura e Mar'],
+  ['mdn',   'MDN',   'Ministério da Defesa Nacional'],
+  ['mene',  'MENE',  'Ministério dos Negócios Estrangeiros'],
+  ['mp',    'MP',    'Ministério da Presidência'],
+  ['mare',  'MARE',  'Ministério Adjunto e da Reforma do Estado'],
+  ['map',   'MAP',   'Ministério dos Assuntos Parlamentares'],
   ['sggov', 'SGGOV', 'Secretaria-Geral do Governo'],
 ];
 
 const UTILIZADORES = [
-  { email: 'maria.silva@gov.pt', nome: 'Maria Silva', nif: '100000001', papel: 'PONTO_FOCAL', gab: 'mae' },
-  { email: 'joao.pereira@gov.pt', nome: 'João Pereira', nif: '100000002', papel: 'PONTO_FOCAL_ALT', gab: 'mae' },
-  { email: 'ana.santos@gov.pt', nome: 'Ana Santos', nif: '100000003', papel: 'PONTO_FOCAL', gab: 'ms' },
-  { email: 'pedro.lopes@gov.pt', nome: 'Pedro Lopes', nif: '100000004', papel: 'PONTO_FOCAL', gab: 'mtsss' },
-  { email: 'rui.ferreira@sggov.pt', nome: 'Rui Ferreira', nif: '100000005', papel: 'SGGOV_QA', gab: null },
-  { email: 'carla.almeida@sggov.pt', nome: 'Carla Almeida', nif: '100000006', papel: 'SGGOV_ADMIN', gab: null },
-  { email: 'gsepcm@gov.pt', nome: 'GSEPCM (receção)', nif: '100000007', papel: 'GSEPCM', gab: null },
+  { email: 'maria.silva@maen.gov.pt',     nome: 'Maria Silva',     nif: '100000001', papel: 'PONTO_FOCAL',     gab: 'maen' },
+  { email: 'joao.pereira@maen.gov.pt',    nome: 'João Pereira',    nif: '100000002', papel: 'PONTO_FOCAL_ALT', gab: 'maen' },
+  { email: 'ana.santos@ms.gov.pt',        nome: 'Ana Santos',      nif: '100000003', papel: 'PONTO_FOCAL',     gab: 'ms' },
+  { email: 'pedro.lopes@mtsss.gov.pt',    nome: 'Pedro Lopes',     nif: '100000004', papel: 'PONTO_FOCAL',     gab: 'mtsss' },
+  { email: 'rui.ferreira@sggoverno.gov.pt',   nome: 'Rui Ferreira',    nif: '100000005', papel: 'SGGOV_QA',    gab: null },
+  { email: 'carla.almeida@sggoverno.gov.pt',  nome: 'Carla Almeida',   nif: '100000006', papel: 'SGGOV_ADMIN', gab: null },
+  { email: 'gsepcm@pcm.gov.pt',           nome: 'GSEPCM (receção)', nif: '100000007', papel: 'GSEPCM', gab: null },
 ];
 
 const RTRI = [
@@ -92,14 +104,14 @@ async function seed() {
   }
 
   console.log('→ FPL de exemplo...');
-  const maria = userIdByEmail['maria.silva@gov.pt'];
+  const maria = userIdByEmail['maria.silva@maen.gov.pt'];
   // FPL 1 — em elaboração, com Bloco B preenchido e uma interação no Bloco D
   const f1 = uuid();
   await db.run(
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, titulo_curto, gabinete_id,
                       estado_workflow, tipo_origem, referencia_origem, sintese_problema, avaliacao_previa,
                       m0_validado_em, m0_validado_por, criado_por, versao_atual)
-     VALUES (?, '2026/MAE/0042', 'DL', ?, ?, 'mae', 'EM_ELABORACAO', 'PROGRAMA_GOVERNO', 'Eixo III, medida 4.2',
+     VALUES (?, '2026/MAEN/0042', 'DL', ?, ?, 'maen', 'EM_ELABORACAO', 'PROGRAMA_GOVERNO', 'Eixo III, medida 4.2',
              ?, 1, ?, ?, ?, 2)`,
     [f1,
      'Decreto-Lei que aprova o regime jurídico da produção descentralizada de energia a partir de fontes renováveis em comunidades de energia',
@@ -130,11 +142,11 @@ async function seed() {
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, gabinete_id, estado_workflow, criado_por)
      VALUES (?, '2026/MS/0011', 'DL', ?, 'ms', 'CRIADO', ?)`,
     [f2, 'Decreto-Lei que aprova o regime de partilha de dados de saúde para fins de investigação científica',
-     userIdByEmail['ana.santos@gov.pt']]
+     userIdByEmail['ana.santos@ms.gov.pt']]
   );
   await db.run(
     `INSERT INTO versao_fpl (id, fpl_id, numero, autor_id, snapshot, descricao) VALUES (?, ?, 1, ?, '{}', 'FPL criada')`,
-    [uuid(), f2, userIdByEmail['ana.santos@gov.pt']]
+    [uuid(), f2, userIdByEmail['ana.santos@ms.gov.pt']]
   );
 
   console.log('✓ Seed concluído.\n');

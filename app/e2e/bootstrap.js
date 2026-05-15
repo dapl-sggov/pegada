@@ -23,10 +23,10 @@ const { db } = await import(`file://${backendSrc.replace(/\\/g, '/')}/db.js`);
 const { app } = await buildApp({ servirFrontend: true, iniciarWorkers: false });
 
 // Seed mínimo para e2e
-await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('mae','MAE','Ministério do Ambiente e da Energia')");
-const maria = await auth.createUser({ email: 'maria.silva@gov.pt', nome_completo: 'Maria Silva', password: 'demo1234', nif: '100000001' });
-await auth.assignRole(maria, 'PONTO_FOCAL', 'mae');
-const carla = await auth.createUser({ email: 'carla.almeida@gov.pt', nome_completo: 'Carla Almeida', password: 'demo1234', nif: '100000006' });
+await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('maen','MAEN','Ministério do Ambiente e Energia')");
+const maria = await auth.createUser({ email: 'maria.silva@maen.gov.pt', nome_completo: 'Maria Silva', password: 'demo1234', nif: '100000001' });
+await auth.assignRole(maria, 'PONTO_FOCAL', 'maen');
+const carla = await auth.createUser({ email: 'carla.almeida@sggoverno.gov.pt', nome_completo: 'Carla Almeida', password: 'demo1234', nif: '100000006' });
 await auth.assignRole(carla, 'SGGOV_ADMIN');
 
 const PORT = Number(process.env.PORT) || 4001;

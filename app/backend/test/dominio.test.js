@@ -22,9 +22,9 @@ before(async () => {
   await migrate();
   await comprovativo.initComprovativo();
   // gabinete + utilizador de teste
-  await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('mae','MAE','Ministério do Ambiente e da Energia')");
+  await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('maen','MAEN','Ministério do Ambiente e Energia')");
   const uid = await auth.createUser({ email: 't@gov.pt', nome_completo: 'Tester', password: 'x' });
-  await auth.assignRole(uid, 'PONTO_FOCAL', 'mae');
+  await auth.assignRole(uid, 'PONTO_FOCAL', 'maen');
   globalThis.__uid = uid;
 });
 
@@ -69,14 +69,14 @@ test('validarEntradaBlocoD: RTRI_INSCRITO exige número de inscrição', () => {
 // Comprovativo criptográfico
 // ---------------------------------------------------------------------------
 test('comprovativo: emite JWS Ed25519 e verifica com sucesso', async () => {
-  const fakeFpl = { id: 'fpl-t', numero_processo: '2026/MAE/9001', gabinete_id: 'mae', estado_workflow: 'EM_ELABORACAO' };
+  const fakeFpl = { id: 'fpl-t', numero_processo: '2026/MAEN/9001', gabinete_id: 'maen', estado_workflow: 'EM_ELABORACAO' };
   // precisa de existir na BD para a FK do INSERT comprovativo
   await db.run(
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, gabinete_id, estado_workflow, criado_por)
-     VALUES (?, ?, 'DL', 'Teste', 'mae', 'EM_ELABORACAO', ?)`,
+     VALUES (?, ?, 'DL', 'Teste', 'maen', 'EM_ELABORACAO', ?)`,
     [fakeFpl.id, fakeFpl.numero_processo, globalThis.__uid]
   );
-  const user = { papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'mae' }] };
+  const user = { papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'maen' }] };
   const c = await comprovativo.emitirComprovativo({ fpl: fakeFpl, marco: 'M0', user, snapshot: { id: 'fpl-t' } });
   assert.ok(c.jti.startsWith('cmp_M0-'));
   assert.equal(c.jws.split('.').length, 3);
@@ -84,12 +84,12 @@ test('comprovativo: emite JWS Ed25519 e verifica com sucesso', async () => {
   const v = await comprovativo.verificarComprovativo(c.jws);
   assert.equal(v.valido, true);
   assert.equal(v.payload.marco, 'M0');
-  assert.equal(v.payload.sub, '2026/MAE/9001');
+  assert.equal(v.payload.sub, '2026/MAEN/9001');
 });
 
 test('comprovativo: assinatura adulterada é rejeitada', async () => {
-  const fakeFpl = { id: 'fpl-t', numero_processo: '2026/MAE/9001', gabinete_id: 'mae' };
-  const user = { papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'mae' }] };
+  const fakeFpl = { id: 'fpl-t', numero_processo: '2026/MAEN/9001', gabinete_id: 'maen' };
+  const user = { papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'maen' }] };
   const c = await comprovativo.emitirComprovativo({ fpl: fakeFpl, marco: 'M3', user, snapshot: { id: 'fpl-t' } });
   const [h, p] = c.jws.split('.');
   // assinatura trocada
@@ -99,8 +99,8 @@ test('comprovativo: assinatura adulterada é rejeitada', async () => {
 });
 
 test('comprovativo: payload adulterado é rejeitado', async () => {
-  const fakeFpl = { id: 'fpl-t', numero_processo: '2026/MAE/9001', gabinete_id: 'mae' };
-  const user = { papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'mae' }] };
+  const fakeFpl = { id: 'fpl-t', numero_processo: '2026/MAEN/9001', gabinete_id: 'maen' };
+  const user = { papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'maen' }] };
   const c = await comprovativo.emitirComprovativo({ fpl: fakeFpl, marco: 'M4', user, snapshot: { id: 'fpl-t' } });
   const [h, , s] = c.jws.split('.');
   const payloadFalso = Buffer.from(JSON.stringify({ marco: 'M5', sub: 'falso' })).toString('base64url');
@@ -120,8 +120,8 @@ test('JWKS expõe a chave pública ativa', async () => {
 // Fluxo FPL integrado — criação, M0, emissão de comprovativo, versionamento
 // ---------------------------------------------------------------------------
 test('fluxo: criar FPL → validar M0 emite comprovativo e cria versão', async () => {
-  const user = { id: globalThis.__uid, papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'mae' }] };
-  const f = await fpl.criarFpl({ tipo_diploma: 'DL', titulo: 'Diploma de teste integrado', gabinete_id: 'mae' }, user, {});
+  const user = { id: globalThis.__uid, papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'maen' }] };
+  const f = await fpl.criarFpl({ tipo_diploma: 'DL', titulo: 'Diploma de teste integrado', gabinete_id: 'maen' }, user, {});
   assert.equal(f.estado_workflow, 'CRIADO');
 
   // M0 sem Bloco B → bloqueia
@@ -148,8 +148,8 @@ test('fluxo: criar FPL → validar M0 emite comprovativo e cria versão', async 
 });
 
 test('fluxo: M3 bloqueia enquanto houver entradas D sem decisão', async () => {
-  const user = { id: globalThis.__uid, papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'mae' }] };
-  const f = await fpl.criarFpl({ tipo_diploma: 'DL', titulo: 'Diploma teste M3', gabinete_id: 'mae' }, user, {});
+  const user = { id: globalThis.__uid, papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: 'maen' }] };
+  const f = await fpl.criarFpl({ tipo_diploma: 'DL', titulo: 'Diploma teste M3', gabinete_id: 'maen' }, user, {});
   await fpl.atualizarBlocoB(f.id, { tipo_origem: 'OUTRA', sintese_problema: 'y'.repeat(220) }, user, {});
   await fpl.validarMarcoFpl(f.id, 'M0', user, {}, {});
   // entrada D sem decisão de incorporação

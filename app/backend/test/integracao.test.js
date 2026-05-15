@@ -35,11 +35,11 @@ before(async () => {
 
   // Gabinete + utilizadores de teste
   const { db } = await import('../src/db.js');
-  await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('mae','MAE','Ministério do Ambiente e da Energia')");
+  await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('maen','MAEN','Ministério do Ambiente e Energia')");
   await db.run("INSERT INTO gabinete (id, sigla, nome) VALUES ('ms','MS','Ministério da Saúde')");
 
-  const maria = await auth.createUser({ email: 'maria@gov.pt', nome_completo: 'Maria PF', password: 'segredo123', nif: '900000001' });
-  await auth.assignRole(maria, 'PONTO_FOCAL', 'mae');
+  const maria = await auth.createUser({ email: 'maria@maen.gov.pt', nome_completo: 'Maria PF', password: 'segredo123', nif: '900000001' });
+  await auth.assignRole(maria, 'PONTO_FOCAL', 'maen');
 
   const rui = await auth.createUser({ email: 'rui@gov.pt', nome_completo: 'Rui QA', password: 'segredo123', nif: '900000002' });
   await auth.assignRole(rui, 'SGGOV_QA');
@@ -132,19 +132,19 @@ test('CSRF: POST sem header x-csrf-token é rejeitado com 403', async () => {
 test('auth: login com credenciais inválidas devolve 401', async () => {
   const c = novoCliente();
   await c.GET('/api/auth/csrf');
-  const r = await c.POST('/api/auth/login', { email: 'maria@gov.pt', password: 'errada' });
+  const r = await c.POST('/api/auth/login', { email: 'maria@maen.gov.pt', password: 'errada' });
   assert.equal(r.status, 401);
 });
 
 test('auth: login ok devolve papéis e /auth/me funciona', async () => {
   const c = novoCliente();
-  const me = await login(c, 'maria@gov.pt');
-  assert.equal(me.email, 'maria@gov.pt');
-  assert.ok(me.papeis.find(p => p.papel === 'PONTO_FOCAL' && p.gabinete_id === 'mae'));
+  const me = await login(c, 'maria@maen.gov.pt');
+  assert.equal(me.email, 'maria@maen.gov.pt');
+  assert.ok(me.papeis.find(p => p.papel === 'PONTO_FOCAL' && p.gabinete_id === 'maen'));
 
   const r = await c.GET('/api/auth/me');
   assert.equal(r.status, 200);
-  assert.equal(r.body.email, 'maria@gov.pt');
+  assert.equal(r.body.email, 'maria@maen.gov.pt');
 });
 
 test('auth: pedido a endpoint protegido sem sessão devolve 401', async () => {
@@ -158,10 +158,10 @@ test('auth: pedido a endpoint protegido sem sessão devolve 401', async () => {
 // RBAC + Escopo de gabinete
 // ---------------------------------------------------------------------------
 test('rbac: PF de outro gabinete não vê FPL alheia (404 por escopo)', async () => {
-  // Maria (PF MAE) cria FPL
+  // Maria (PF MAEN) cria FPL
   const cMaria = novoCliente();
-  await login(cMaria, 'maria@gov.pt');
-  const cria = await cMaria.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'FPL teste RBAC alheio', gabinete_id: 'mae' });
+  await login(cMaria, 'maria@maen.gov.pt');
+  const cria = await cMaria.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'FPL teste RBAC alheio', gabinete_id: 'maen' });
   assert.equal(cria.status, 201);
   const fplId = cria.body.id;
 
@@ -174,8 +174,8 @@ test('rbac: PF de outro gabinete não vê FPL alheia (404 por escopo)', async ()
 
 test('rbac: aprovar CM requer GSEPCM/SGGOV_ADMIN; PF recebe 403', async () => {
   const cMaria = novoCliente();
-  await login(cMaria, 'maria@gov.pt');
-  const cria = await cMaria.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'FPL aprovar-cm', gabinete_id: 'mae' });
+  await login(cMaria, 'maria@maen.gov.pt');
+  const cria = await cMaria.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'FPL aprovar-cm', gabinete_id: 'maen' });
   const fplId = cria.body.id;
   const r = await cMaria.POST(`/api/fpl/${fplId}/aprovar-cm`, { numero_ata: '123/2026' });
   assert.equal(r.status, 403);
@@ -186,10 +186,10 @@ test('rbac: aprovar CM requer GSEPCM/SGGOV_ADMIN; PF recebe 403', async () => {
 // ---------------------------------------------------------------------------
 test('fluxo HTTP: criar FPL → patch Bloco B → validar M0 → comprovativo emitido', async () => {
   const c = novoCliente();
-  await login(c, 'maria@gov.pt');
+  await login(c, 'maria@maen.gov.pt');
 
   // criar
-  const cria = await c.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'Diploma de integração HTTP M0', gabinete_id: 'mae' });
+  const cria = await c.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'Diploma de integração HTTP M0', gabinete_id: 'maen' });
   assert.equal(cria.status, 201);
   assert.equal(cria.body.estado_workflow, 'CRIADO');
   const fplId = cria.body.id;
@@ -232,7 +232,7 @@ test('fluxo HTTP: criar FPL → patch Bloco B → validar M0 → comprovativo em
 // ---------------------------------------------------------------------------
 test('JWKS: /api/.well-known/fpl-jwks.json expõe a chave pública Ed25519', async () => {
   const c = novoCliente();
-  await login(c, 'maria@gov.pt');
+  await login(c, 'maria@maen.gov.pt');
   const r = await c.GET('/api/.well-known/fpl-jwks.json');
   assert.equal(r.status, 200);
   assert.ok(Array.isArray(r.body.keys));
@@ -269,7 +269,7 @@ test('/metrics: expõe contadores HTTP, comprovativo e estado workflow', async (
 // ---------------------------------------------------------------------------
 test('export: PF NÃO pode aceder a /api/export/datasets/fpl.json (403)', async () => {
   const c = novoCliente();
-  await login(c, 'maria@gov.pt');
+  await login(c, 'maria@maen.gov.pt');
   const r = await c.GET('/api/export/datasets/fpl.json');
   assert.equal(r.status, 403);
 });
@@ -295,10 +295,10 @@ test('reposicionamento: /api/publico/datasets/fpl.csv não existe (404)', async 
 // ---------------------------------------------------------------------------
 test('versao snapshot: GET /api/fpl/:id/versoes/:vid devolve snapshot completo', async () => {
   const c = novoCliente();
-  await login(c, 'maria@gov.pt');
+  await login(c, 'maria@maen.gov.pt');
 
   // Cria FPL + Bloco B (gera 2 versões)
-  const cria = await c.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'Teste snapshot diff', gabinete_id: 'mae' });
+  const cria = await c.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'Teste snapshot diff', gabinete_id: 'maen' });
   assert.equal(cria.status, 201);
   const fplId = cria.body.id;
 
@@ -339,7 +339,7 @@ test('dashboard SGGOV: traz timeline_marcos e top_gabinetes com id', async () =>
 // ---------------------------------------------------------------------------
 test('SSE: GET /api/notificacoes/stream estabelece event-stream e empurra eventos', async () => {
   const c = novoCliente();
-  await login(c, 'maria@gov.pt');
+  await login(c, 'maria@maen.gov.pt');
   const cookies = [...c.jar.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
 
   const ctrl = new AbortController();
@@ -360,7 +360,7 @@ test('SSE: GET /api/notificacoes/stream estabelece event-stream e empurra evento
   // não usamos subscribe diretamente — usamos `notificar` para o utilizador maria
   const { notificar } = await import('../src/notificacoes.js');
   const { db } = await import('../src/db.js');
-  const u = await db.get("SELECT id FROM utilizador WHERE email = 'maria@gov.pt'");
+  const u = await db.get("SELECT id FROM utilizador WHERE email = 'maria@maen.gov.pt'");
 
   // Espera o ping inicial (deve chegar imediatamente)
   let recebido = '';
@@ -384,7 +384,7 @@ test('SSE: GET /api/notificacoes/stream estabelece event-stream e empurra evento
   await notificar({
     tipo: 'M3_VALIDADO',
     destinatarios: [u.id],
-    fpl: { id: 'x', numero_processo: '2026/MAE/SSE', titulo: 'Teste SSE', titulo_curto: 'SSE' },
+    fpl: { id: 'x', numero_processo: '2026/MAEN/SSE', titulo: 'Teste SSE', titulo_curto: 'SSE' },
   });
 
   // Lê mais chunks à procura do evento "nova"
@@ -402,5 +402,5 @@ test('SSE: GET /api/notificacoes/stream estabelece event-stream e empurra evento
   assert.match(recebido, /event: nova/, 'deve ter sido empurrado um evento "nova"');
   // O template ignora o título passado e usa um título fixo; verificamos pelo
   // numero_processo que vai no corpo da notificação.
-  assert.match(recebido, /2026\/MAE\/SSE/, 'payload deve incluir o número de processo');
+  assert.match(recebido, /2026\/MAEN\/SSE/, 'payload deve incluir o número de processo');
 });

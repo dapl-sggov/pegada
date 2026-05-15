@@ -27,26 +27,39 @@ const DECISOES = {INCORPORADA:'Incorporada',PARCIALMENTE_INCORPORADA:'Parcialmen
 const MARCOS_BLOQ = ['M0','M3','M4','M5'];
 const LIM = {SINTESE_B:200,SINTESE_E:300,DECISAO_E:200,OBJETO_D:50,SINTESE_D:100,JUSTIF_D:100};
 
+// XXV Governo Constitucional — siglas oficiais dos ministérios.
+// Fonte: SMARTBP · Tabela · Grupo Entidade: Governo (2026/02/11).
+// Emails: utilizadores recebem endereços `nome@<sigla>.gov.pt` em minúsculas.
 const GABINETES = [
-  {id:'mae',sigla:'MAE',nome:'Ministério do Ambiente e da Energia'},
-  {id:'ms',sigla:'MS',nome:'Ministério da Saúde'},
+  {id:'maen', sigla:'MAEN', nome:'Ministério do Ambiente e Energia'},
+  {id:'ms',   sigla:'MS',   nome:'Ministério da Saúde'},
   {id:'mtsss',sigla:'MTSSS',nome:'Ministério do Trabalho, Solidariedade e Segurança Social'},
-  {id:'me',sigla:'ME',nome:'Ministério da Economia'},
-  {id:'mj',sigla:'MJ',nome:'Ministério da Justiça'},
-  {id:'mecic',sigla:'MECIC',nome:'Ministério da Educação, Ciência e Inovação'},
-  {id:'mf',sigla:'MF',nome:'Ministério das Finanças'},
-  {id:'mai',sigla:'MAI',nome:'Ministério da Administração Interna'},
+  {id:'mect', sigla:'MECT', nome:'Ministério da Economia e da Coesão Territorial'},
+  {id:'mj',   sigla:'MJ',   nome:'Ministério da Justiça'},
+  {id:'meci', sigla:'MECI', nome:'Ministério da Educação, Ciência e Inovação'},
+  {id:'mef',  sigla:'MEF',  nome:'Ministério de Estado e das Finanças'},
+  {id:'mai',  sigla:'MAI',  nome:'Ministério da Administração Interna'},
+  {id:'mih',  sigla:'MIH',  nome:'Ministério das Infraestruturas e Habitação'},
+  {id:'mcjd', sigla:'MCJD', nome:'Ministério da Cultura, Juventude e Desporto'},
+  {id:'mam',  sigla:'MAM',  nome:'Ministério da Agricultura e Mar'},
+  {id:'mdn',  sigla:'MDN',  nome:'Ministério da Defesa Nacional'},
+  {id:'mene', sigla:'MENE', nome:'Ministério dos Negócios Estrangeiros'},
+  {id:'mp',   sigla:'MP',   nome:'Ministério da Presidência'},
+  {id:'mare', sigla:'MARE', nome:'Ministério Adjunto e da Reforma do Estado'},
+  {id:'map',  sigla:'MAP',  nome:'Ministério dos Assuntos Parlamentares'},
 ];
+// Os emails seguem o padrão `nome.sobrenome@<sigla-ministério>.gov.pt` em
+// minúsculas — convenção oficial do XXV Governo. SGGOV usa `@sggoverno.gov.pt`.
 const PERFIS = [
-  {id:'u-maria',nome:'Maria Silva',email:'maria.silva@gov.pt',papel:'PONTO_FOCAL',gabinete:'mae',cor:'#1d3461'},
-  {id:'u-joao',nome:'João Pereira',email:'joao.pereira@gov.pt',papel:'PONTO_FOCAL_ALT',gabinete:'me',cor:'#2f4f8a'},
-  {id:'u-ana',nome:'Ana Santos',email:'ana.santos@gov.pt',papel:'PONTO_FOCAL',gabinete:'ms',cor:'#0f7858'},
-  {id:'u-pedro',nome:'Pedro Lopes',email:'pedro.lopes@gov.pt',papel:'PONTO_FOCAL',gabinete:'mtsss',cor:'#7c2d3e'},
-  {id:'u-sofia',nome:'Sofia Mendes',email:'sofia.mendes@gov.pt',papel:'PONTO_FOCAL',gabinete:'mecic',cor:'#5e3a8a'},
-  {id:'u-luis',nome:'Luís Tavares',email:'luis.tavares@gov.pt',papel:'PONTO_FOCAL',gabinete:'mf',cor:'#1a4a3a'},
-  {id:'u-rui',nome:'Rui Ferreira',email:'rui.ferreira@sggov.pt',papel:'SGGOV_QA',gabinete:null,cor:'#a36507'},
-  {id:'u-carla',nome:'Carla Almeida',email:'carla.almeida@sggov.pt',papel:'SGGOV_ADMIN',gabinete:null,cor:'#a71728'},
-  {id:'u-cidadao',nome:'Acesso Público',email:'—',papel:'PUBLICO',gabinete:null,cor:'#5e6573'},
+  {id:'u-maria', nome:'Maria Silva',   email:'maria.silva@maen.gov.pt',    papel:'PONTO_FOCAL',     gabinete:'maen',  cor:'#1d3461'},
+  {id:'u-joao',  nome:'João Pereira',  email:'joao.pereira@mect.gov.pt',   papel:'PONTO_FOCAL_ALT', gabinete:'mect',  cor:'#2f4f8a'},
+  {id:'u-ana',   nome:'Ana Santos',    email:'ana.santos@ms.gov.pt',       papel:'PONTO_FOCAL',     gabinete:'ms',    cor:'#0f7858'},
+  {id:'u-pedro', nome:'Pedro Lopes',   email:'pedro.lopes@mtsss.gov.pt',   papel:'PONTO_FOCAL',     gabinete:'mtsss', cor:'#7c2d3e'},
+  {id:'u-sofia', nome:'Sofia Mendes',  email:'sofia.mendes@meci.gov.pt',   papel:'PONTO_FOCAL',     gabinete:'meci',  cor:'#5e3a8a'},
+  {id:'u-luis',  nome:'Luís Tavares',  email:'luis.tavares@mef.gov.pt',    papel:'PONTO_FOCAL',     gabinete:'mef',   cor:'#1a4a3a'},
+  {id:'u-rui',   nome:'Rui Ferreira',  email:'rui.ferreira@sggoverno.gov.pt',   papel:'SGGOV_QA',    gabinete:null,    cor:'#a36507'},
+  {id:'u-carla', nome:'Carla Almeida', email:'carla.almeida@sggoverno.gov.pt',  papel:'SGGOV_ADMIN', gabinete:null,    cor:'#a71728'},
+  {id:'u-cidadao',nome:'Acesso Público',email:'—',                          papel:'PUBLICO',       gabinete:null,    cor:'#5e6573'},
 ];
 const PAPEL_LBL = {PONTO_FOCAL:'Ponto Focal',PONTO_FOCAL_ALT:'Ponto Focal (alt.)',SGGOV_QA:'SGGOV · Auditoria',SGGOV_ADMIN:'SGGOV · Administração',PUBLICO:'Cidadão'};
 
@@ -88,7 +101,7 @@ function seed() {
   const mk = (o) => Object.assign({bloco_c:[],bloco_d:[],versoes:[],comprovativos:[]},o);
   const fpls = [
     mk({
-      id:'fpl-001', numero:'2026/MAE/0042', tipo:'DL', gabinete:'mae',
+      id:'fpl-001', numero:'2026/MAEN/0042', tipo:'DL', gabinete:'maen',
       titulo:'Decreto-Lei que aprova o regime jurídico da produção descentralizada de energia a partir de fontes renováveis em comunidades de energia',
       titulo_curto:'Comunidades de energia renovável',
       estado:'EM_RSE', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo III, medida 4.2',
@@ -126,7 +139,7 @@ function seed() {
       ],
     }),
     mk({
-      id:'fpl-002', numero:'2026/MAE/0049', tipo:'DL', gabinete:'mae',
+      id:'fpl-002', numero:'2026/MAEN/0049', tipo:'DL', gabinete:'maen',
       titulo:'Decreto-Lei que estabelece o regime de gestão de resíduos de equipamentos elétricos e eletrónicos (transposição da Diretiva (UE) 2024/884)',
       titulo_curto:'Gestão de resíduos de equipamentos elétricos',
       estado:'EM_ELABORACAO', origem:'TRANSPOSICAO_UE', ref_origem:'Diretiva (UE) 2024/884',
@@ -221,7 +234,7 @@ function seed() {
     }),
     // ── Adicionais (v1.2) — cobrem outros gabinetes e estados raros ──
     mk({
-      id:'fpl-006', numero:'2026/ME/0023', tipo:'DL', gabinete:'me',
+      id:'fpl-006', numero:'2026/MECT/0023', tipo:'DL', gabinete:'mect',
       titulo:'Decreto-Lei que estabelece o regime jurídico das sandboxes regulatórias para tecnologia financeira e cripto-ativos',
       titulo_curto:'Sandboxes para tecnologia financeira',
       estado:'EM_CONSULTA_INTERNA', origem:'INICIATIVA_MINISTERIO', ref_origem:'Programa do Governo, Eixo IV, medida 7.1',
@@ -245,7 +258,7 @@ function seed() {
       ],
     }),
     mk({
-      id:'fpl-007', numero:'2026/MF/0014', tipo:'DL', gabinete:'mf',
+      id:'fpl-007', numero:'2026/MEF/0014', tipo:'DL', gabinete:'mef',
       titulo:'Decreto-Lei que atualiza o regime fiscal aplicável aos rendimentos prediais e às mais-valias imobiliárias',
       titulo_curto:'Atualização do regime fiscal predial',
       estado:'APROVADO', origem:'INICIATIVA_MINISTERIO', ref_origem:'OE/2026 art. 235.º',
@@ -287,7 +300,7 @@ function seed() {
       ],
     }),
     mk({
-      id:'fpl-009', numero:'2026/MECIC/0017', tipo:'DESPACHO', gabinete:'mecic',
+      id:'fpl-009', numero:'2026/MECI/0017', tipo:'DESPACHO', gabinete:'meci',
       titulo:'Despacho normativo que define o regime de avaliação de centros de investigação para o triénio 2026–2028',
       titulo_curto:'Avaliação de centros de investigação 2026–2028',
       estado:'EM_REVISAO_QA', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo V',
@@ -314,9 +327,9 @@ function seed() {
     {id:'a4',fpl_id:'fpl-009',auditor:'Rui Ferreira',data:'2026-05-04T11:00:00Z',pontuacao:62,observacoes:'Bloco D incompleto: ambas as entradas (CRUP e CCISP) sem decisão de incorporação preenchida. A consulta pública recebeu 208 contributos mas a síntese e a decisão sobre incorporação no Bloco E também estão por preencher. Bloqueia M3.',pedido_correcao:1,estado_correcao:'EM_CURSO'},
   ];
   const notificacoes = [
-    {id:'n1',user:'u-maria',tipo:'M3',titulo:'FPL 2026/MAE/0042 — M3 validado',msg:'O comprovativo de M3 foi emitido. Aguarda agendamento em RSE.',ts:'2026-04-30T16:05:00Z',lida:false,fpl_id:'fpl-001'},
-    {id:'n2',user:'u-maria',tipo:'CONSULTA',titulo:'Consulta pública encerrada — 2026/MAE/0042',msg:'67 contributos importados para o Bloco E.',ts:'2026-04-14T18:00:00Z',lida:false,fpl_id:'fpl-001'},
-    {id:'n3',user:'u-maria',tipo:'QA',titulo:'Auditoria QA recebida — 2026/MAE/0042',msg:'Pontuação 94/100. Sem pedidos de correção.',ts:'2026-05-02T10:30:00Z',lida:true,fpl_id:'fpl-001'},
+    {id:'n1',user:'u-maria',tipo:'M3',titulo:'FPL 2026/MAEN/0042 — M3 validado',msg:'O comprovativo de M3 foi emitido. Aguarda agendamento em RSE.',ts:'2026-04-30T16:05:00Z',lida:false,fpl_id:'fpl-001'},
+    {id:'n2',user:'u-maria',tipo:'CONSULTA',titulo:'Consulta pública encerrada — 2026/MAEN/0042',msg:'67 contributos importados para o Bloco E.',ts:'2026-04-14T18:00:00Z',lida:false,fpl_id:'fpl-001'},
+    {id:'n3',user:'u-maria',tipo:'QA',titulo:'Auditoria QA recebida — 2026/MAEN/0042',msg:'Pontuação 94/100. Sem pedidos de correção.',ts:'2026-05-02T10:30:00Z',lida:true,fpl_id:'fpl-001'},
     {id:'n4',user:'u-ana',tipo:'QA',titulo:'Pedido de correção — 2026/MS/0011',msg:'A SGGOV pediu a correção do Bloco D antes de M3.',ts:'2026-04-28T11:00:00Z',lida:false,fpl_id:'fpl-003'},
     {id:'n5',user:'u-rui',tipo:'M4',titulo:'FPL 2026/MTSSS/0007 submetida para CM',msg:'Comprovativo de M4 verificado pelo SmartLegis.',ts:'2026-04-25T10:05:00Z',lida:false,fpl_id:'fpl-004'},
     {id:'n6',user:'u-joao',tipo:'CONSULTA',titulo:'Consulta interna em curso — 2026/ME/0023',msg:'Aguarda parecer da CMVM e do BdP antes de submissão a consulta pública.',ts:'2026-04-12T14:00:00Z',lida:false,fpl_id:'fpl-006'},
@@ -1699,7 +1712,7 @@ window.modalVerComprovativo = (id, jti) => {
   if (cmp) modalVerComprovativoObj(f, cmp, false);
 };
 window.modalFluxoComprovativo = () => {
-  modalVerComprovativoObj({numero:'2026/MAE/0042'}, {marco:'M3',jti:'cmp_M3-9fK2bL7xQw4p'}, false);
+  modalVerComprovativoObj({numero:'2026/MAEN/0042'}, {marco:'M3',jti:'cmp_M3-9fK2bL7xQw4p'}, false);
 };
 window.copiarTexto = (t) => {
   try { navigator.clipboard.writeText(t); toast('Comprovativo copiado para a área de transferência.','success'); } catch { toast('Selecione e copie manualmente.','warning'); }
