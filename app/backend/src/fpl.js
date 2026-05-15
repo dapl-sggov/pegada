@@ -7,6 +7,7 @@ import { uuid, nowISO, jsonStringify } from './util.js';
 import { validarMarco, transicaoEstadoApos, validarEntradaBlocoD, MARCOS_BLOQUEANTES } from './workflow.js';
 import { validarIdentificador } from './rtri.js';
 import { emitirComprovativo } from './comprovativo.js';
+import { incCounter } from './metrics.js';
 import { notificar, destinatariosPorPapel } from './notificacoes.js';
 
 // ---------------------------------------------------------------------------
@@ -187,7 +188,10 @@ export async function validarMarcoFpl(fplId, marco, user, req, opts = {}) {
   if (!fpl) throw Object.assign(new Error('FPL não encontrada'), { code: 404 });
 
   const result = await validarMarco(fpl, marco);
-  if (!result.ok) return { ok: false, pendencias: result.pendencias };
+  if (!result.ok) {
+    incCounter('fpl_marcos_validados_total', { marco, resultado: 'bloqueado' });
+    return { ok: false, pendencias: result.pendencias };
+  }
 
   // M3 e M4 exigem declaração de completude assinada (Bloco F)
   if (['M3', 'M4'].includes(marco) && !opts.declaracao_assinada) {
@@ -233,6 +237,9 @@ export async function validarMarcoFpl(fplId, marco, user, req, opts = {}) {
       await notificar({ tipo: 'M5_VALIDADO', destinatarios: [fpl.criado_por], fpl });
     }
   } catch (e) { console.warn('[fpl] notificação falhou:', e.message); }
+
+  incCounter('fpl_marcos_validados_total', { marco, resultado: 'ok' });
+  if (comprovativo) incCounter('fpl_comprovativos_emitidos_total', { marco });
 
   return { ok: true, fpl: await getFpl(fplId), comprovativo };
 }

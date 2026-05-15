@@ -26,6 +26,11 @@ export function securityHeaders(req, res, next) {
   if (config.isProd) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
+  // Respostas autenticadas não devem ser cacheadas por intermediários
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+  }
   next();
 }
 
@@ -56,6 +61,9 @@ export function rateLimit({ max = 100, windowMs = 60_000, keyFn = req => req.ip 
 }
 
 export async function rateLimitLogin(req, res, next) {
+  // Em ambiente de teste o rate-limit é desativado para não interferir com a
+  // execução paralela dos testes (mesmo IP, vários utilizadores).
+  if (process.env.NODE_ENV === 'test' || process.env.RATE_LIMIT_DISABLE === '1') return next();
   try {
     const email = (req.body?.email || '').toLowerCase();
     const r1 = await hit('login:ip:' + req.ip, 20, 300);

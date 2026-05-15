@@ -32,6 +32,16 @@ dist/
 build/
 coverage/
 
+# Playwright / e2e
+app/e2e/test-results/
+app/e2e/playwright-report/
+app/e2e/blob-report/
+app/e2e/.playwright-cache/
+
+# SBOM (regenerável a partir do package-lock)
+app/backend/sbom-spdx.json
+app/backend/sbom-cdx.json
+
 # wrangler files
 .wrangler
 .dev.vars*

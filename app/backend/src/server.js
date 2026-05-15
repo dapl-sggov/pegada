@@ -1,12 +1,15 @@
 // server.js — Arranque da aplicação FPL Ponte.
 // Boot assíncrono: inicializa BD, cache, storage e o módulo de comprovativo
 // antes de aceitar tráfego. Serve a API e o frontend estático.
+//
+// `buildApp()` é exportado para reutilização pelos testes de integração
+// (montam o app sem chamar `app.listen()` por si próprios).
 
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import config, { assertConfigProducao } from './config.js';
 import { initDb, DRIVER } from './db.js';
@@ -17,11 +20,21 @@ import { initComprovativo } from './comprovativo.js';
 import { authMiddleware } from './auth.js';
 import { securityHeaders, rateLimit, ensureCsrfToken, requireCsrf } from './security.js';
 import { processarOutbox } from './notificacoes.js';
+import { metricsMiddleware, metricsHandler } from './metrics.js';
 import routes from './routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-async function boot() {
+/**
+ * Constrói e devolve o express app pronto a servir.
+ * Inicializa subsistemas (BD, cache, storage, comprovativo) ANTES de devolver.
+ * @param {object} opts
+ * @param {boolean} [opts.servirFrontend=true]  servir os ficheiros estáticos do frontend
+ * @param {boolean} [opts.iniciarWorkers=true]  iniciar o worker periódico do outbox
+ * @returns {{app: import('express').Express, cmpInfo: object, stop: () => Promise<void>}}
+ */
+export async function buildApp(opts = {}) {
+  const { servirFrontend = true, iniciarWorkers = true } = opts;
   assertConfigProducao();
 
   // Subsistemas
@@ -42,6 +55,7 @@ async function boot() {
   }));
 
   app.use(securityHeaders);
+  app.use(metricsMiddleware);
   app.use(cookieParser());
   app.use(express.json({ limit: '2mb' }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
@@ -63,6 +77,10 @@ async function boot() {
       res.status(503).json({ ok: false, error: e.message });
     }
   });
+
+  // /metrics — formato exposição Prometheus (text/plain).
+  // Aberto dentro da RING; em produção restringir por firewall/reverse-proxy.
+  app.get('/metrics', metricsHandler);
 
   // Página de "consentimento" simulada da federação (compat. frontend v0.2)
   app.get('/federacao-simulada.html', (req, res) => {
@@ -98,12 +116,14 @@ if(r.ok)location='/';else{const j=await r.json().catch(()=>({}));alert('Falha: '
   });
 
   // Frontend estático
-  const frontendDir = path.resolve(__dirname, '../../frontend');
-  app.use(express.static(frontendDir));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(frontendDir, 'index.html'), err => err && next());
-  });
+  if (servirFrontend) {
+    const frontendDir = path.resolve(__dirname, '../../frontend');
+    app.use(express.static(frontendDir));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      res.sendFile(path.join(frontendDir, 'index.html'), err => err && next());
+    });
+  }
 
   // Error handler
   app.use((err, req, res, next) => {
@@ -111,11 +131,27 @@ if(r.ok)location='/';else{const j=await r.json().catch(()=>({}));alert('Falha: '
     res.status(err.status || 500).json({ error: err.message || 'Erro interno' });
   });
 
-  // Worker do outbox de email
-  const outboxTimer = setInterval(() => {
-    processarOutbox().catch(e => console.warn('[outbox]', e.message));
-  }, 30_000);
-  outboxTimer.unref?.();
+  // Worker do outbox de email (não corre nos testes)
+  let outboxTimer = null;
+  if (iniciarWorkers) {
+    outboxTimer = setInterval(() => {
+      processarOutbox().catch(e => console.warn('[outbox]', e.message));
+    }, 30_000);
+    outboxTimer.unref?.();
+  }
+
+  // stop() encerra workers e subsistemas — usado por testes ou por SIGINT.
+  const stop = async () => {
+    if (outboxTimer) clearInterval(outboxTimer);
+    await cache.close().catch(() => {});
+    await (await import('./db.js')).db.close().catch(() => {});
+  };
+
+  return { app, cmpInfo, stop };
+}
+
+async function boot() {
+  const { app, cmpInfo, stop } = await buildApp();
 
   const server = app.listen(config.port, () => {
     console.log(`✓ FPL Ponte a escutar em http://localhost:${config.port}`);
@@ -124,6 +160,7 @@ if(r.ok)location='/';else{const j=await r.json().catch(()=>({}));alert('Falha: '
     console.log(`  • Frontend:  http://localhost:${config.port}/`);
     console.log(`  • API:       http://localhost:${config.port}/api/`);
     console.log(`  • Health:    http://localhost:${config.port}/health`);
+    console.log(`  • Metrics:   http://localhost:${config.port}/metrics`);
     console.log(`  • JWKS:      http://localhost:${config.port}/api/.well-known/fpl-jwks.json`);
   });
 
@@ -132,14 +169,17 @@ if(r.ok)location='/';else{const j=await r.json().catch(()=>({}));alert('Falha: '
     process.on(sig, async () => {
       console.log(`\n${sig} recebido — a encerrar...`);
       server.close();
-      await cache.close().catch(() => {});
-      await (await import('./db.js')).db.close().catch(() => {});
+      await stop();
       process.exit(0);
     });
   }
 }
 
-boot().catch(e => {
-  console.error('✗ Falha no arranque:', e.message);
-  process.exit(1);
-});
+// Só arranca o listener se este ficheiro for o ponto de entrada.
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  boot().catch(e => {
+    console.error('✗ Falha no arranque:', e.message);
+    process.exit(1);
+  });
+}

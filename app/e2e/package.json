@@ -1,0 +1,16 @@
+{
+  "name": "fpl-e2e",
+  "version": "1.0.0-rc",
+  "private": true,
+  "description": "Testes end-to-end Playwright para a FPL Ponte (Bloco C2 do plano).",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  },
+  "comment": "Instalação inicial: npm install && npx playwright install chromium. Os testes assumem que o backend é arrancado pelo próprio Playwright (ver playwright.config.js webServer)."
+}

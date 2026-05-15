@@ -1,9 +1,7 @@
 // FPL Ponte — Frontend (vanilla JS, single page)
-// Liga-se à API em /api/* (mesmo origin se servida pelo backend, ou localhost:3717 em dev)
+// Liga-se à API em /api/* (mesmo origin — o backend serve a aplicação).
 
-const API = location.port === '3717' || location.hostname === 'localhost' && !location.port
-  ? '/api'
-  : 'http://localhost:3717/api';
+const API = '/api';
 
 // ============ STATE ============
 const state = {
