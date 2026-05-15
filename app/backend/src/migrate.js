@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS atribuicao_papel (
   papel TEXT NOT NULL,
   gabinete_id TEXT REFERENCES gabinete(id),
   desde TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  origem TEXT NOT NULL DEFAULT 'MANUAL',  -- MANUAL | DIRETORIO | SEED
   PRIMARY KEY (utilizador_id, papel, gabinete_id)
 );
 
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS fpl (
   m4_validado_em TEXT, m4_validado_por TEXT, m4_declaracao TEXT,
   m5_validado_em TEXT,
   referencia_dr TEXT,
+  dre_url TEXT,
   data_criacao TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   data_publicacao TEXT,
   versao_atual INTEGER NOT NULL DEFAULT 1,
@@ -262,9 +264,34 @@ CREATE TABLE IF NOT EXISTS chave_assinatura (
 );
 `;
 
+// Migrações incrementais para schemas já existentes (instalações antigas).
+// Cada migração é idempotente — pode correr-se sempre. Adicionar ao fim
+// quando se introduzir uma alteração não-aditiva (ALTER TABLE ADD COLUMN
+// é o caso mais comum em SQLite + Postgres).
+const MIGRATIONS = [
+  // 2026-05 — coluna `origem` em atribuicao_papel para distinguir papéis
+  // sincronizados pelo diretório de papéis manuais.
+  async () => {
+    const ja = await db.get(`SELECT 1 FROM atribuicao_papel WHERE origem IS NOT NULL LIMIT 1`).catch(() => null);
+    if (ja) return; // já aplicada
+    try { await db.exec(`ALTER TABLE atribuicao_papel ADD COLUMN origem TEXT NOT NULL DEFAULT 'MANUAL'`); }
+    catch (e) {
+      if (!/duplicate column|already exists/i.test(e.message)) throw e;
+    }
+  },
+  // 2026-05 — coluna `dre_url` em fpl, populada pelo adapter DRE.
+  async () => {
+    try { await db.exec(`ALTER TABLE fpl ADD COLUMN dre_url TEXT`); }
+    catch (e) {
+      if (!/duplicate column|already exists/i.test(e.message)) throw e;
+    }
+  },
+];
+
 export async function migrate() {
   await initDb();
   await db.exec(SCHEMA);
+  for (const m of MIGRATIONS) await m();
   return { driver: DRIVER, tabelas: (SCHEMA.match(/CREATE TABLE/g) || []).length };
 }
 

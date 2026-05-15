@@ -10,24 +10,20 @@
 //
 // API assíncrona (driver dual SQLite/PostgreSQL).
 
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { db } from './db.js';
 import config from './config.js';
 import { uuid } from './util.js';
 import { generateSecret, totpUri, verifyTotp } from './totp.js';
+import { autenticarDiretorio, sincronizarUtilizador } from './diretorio.js';
+import { hashPassword, verifyPassword } from './auth-helpers.js';
+
+export { hashPassword, verifyPassword };
 
 const JWT_SECRET = config.auth.jwtSecret;
 const JWT_TTL = config.auth.jwtTtl;
 const COOKIE_NAME = config.auth.cookieName;
-
-export async function hashPassword(plain) {
-  return bcrypt.hash(plain, config.auth.bcryptRounds);
-}
-export async function verifyPassword(plain, hash) {
-  return bcrypt.compare(plain, hash);
-}
 
 export function signToken(user) {
   return jwt.sign(
@@ -60,39 +56,11 @@ async function getUserPapeis(userId) {
  *   acesso ao diretório estiver disponível — a interface não muda.
  */
 export async function autenticarUtilizador(email, password) {
-  const driver = config.auth.diretorio.driver;
-  if (driver === 'ldap') {
-    const ldapUser = await autenticarLdap(email, password);
-    if (!ldapUser) return null;
-    // provisiona/atualiza o utilizador local a partir do diretório
-    return sincronizarUtilizadorLocal(ldapUser);
-  }
-  // driver local
-  const u = await db.get('SELECT * FROM utilizador WHERE email = ? AND ativo = 1', [email]);
-  if (!u) return null;
-  const ok = await verifyPassword(password, u.password_hash);
-  return ok ? u : null;
-}
-
-async function autenticarLdap(email, password) {
-  // Placeholder do contrato com o diretório interno. Em produção, usa-se uma
-  // biblioteca LDAP (ex.: ldapts) com bind do utilizador. A interface devolve
-  // { email, nome, nif, grupos:[...] } ou null.
-  throw new Error('Driver de diretório "ldap" ainda não ligado — configure DIRECTORY_DRIVER=local ou ligue o adapter.');
-}
-
-async function sincronizarUtilizadorLocal(ldapUser) {
-  let u = await db.get('SELECT * FROM utilizador WHERE email = ?', [ldapUser.email]);
-  if (!u) {
-    const id = uuid();
-    await db.run(
-      'INSERT INTO utilizador (id, email, nome_completo, password_hash, nif) VALUES (?, ?, ?, ?, ?)',
-      [id, ldapUser.email, ldapUser.nome, 'ldap-managed', ldapUser.nif || null]
-    );
-    u = await db.get('SELECT * FROM utilizador WHERE id = ?', [id]);
-  }
-  // mapeamento de grupos LDAP → papéis ficaria aqui
-  return u;
+  const dirUser = await autenticarDiretorio(email, password);
+  if (!dirUser) return null;
+  // No driver `local` o registo já existe — sincronizarUtilizador é idempotente.
+  // Nos drivers `ldap`/`http` faz provisionamento just-in-time + papéis.
+  return sincronizarUtilizador(dirUser);
 }
 
 // ---------------------------------------------------------------------------

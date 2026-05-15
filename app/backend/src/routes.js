@@ -17,6 +17,7 @@ import * as notif from './notificacoes.js';
 import * as cl from './consultalex.js';
 import * as exp from './export.js';
 import * as cmp from './comprovativo.js';
+import * as dre from './dre.js';
 import { rateLimitLogin, registarTentativaLogin, contaBloqueada, CSRF_NAMES } from './security.js';
 import { uuid, jsonStringify } from './util.js';
 import { parseMultipart } from './anexos.js';
@@ -170,6 +171,18 @@ router.post('/fpl/:id/marcos/:marco/validar', requireAuth, ah(async (req, res) =
 router.post('/fpl/:id/aprovar-cm', requireAuth, requireRole('GSEPCM', 'SGGOV_ADMIN'), ah(async (req, res) => {
   try { res.json(await fpl.aprovarEmCM(req.params.id, req.body?.referencia_dr, req.user, req)); }
   catch (e) { res.status(e.code || 400).json({ error: e.message }); }
+}));
+
+// DRE: registo manual de publicação (qualquer autenticado com escopo da FPL)
+router.post('/fpl/:id/dre/registar', requireAuth, ah(async (req, res) => {
+  const f = await fplComEscopo(req, res); if (!f) return;
+  try { res.json(await dre.registarPublicacaoManual(req.params.id, req.body || {}, req.user)); }
+  catch (e) { res.status(e.code || 400).json({ error: e.message }); }
+}));
+
+// DRE: trigger manual de polling (admin SGGOV)
+router.post('/admin/dre/polling', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (_req, res) => {
+  res.json(await dre.polling());
 }));
 
 router.get('/fpl/:id/versoes', requireAuth, ah(async (req, res) => {

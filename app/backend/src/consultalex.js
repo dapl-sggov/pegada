@@ -1,26 +1,92 @@
 // consultalex.js — Adapter Consulta.Lex: webhook + import CSV manual (fallback).
-// API assíncrona. O webhook é autenticado por chave pré-partilhada (X-CL-Key).
+// API assíncrona.
 //
 // Modos (config.consultaLex.mode):
 //   • manual  — só import CSV pela UI
 //   • webhook — recebe eventos de consulta encerrada
 //   • http    — (futuro) consulta ativa à API do Consulta.Lex
+//
+// Segurança do webhook (modo "webhook"):
+//   1. Header `X-CL-Timestamp: <ISO 8601>` com timestamp do envio.
+//      Pedidos com mais de 5 minutos são rejeitados (anti-replay).
+//   2. Header `X-CL-Signature: sha256=<hex>` com HMAC-SHA256 calculada
+//      sobre `<timestamp>.<corpo-bruto-utf8>` usando a chave partilhada.
+//      Comparação é feita em tempo constante (timingSafeEqual).
+//   3. Para clientes mais antigos que ainda enviam só `X-CL-Key`, o modo
+//      legacy é aceite quando CL_LEGACY_KEY_HEADER=true (a desativar
+//      progressivamente).
+//
+// O `cl_ref` funciona como nonce natural — duas tentativas de import com
+// o mesmo ref para a mesma FPL são idempotentes (não duplicam contributos
+// graças a UNIQUE em (cl_ref, fpl_id, data, entidade) — ver migrate.js).
 
+import crypto from 'node:crypto';
 import { db } from './db.js';
 import config from './config.js';
 import { uuid, jsonStringify } from './util.js';
 import { notificar, destinatariosGabinete } from './notificacoes.js';
+import { incCounter } from './metrics.js';
 
 const CL_WEBHOOK_KEY = config.consultaLex.webhookKey;
+const CL_MAX_SKEW_MS = 5 * 60 * 1000;
+const CL_LEGACY_HEADER = String(process.env.CL_LEGACY_KEY_HEADER || 'false') === 'true';
 
 export async function listarContributos(fplId) {
   return db.all('SELECT * FROM contributo_consulta WHERE fpl_id = ? ORDER BY data_contributo', [fplId]);
 }
 
+// ---------------------------------------------------------------------------
+// Verificação de assinatura do webhook
+// ---------------------------------------------------------------------------
+
+/**
+ * Devolve null se o pedido for autêntico, ou uma string de erro caso contrário.
+ * Verifica HMAC-SHA256 sobre `<timestamp>.<rawBody>` em tempo constante e
+ * rejeita pedidos com mais de CL_MAX_SKEW_MS de skew.
+ */
+function verificarAssinatura(req) {
+  const tsHeader = req.headers['x-cl-timestamp'];
+  const sigHeader = req.headers['x-cl-signature'];
+
+  // Modo legacy (a desativar): apenas chave partilhada
+  if (CL_LEGACY_HEADER && req.headers['x-cl-key'] !== undefined) {
+    const recebido = String(req.headers['x-cl-key']);
+    const esperado = String(CL_WEBHOOK_KEY);
+    const a = Buffer.from(recebido), b = Buffer.from(esperado);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return 'chave-invalida';
+    return null;
+  }
+
+  if (!tsHeader || !sigHeader) return 'cabecalhos-em-falta';
+
+  const ts = Date.parse(tsHeader);
+  if (Number.isNaN(ts)) return 'timestamp-invalido';
+  const skew = Math.abs(Date.now() - ts);
+  if (skew > CL_MAX_SKEW_MS) return 'timestamp-expirado';
+
+  if (!req.rawBody || !Buffer.isBuffer(req.rawBody)) return 'corpo-em-falta';
+
+  const m = String(sigHeader).match(/^sha256=([a-f0-9]{64})$/i);
+  if (!m) return 'assinatura-formato';
+
+  const recebida = Buffer.from(m[1], 'hex');
+  const calculada = crypto
+    .createHmac('sha256', CL_WEBHOOK_KEY)
+    .update(tsHeader + '.', 'utf8')
+    .update(req.rawBody)
+    .digest();
+
+  if (recebida.length !== calculada.length) return 'assinatura-invalida';
+  if (!crypto.timingSafeEqual(recebida, calculada)) return 'assinatura-invalida';
+  return null;
+}
+
 // Webhook: { cl_ref, fpl_numero, periodo:{inicio,fim}, contributos:[...] }
 export async function processarWebhook(req, res) {
-  if (req.headers['x-cl-key'] !== CL_WEBHOOK_KEY) {
-    return res.status(401).json({ error: 'Chave inválida' });
+  const erro = verificarAssinatura(req);
+  if (erro) {
+    incCounter('cl_webhook_total', { resultado: 'recusado', motivo: erro });
+    return res.status(401).json({ error: 'Webhook não autenticado', motivo: erro });
   }
   const { cl_ref, fpl_numero, periodo, contributos } = req.body || {};
   if (!cl_ref || !fpl_numero || !Array.isArray(contributos)) {
@@ -48,6 +114,7 @@ export async function processarWebhook(req, res) {
   );
   const dest = await destinatariosGabinete(fpl.gabinete_id);
   await notificar({ tipo: 'CONSULTA_LEX_RECEBIDA', destinatarios: dest, fpl, ctx: { cl_ref, n_contributos: contributos.length } });
+  incCounter('cl_webhook_total', { resultado: 'aceite', motivo: 'ok' });
   res.json({ ok: true, importados: contributos.length, fpl_id: fpl.id });
 }
 

@@ -101,11 +101,15 @@ export const config = {
     // 'local' usa utilizadores na base de dados a simular o diretório;
     // em produção, 'ldap' liga ao diretório real — mudança de config, sem refactor.
     diretorio: {
-      driver: env.DIRECTORY_DRIVER || 'local', // local | ldap
-      ldapUrl: env.LDAP_URL || '',
-      ldapBaseDn: env.LDAP_BASE_DN || '',
-      ldapBindDn: env.LDAP_BIND_DN || '',
+      driver: env.DIRECTORY_DRIVER || 'local', // local | ldap | http
+      // LDAP / Active Directory
+      ldapUrl: env.LDAP_URL || '',                  // ex: ldaps://dc.gov.pt:636
+      ldapBaseDn: env.LDAP_BASE_DN || '',           // ex: OU=Pessoal,DC=gov,DC=pt
+      ldapBindDn: env.LDAP_BIND_DN || '',           // conta de serviço para pesquisar
       ldapBindPassword: env.LDAP_BIND_PASSWORD || '',
+      // HTTP REST (alternativa: broker interno do CEGER ou outro front-end)
+      httpUrl: env.DIRECTORY_HTTP_URL || '',
+      httpAuth: env.DIRECTORY_HTTP_AUTH || '',      // header `authorization` opcional
     },
     // TOTP obrigatório para papéis sensíveis
     totpRequiredRoles: (env.TOTP_REQUIRED_ROLES || 'SGGOV_ADMIN,SGGOV_QA')

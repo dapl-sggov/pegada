@@ -20,6 +20,8 @@ import { initComprovativo } from './comprovativo.js';
 import { authMiddleware } from './auth.js';
 import { securityHeaders, rateLimit, ensureCsrfToken, requireCsrf } from './security.js';
 import { processarOutbox } from './notificacoes.js';
+import { iniciarWorkerSincronizacao as iniciarRtriWorker } from './rtri.js';
+import { iniciarWorkerPolling as iniciarDreWorker } from './dre.js';
 import { metricsMiddleware, metricsHandler } from './metrics.js';
 import routes from './routes.js';
 
@@ -57,7 +59,16 @@ export async function buildApp(opts = {}) {
   app.use(securityHeaders);
   app.use(metricsMiddleware);
   app.use(cookieParser());
-  app.use(express.json({ limit: '2mb' }));
+  // Em rotas de webhook (`/api/hooks/*`) preservamos o corpo cru para
+  // verificação HMAC. Noutras rotas é descartado para poupar memória.
+  app.use(express.json({
+    limit: '2mb',
+    verify: (req, _res, buf) => {
+      if (req.path && req.path.startsWith('/api/hooks/')) {
+        req.rawBody = buf;
+      }
+    },
+  }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(ensureCsrfToken);
   app.use(authMiddleware);
@@ -131,18 +142,24 @@ if(r.ok)location='/';else{const j=await r.json().catch(()=>({}));alert('Falha: '
     res.status(err.status || 500).json({ error: err.message || 'Erro interno' });
   });
 
-  // Worker do outbox de email (não corre nos testes)
+  // Workers (não correm nos testes)
   let outboxTimer = null;
   if (iniciarWorkers) {
     outboxTimer = setInterval(() => {
       processarOutbox().catch(e => console.warn('[outbox]', e.message));
     }, 30_000);
     outboxTimer.unref?.();
+    iniciarRtriWorker();   // sem efeito se RTRI_MODE != 'http'
+    iniciarDreWorker();    // sem efeito se DRE_MODE != 'http'
   }
 
   // stop() encerra workers e subsistemas — usado por testes ou por SIGINT.
   const stop = async () => {
     if (outboxTimer) clearInterval(outboxTimer);
+    const { pararWorkerSincronizacao } = await import('./rtri.js');
+    const { pararWorkerPolling } = await import('./dre.js');
+    pararWorkerSincronizacao();
+    pararWorkerPolling();
     await cache.close().catch(() => {});
     await (await import('./db.js')).db.close().catch(() => {});
   };

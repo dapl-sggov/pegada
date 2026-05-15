@@ -36,6 +36,10 @@ const TEMPLATES = {
     titulo: 'Correção submetida pelo ponto focal',
     corpo: (c) => `O ponto focal submeteu correções à FPL ${c.numero}. Necessita revisão e aprovação.`,
   },
+  DRE_PUBLICACAO_DETETADA: {
+    titulo: 'Diploma publicado em DR',
+    corpo: (c) => `A FPL ${c.numero} foi detetada como publicada em DR ${c.referencia_dr || ''} (${c.data_publicacao || ''}). Validar M5 para emitir o comprovativo de publicação.`,
+  },
 };
 
 export async function notificar({ tipo, destinatarios, fpl, ctx = {} }) {
@@ -109,7 +113,7 @@ export async function listarOutbox(opts = {}) {
 // Worker de envio. driver=outbox: marca como ENVIADO (simulação).
 // driver=smtp: enviaria via nodemailer (a ligar quando o SMTP estiver disponível).
 export async function processarOutbox() {
-  const pendentes = await db.all("SELECT id, destinatario_email, assunto, corpo_html FROM outbox_email WHERE estado = 'PENDENTE' LIMIT 50");
+  const pendentes = await db.all("SELECT id, notificacao_id, destinatario_email, assunto, corpo_html FROM outbox_email WHERE estado = 'PENDENTE' LIMIT 50");
   for (const p of pendentes) {
     try {
       if (config.email.driver === 'smtp') {
@@ -129,8 +133,71 @@ export async function processarOutbox() {
   return pendentes.length;
 }
 
-async function enviarSmtp(_email) {
-  // Placeholder: integração com o SMTP do Estado via nodemailer.
-  // A interface não muda — apenas se liga quando o servidor estiver disponível.
-  throw new Error('EMAIL_DRIVER=smtp mas o transporte SMTP ainda não está ligado.');
+// ---------------------------------------------------------------------------
+// Transporte SMTP — dependência opcional (`nodemailer`).
+//
+// Em produção (RING) o servidor SMTP do Estado é injetado via env:
+//   EMAIL_DRIVER=smtp
+//   SMTP_HOST=mail.gov.pt   SMTP_PORT=587   SMTP_SECURE=false
+//   SMTP_USER=fpl@gov.pt    SMTP_PASS=<segredo>
+//   EMAIL_FROM="FPL Ponte <pegada-legislativa@sggoverno.gov.pt>"
+//
+// O transporter é criado uma única vez (verifica conectividade no arranque
+// implicitamente via primeiro envio).
+// ---------------------------------------------------------------------------
+
+let _smtpTransporter = null;
+let _smtpVerified = false;
+
+async function getSmtpTransporter() {
+  if (_smtpTransporter) return _smtpTransporter;
+  let nodemailer;
+  try { nodemailer = (await import('nodemailer')).default || (await import('nodemailer')); }
+  catch {
+    throw new Error(
+      'EMAIL_DRIVER=smtp mas o pacote `nodemailer` não está instalado. ' +
+      'Em produção: `npm install nodemailer`. ' +
+      'Em desenvolvimento: mantenha EMAIL_DRIVER=outbox.'
+    );
+  }
+  const cfg = config.email.smtp;
+  if (!cfg.host) throw new Error('SMTP_HOST em falta');
+  _smtpTransporter = nodemailer.createTransport({
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.secure,
+    auth: cfg.user ? { user: cfg.user, pass: cfg.pass } : undefined,
+    // Margens generosas — o SMTP do Estado pode ter latência variável
+    connectionTimeout: 15_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 30_000,
+    // TLS rigoroso: rejeita certificados inválidos (CA do Governo no host)
+    tls: { rejectUnauthorized: true },
+  });
+  return _smtpTransporter;
 }
+
+async function enviarSmtp(email) {
+  const t = await getSmtpTransporter();
+  if (!_smtpVerified) {
+    // Verifica conectividade na primeira tentativa real (não no boot, para
+    // não atrasar o arranque). Se falhar, lança e o outbox marca FALHADO.
+    await t.verify();
+    _smtpVerified = true;
+    console.log('✓ SMTP verificado: ' + config.email.smtp.host + ':' + config.email.smtp.port);
+  }
+  await t.sendMail({
+    from: config.email.from,
+    to: email.destinatario_email,
+    subject: email.assunto,
+    html: email.corpo_html,
+    // headers para rastreio dentro do CEGER (MTA pode usar)
+    headers: {
+      'X-FPL-Notificacao-Id': email.notificacao_id || '',
+      'X-FPL-Outbox-Id': email.id,
+    },
+  });
+}
+
+// Para testes — força recriação do transporter
+export function _resetSmtpTransporter() { _smtpTransporter = null; _smtpVerified = false; }
