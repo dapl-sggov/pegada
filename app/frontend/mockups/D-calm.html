@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup D — Calm · FPL</title>
+<style>
+  /* ═════ D — CALM ═════
+     Inspirações: Things 3, Apple Mail, Notion Calendar.
+     Filosofia: respira. Hierarquia clara mas suave. Foco numa coisa de cada vez.
+     Cantos generosos, sombras subtis, pastéis dessaturados. */
+  :root {
+    --bg:#fafaf7; --fg:#1d1d1f; --fg-2:#6e6e73; --fg-3:#86868b;
+    --surface:#ffffff; --surface-soft:#f6f5f1; --linha:#e8e6e1;
+    --azul:#0a84ff; --azul-soft:#cfe5ff; --azul-bg:#eaf3ff;
+    --rosa:#ffc0cb; --verde:#34c759; --verde-soft:#d1f7d6;
+    --amarelo:#ffd60a; --amarelo-soft:#fff4c0;
+    --laranja:#ff9500; --laranja-soft:#ffd9a8;
+    --r-sm:8px; --r-md:14px; --r-lg:20px;
+    --sh-sm:0 1px 2px rgba(0,0,0,.04);
+    --sh:0 4px 16px rgba(0,0,0,.06);
+    --sh-lg:0 14px 38px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  body{font:14.5px/1.6 -apple-system,'SF Pro Text','Inter',sans-serif;color:var(--fg);background:var(--bg)}
+  /* Topbar — minimalista, levitada */
+  .topbar{position:sticky;top:0;background:rgba(250,250,247,.85);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--linha);padding:12px 32px;display:flex;align-items:center;gap:14px;z-index:10}
+  .topbar .logo{width:30px;height:30px;background:#fff;border:1px solid var(--linha);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0e2a47}
+  .topbar .nome{font-size:15px;font-weight:600;letter-spacing:-.1px}
+  .topbar .sep-vert{width:1px;height:20px;background:var(--linha);margin:0 4px}
+  .topbar .breadcrumb{color:var(--fg-2);font-size:13px;flex:1}
+  .topbar .user{display:flex;align-items:center;gap:9px;padding:5px 10px;border-radius:var(--r-md);background:var(--surface-soft);font-size:13px;color:var(--fg-2)}
+  .topbar .user .av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#86bbff,#3b82f6);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:11px}
+  .ico-btn{width:32px;height:32px;border-radius:var(--r-sm);background:transparent;border:none;color:var(--fg-2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
+  .ico-btn:hover{background:var(--surface-soft);color:var(--fg)}
+  /* Layout 2 colunas */
+  .layout{display:grid;grid-template-columns:230px 1fr;gap:0}
+  /* Sidebar suave — fundo igual ao body */
+  .sidebar{padding:22px 16px 22px 24px}
+  .sb-grupo{margin-bottom:22px}
+  .sb-tt{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--fg-3);font-weight:600;padding:0 10px;margin-bottom:6px}
+  .sb-link{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);color:var(--fg-2);text-decoration:none;font-size:13.5px;cursor:pointer;transition:all .15s}
+  .sb-link:hover{background:var(--surface-soft)}
+  .sb-link.active{background:#fff;color:var(--fg);box-shadow:var(--sh-sm);font-weight:500}
+  .sb-link .ico{font-size:15px;width:18px;text-align:center;opacity:.8}
+  .sb-link .pill{margin-left:auto;font-size:11px;color:var(--fg-3);background:transparent;padding:0}
+  .sb-link.active .pill{color:var(--azul);font-weight:600}
+  /* Conteúdo principal */
+  main{padding:36px 56px 80px;max-width:1080px}
+  .saudacao{font-size:32px;font-weight:600;color:var(--fg);letter-spacing:-.5px;margin-bottom:6px}
+  .sub-saudacao{color:var(--fg-2);font-size:16px;margin-bottom:36px}
+  .sub-saudacao strong{color:var(--fg);font-weight:600}
+  /* Cards grandes em grelha 2 colunas */
+  .grelha{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:28px}
+  .grelha.fluida{grid-template-columns:repeat(4,1fr)}
+  /* Tile suave */
+  .tile{background:var(--surface);border-radius:var(--r-md);padding:22px;box-shadow:var(--sh-sm);transition:all .2s;border:1px solid transparent;cursor:pointer}
+  .tile:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+  .tile .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .tile .lbl{font-size:12px;color:var(--fg-2);font-weight:500;letter-spacing:.1px}
+  .tile .ico-mood{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+  .m-azul{background:var(--azul-bg);color:var(--azul)}
+  .m-verde{background:var(--verde-soft);color:#1d8c3b}
+  .m-amarelo{background:var(--amarelo-soft);color:#8a6a00}
+  .m-laranja{background:var(--laranja-soft);color:#a85c00}
+  .tile .num{font-size:36px;font-weight:600;letter-spacing:-.5px;line-height:1}
+  .tile .det{font-size:12px;color:var(--fg-3);margin-top:6px}
+  /* Card grande de destaque */
+  .card{background:var(--surface);border-radius:var(--r-lg);padding:28px 32px;box-shadow:var(--sh-sm);margin-bottom:18px}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+  .card-head h2{font-size:19px;font-weight:600;letter-spacing:-.2px;margin-bottom:3px}
+  .card-head .sub{font-size:13px;color:var(--fg-2)}
+  .ver-tudo{font-size:13px;color:var(--azul);text-decoration:none;font-weight:500}
+  .ver-tudo:hover{text-decoration:underline}
+  /* Lista de FPL como tarefas */
+  .lista-fpl{display:flex;flex-direction:column;gap:4px}
+  .item-fpl{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--r-md);cursor:pointer;transition:background .15s}
+  .item-fpl:hover{background:var(--surface-soft)}
+  .item-fpl .check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--linha);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .item-fpl.ok .check{background:var(--verde);border-color:var(--verde);color:#fff;font-size:13px}
+  .item-fpl.ok .check::before{content:'✓'}
+  .item-fpl .conteudo{flex:1;min-width:0}
+  .item-fpl .titulo{font-size:14.5px;font-weight:500;color:var(--fg);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item-fpl .meta{font-size:12.5px;color:var(--fg-2);display:flex;gap:10px;align-items:center}
+  .item-fpl .meta .num{font-family:'SF Mono',ui-monospace,monospace;color:var(--fg-3)}
+  .item-fpl .meta .dot{color:var(--fg-3)}
+  .estado-pill{font-size:11.5px;padding:3px 10px;border-radius:99px;font-weight:500;flex-shrink:0}
+  .e-elab{background:var(--azul-bg);color:var(--azul)}
+  .e-cons{background:var(--verde-soft);color:#1d6b32}
+  .e-cm{background:#fde0e0;color:#891f1f}
+  .e-ok{background:var(--verde-soft);color:#0e6b34}
+  .e-rev{background:var(--laranja-soft);color:#9a3412}
+  /* Botão pill */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:99px;font-size:14px;font-weight:500;border:none;cursor:pointer;text-decoration:none;transition:all .15s}
+  .btn.primary{background:var(--azul);color:#fff}
+  .btn.primary:hover{background:#0066d6}
+  .btn.sec{background:var(--surface-soft);color:var(--fg)}
+  .btn.sec:hover{background:var(--linha)}
+  /* Banner de atenção */
+  .alerta{background:linear-gradient(135deg,var(--amarelo-soft) 0%,#fff7d6 100%);border:1px solid #ffe88a;border-radius:var(--r-md);padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px}
+  .alerta .icone{width:36px;height:36px;background:var(--amarelo);color:#5a3d00;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+  .alerta .texto{flex:1;font-size:13.5px;color:#5a3d00}
+  .alerta .texto strong{color:#3d2900;display:block;margin-bottom:1px}
+  .alerta .btn{background:#5a3d00;color:#fff;padding:6px 14px;font-size:13px}
+  /* Próximos eventos com calendário */
+  .agenda{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .evento{display:flex;gap:14px;align-items:center;padding:14px;background:var(--surface-soft);border-radius:var(--r-md)}
+  .evento .data{width:50px;text-align:center;flex-shrink:0}
+  .evento .data .d{font-size:22px;font-weight:600;line-height:1;letter-spacing:-.5px}
+  .evento .data .m{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--fg-2);font-weight:600;margin-top:2px}
+  .evento .info .t{font-size:14px;font-weight:500;margin-bottom:2px}
+  .evento .info .s{font-size:12.5px;color:var(--fg-2)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">RP</div>
+  <div class="nome">Pegada Legislativa</div>
+  <div class="sep-vert"></div>
+  <div class="breadcrumb">Início</div>
+  <button class="ico-btn">⌘K</button>
+  <button class="ico-btn">◔</button>
+  <button class="ico-btn">☾</button>
+  <div class="user"><div class="av">MS</div>Maria Silva</div>
+</header>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-grupo">
+      <div class="sb-tt">Trabalho</div>
+      <a class="sb-link active"><span class="ico">⌂</span>Início<span class="pill">•</span></a>
+      <a class="sb-link"><span class="ico">▤</span>FPL<span class="pill">12</span></a>
+      <a class="sb-link"><span class="ico">＋</span>Nova FPL</a>
+      <a class="sb-link"><span class="ico">◔</span>Notificações<span class="pill" style="background:var(--rosa);color:#7a1c47;padding:1px 7px;border-radius:99px;font-weight:600">2</span></a>
+    </div>
+    <div class="sb-grupo">
+      <div class="sb-tt">A tratar hoje</div>
+      <a class="sb-link"><span class="ico">●</span>Decisão pendente Bloco D</a>
+      <a class="sb-link"><span class="ico">●</span>Correção SGGOV</a>
+      <a class="sb-link"><span class="ico">●</span>Validar M3 — 0038</a>
+    </div>
+    <div class="sb-grupo">
+      <div class="sb-tt">Conta</div>
+      <a class="sb-link"><span class="ico">⚙</span>Preferências</a>
+      <a class="sb-link"><span class="ico">?</span>Ajuda</a>
+    </div>
+  </aside>
+  <main>
+    <div class="saudacao">Bom dia, Maria.</div>
+    <div class="sub-saudacao">Tem <strong>12 FPL</strong> em curso. <strong>3</strong> aguardam validação esta semana.</div>
+
+    <div class="alerta">
+      <div class="icone">!</div>
+      <div class="texto">
+        <strong>Atenção</strong>
+        A Carla pediu uma correção em 2026/MAE/0030 — prazo de resposta termina 18/05.
+      </div>
+      <a class="btn">Ver pedido</a>
+    </div>
+
+    <div class="grelha fluida">
+      <div class="tile">
+        <div class="head"><div class="lbl">FPL ativas</div><div class="ico-mood m-azul">▤</div></div>
+        <div class="num">12</div>
+        <div class="det">+2 esta semana</div>
+      </div>
+      <div class="tile">
+        <div class="head"><div class="lbl">Em RSE / CM</div><div class="ico-mood m-amarelo">◔</div></div>
+        <div class="num" style="color:#a85c00">3</div>
+        <div class="det">próxima 22 maio</div>
+      </div>
+      <div class="tile">
+        <div class="head"><div class="lbl">Publicadas</div><div class="ico-mood m-verde">✓</div></div>
+        <div class="num" style="color:#1d8c3b">8</div>
+        <div class="det">média 14 dias até DR</div>
+      </div>
+      <div class="tile">
+        <div class="head"><div class="lbl">Em revisão</div><div class="ico-mood m-laranja">!</div></div>
+        <div class="num" style="color:var(--laranja)">1</div>
+        <div class="det">prazo 7 dias</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>FPL recentes</h2>
+          <div class="sub">Ordenadas por atualização. Clique para abrir.</div>
+        </div>
+        <a class="ver-tudo">Ver todas →</a>
+      </div>
+      <div class="lista-fpl">
+        <div class="item-fpl">
+          <div class="check"></div>
+          <div class="conteudo">
+            <div class="titulo">Comunidades de energia renovável</div>
+            <div class="meta"><span class="num">2026/MAE/0042</span><span class="dot">·</span>Decreto-Lei<span class="dot">·</span>atualizado há 2h</div>
+          </div>
+          <span class="estado-pill e-elab">Em elaboração</span>
+        </div>
+        <div class="item-fpl">
+          <div class="check"></div>
+          <div class="conteudo">
+            <div class="titulo">Eficiência energética em edifícios públicos</div>
+            <div class="meta"><span class="num">2026/MAE/0041</span><span class="dot">·</span>Decreto-Lei<span class="dot">·</span>ontem</div>
+          </div>
+          <span class="estado-pill e-cons">Consulta pública</span>
+        </div>
+        <div class="item-fpl">
+          <div class="check"></div>
+          <div class="conteudo">
+            <div class="titulo">Resíduos de construção e demolição</div>
+            <div class="meta"><span class="num">2026/MAE/0038</span><span class="dot">·</span>Decreto-Lei<span class="dot">·</span>2 dias</div>
+          </div>
+          <span class="estado-pill e-cm">Em CM</span>
+        </div>
+        <div class="item-fpl ok">
+          <div class="check"></div>
+          <div class="conteudo">
+            <div class="titulo">Licenciamento ambiental simplificado</div>
+            <div class="meta"><span class="num">2026/MAE/0035</span><span class="dot">·</span>aprovado 02/04</div>
+          </div>
+          <span class="estado-pill e-ok">Aprovado</span>
+        </div>
+        <div class="item-fpl">
+          <div class="check"></div>
+          <div class="conteudo">
+            <div class="titulo">Captura e armazenamento de carbono</div>
+            <div class="meta"><span class="num">2026/MAE/0030</span><span class="dot">·</span>aguarda correção</div>
+          </div>
+          <span class="estado-pill e-rev">Em revisão</span>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <a class="btn primary">+ Nova FPL</a>
+        <a class="btn sec">Filtrar</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>Próximos dias</h2>
+          <div class="sub">Eventos e prazos relacionados com as suas FPL.</div>
+        </div>
+      </div>
+      <div class="agenda">
+        <div class="evento">
+          <div class="data"><div class="d">22</div><div class="m">Mai</div></div>
+          <div class="info"><div class="t">Conselho de Ministros</div><div class="s">FPL 2026/MAE/0038</div></div>
+        </div>
+        <div class="evento">
+          <div class="data"><div class="d">30</div><div class="m">Abr</div></div>
+          <div class="info"><div class="t">Fim de consulta pública</div><div class="s">FPL 2026/MAE/0041</div></div>
+        </div>
+        <div class="evento">
+          <div class="data"><div class="d">18</div><div class="m">Mai</div></div>
+          <div class="info"><div class="t">Prazo de correção SGGOV</div><div class="s">FPL 2026/MAE/0030</div></div>
+        </div>
+        <div class="evento">
+          <div class="data"><div class="d">25</div><div class="m">Mai</div></div>
+          <div class="info"><div class="t">Reunião com APREN</div><div class="s">FPL 2026/MAE/0042 — Bloco D</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

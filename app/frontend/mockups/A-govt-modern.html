@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup A — Govt Modern · FPL</title>
+<style>
+  /* ═════ A — GOVT MODERN ═════
+     Inspirações: GOV.UK, Service Design System francês.
+     Filosofia: oficial, despojado, sério. Uma cor + escala de cinzentos.
+     Tipografia grande. Sem cartões com sombra. Tabelas largas. */
+  :root {
+    --azul:#1d4d8c; --azul-d:#0a3161;
+    --txt:#0b0c0c; --txt-2:#505a5f; --txt-3:#717a82;
+    --bg:#ffffff; --bg-soft:#f3f2f1; --border:#b1b4b6; --border-hair:#dcdcdc;
+    --ok:#00703c; --warn:#f47738; --err:#d4351c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:16px/1.5 "GDS Transport","Helvetica Neue",Arial,sans-serif;color:var(--txt);background:var(--bg)}
+  /* Top — barra fina com nome do serviço, sem decoração */
+  .barra-superior{background:var(--azul-d);color:#fff;padding:8px 24px;font-size:13px}
+  .barra-superior strong{font-weight:700}
+  .header{padding:16px 24px;border-bottom:8px solid var(--azul-d);display:flex;align-items:center;gap:16px;background:var(--bg)}
+  .crest{width:36px;height:36px;background:var(--azul-d);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+  .header-meta{flex:1}
+  .header-meta .servico{font-size:24px;font-weight:700;color:var(--azul-d);line-height:1.1}
+  .header-meta .ent{font-size:14px;color:var(--txt-2);margin-top:2px}
+  .header-actions{display:flex;gap:16px;align-items:center;font-size:14px}
+  .header-actions a{color:var(--azul);text-decoration:underline}
+  /* Layout */
+  .pagina{display:grid;grid-template-columns:240px 1fr;gap:32px;max-width:1280px;margin:0 auto;padding:32px 24px}
+  .nav-side{font-size:16px}
+  .nav-side h2{font-size:14px;text-transform:uppercase;color:var(--txt-2);font-weight:700;letter-spacing:.5px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+  .nav-side a{display:block;padding:10px 0;color:var(--azul);border-bottom:1px solid var(--border-hair);text-decoration:none}
+  .nav-side a.active{color:var(--txt);font-weight:700;border-left:5px solid var(--azul);padding-left:12px;margin-left:-12px}
+  .nav-side a:hover{text-decoration:underline}
+  /* Conteúdo principal */
+  h1{font-size:32px;font-weight:700;color:var(--azul-d);margin-bottom:8px;line-height:1.2}
+  .lead{font-size:18px;color:var(--txt-2);max-width:64ch;margin-bottom:32px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid var(--border-hair)}
+  .kpi .lbl{font-size:14px;color:var(--txt-2);font-weight:600;margin-bottom:4px}
+  .kpi .val{font-size:36px;font-weight:700;color:var(--azul-d);line-height:1}
+  .kpi .delta{font-size:13px;color:var(--txt-3);margin-top:6px}
+  .secao h2{font-size:20px;font-weight:700;margin-bottom:8px}
+  .secao .desc{color:var(--txt-2);margin-bottom:16px}
+  /* Tabela — linhas largas, sem cores fortes */
+  table{width:100%;border-collapse:collapse;font-size:16px}
+  th{text-align:left;padding:12px 16px;background:var(--bg-soft);font-weight:700;color:var(--txt);border-bottom:1px solid var(--border)}
+  td{padding:14px 16px;border-bottom:1px solid var(--border-hair);vertical-align:top}
+  tbody tr:hover td{background:#f8f8f8}
+  td a{color:var(--azul);font-weight:700;text-decoration:underline}
+  .tag{display:inline-block;padding:3px 8px;font-size:13px;font-weight:600;border:1px solid var(--border)}
+  .estado-ok{background:#d4f1da;color:#005a30}
+  .estado-mid{background:#fff7bf;color:#594d00}
+  .estado-cm{background:#fde2dc;color:#7c1c08}
+  .barra-acao{margin-top:32px;padding-top:24px;border-top:1px solid var(--border-hair);display:flex;gap:16px}
+  .btn{display:inline-block;padding:10px 16px;font-size:16px;font-weight:600;color:#fff;background:var(--ok);border:2px solid var(--ok);text-decoration:none;border-radius:0}
+  .btn:hover{background:#005a30;border-color:#005a30}
+  .btn.sec{color:var(--azul-d);background:transparent;border-color:var(--azul-d)}
+  .btn.sec:hover{background:#f3f2f1}
+  .footer{margin-top:64px;padding:24px;background:var(--bg-soft);border-top:1px solid var(--border);font-size:14px;color:var(--txt-2)}
+  .footer a{color:var(--azul)}
+</style>
+</head>
+<body>
+<div class="barra-superior"><strong>República Portuguesa</strong> — Governo</div>
+<header class="header">
+  <div class="crest">RP</div>
+  <div class="header-meta">
+    <div class="servico">Pegada Legislativa</div>
+    <div class="ent">Ficha de Pegada Legislativa · Lei n.º 5-A/2026</div>
+  </div>
+  <div class="header-actions">
+    <span>Maria Silva · Ponto Focal MAE</span>
+    <a href="#">O meu perfil</a>
+    <a href="#">Sair</a>
+  </div>
+</header>
+<div class="pagina">
+  <nav class="nav-side" aria-label="Menu">
+    <h2>Trabalho</h2>
+    <a href="#" class="active">Início</a>
+    <a href="#">As minhas FPL</a>
+    <a href="#">Nova FPL</a>
+    <a href="#">Notificações (2)</a>
+    <h2 style="margin-top:32px">Ajuda</h2>
+    <a href="#">Como preencher</a>
+    <a href="#">Lei n.º 5-A/2026</a>
+    <a href="#">Contactar SGGOV</a>
+  </nav>
+  <main>
+    <h1>Bem-vinda, Maria.</h1>
+    <p class="lead">Tem 12 fichas em curso. 3 aguardam validação esta semana e a Carla pediu uma correção numa das suas FPL.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">FPL ativas</div><div class="val">12</div><div class="delta">+2 nesta semana</div></div>
+      <div class="kpi"><div class="lbl">Em RSE / CM</div><div class="val">3</div><div class="delta">próxima reunião 22 mai</div></div>
+      <div class="kpi"><div class="lbl">Publicadas em 2026</div><div class="val">8</div><div class="delta">média 14 dias até DR</div></div>
+      <div class="kpi"><div class="lbl">Em revisão QA</div><div class="val">1</div><div class="delta">SGGOV pediu correção</div></div>
+    </div>
+    <section class="secao">
+      <h2>FPL recentes</h2>
+      <p class="desc">Clique numa ficha para abrir.</p>
+      <table>
+        <thead><tr><th>N.º Processo</th><th>Diploma</th><th>Estado</th><th>M0</th><th>M3</th></tr></thead>
+        <tbody>
+          <tr><td><a href="#">2026/MAE/0042</a></td><td>Comunidades de energia renovável</td><td><span class="tag estado-ok">Em elaboração</span></td><td>12/02/2026</td><td>—</td></tr>
+          <tr><td><a href="#">2026/MAE/0041</a></td><td>Eficiência energética em edifícios públicos</td><td><span class="tag estado-mid">Consulta pública</span></td><td>05/02/2026</td><td>—</td></tr>
+          <tr><td><a href="#">2026/MAE/0038</a></td><td>Resíduos de construção e demolição</td><td><span class="tag estado-cm">Em CM</span></td><td>12/01/2026</td><td>14/03/2026</td></tr>
+          <tr><td><a href="#">2026/MAE/0035</a></td><td>Licenciamento ambiental simplificado</td><td><span class="tag estado-ok">Aprovado</span></td><td>02/01/2026</td><td>20/02/2026</td></tr>
+          <tr><td><a href="#">2026/MAE/0030</a></td><td>Captura e armazenamento de carbono</td><td><span class="tag estado-mid">Em revisão QA</span></td><td>15/12/2025</td><td>02/02/2026</td></tr>
+        </tbody>
+      </table>
+      <div class="barra-acao">
+        <a href="#" class="btn">Criar nova FPL</a>
+        <a href="#" class="btn sec">Ver todas</a>
+      </div>
+    </section>
+  </main>
+</div>
+<footer class="footer">
+  Secretaria-Geral do Governo · Lei n.º 5-A/2026 ·
+  <a href="#">Declaração de acessibilidade</a> ·
+  <a href="#">Política de privacidade</a>
+</footer>
+</body>
+</html>

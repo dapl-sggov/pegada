@@ -9,18 +9,19 @@ async function login(page, email = 'maria.silva@gov.pt') {
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Palavra-passe').fill('demo1234');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page.getByRole('link', { name: /Nova FPL|As minhas FPL|Início/i }).first()).toBeVisible({ timeout: 10_000 });
+  // No painel, os links da sidebar são botões com class="link"
+  await expect(page.locator('.painel-side .link').filter({ hasText: /Dashboard|As minhas FPL|Nova FPL/i }).first()).toBeVisible({ timeout: 10_000 });
 }
 
 test.describe('Funcionalidades v1.1', () => {
 
   test('Filtros da lista funcionam (pesquisa por título)', async ({ page }) => {
     await login(page);
-    await page.getByRole('link', { name: /As minhas FPL/i }).click();
+    await page.locator('.painel-side .link').filter({ hasText: /As minhas FPL/i }).click();
     await expect(page.getByRole('search')).toBeVisible();
 
     // Cria uma FPL com título único primeiro (via UI)
-    await page.getByRole('link', { name: /Nova FPL/i }).click();
+    await page.locator('.painel-side .link').filter({ hasText: /Nova FPL/i }).click();
     await page.locator('select[name="tipo_diploma"]').selectOption('DL');
     await page.locator('input[name="titulo"]').fill('XYZ-FILTRO-EXCLUSIVO Decreto-Lei de teste de filtragem');
     await page.locator('select[name="tipo_origem"]').selectOption('OUTRA');
@@ -30,7 +31,7 @@ test.describe('Funcionalidades v1.1', () => {
     await expect(page.getByText(/Em elaboração/).first()).toBeVisible({ timeout: 10_000 });
 
     // Volta à lista
-    await page.getByRole('link', { name: /As minhas FPL/i }).click();
+    await page.locator('.painel-side .link').filter({ hasText: /As minhas FPL/i }).click();
     const numTotal = await page.locator('table.tbl tbody tr').count();
     expect(numTotal).toBeGreaterThan(0);
 
@@ -46,13 +47,14 @@ test.describe('Funcionalidades v1.1', () => {
     const html = page.locator('html');
     const inicial = await html.getAttribute('data-tema');
     expect(inicial).toBe('auto');
-    await page.locator('#temaBtn').click();
+    const temaBtn = page.locator('#temaLink');
+    await temaBtn.click();
     expect(await html.getAttribute('data-tema')).toBe('claro');
-    await page.locator('#temaBtn').click();
+    await temaBtn.click();
     expect(await html.getAttribute('data-tema')).toBe('escuro');
-    await page.locator('#temaBtn').click();
+    await temaBtn.click();
     expect(await html.getAttribute('data-tema')).toBe('alto-contraste');
-    await page.locator('#temaBtn').click();
+    await temaBtn.click();
     expect(await html.getAttribute('data-tema')).toBe('auto');
   });
 
@@ -73,7 +75,7 @@ test.describe('Funcionalidades v1.1', () => {
 
   test('Atalho "g d" navega para o início', async ({ page }) => {
     await login(page);
-    await page.getByRole('link', { name: /As minhas FPL/i }).click();
+    await page.locator('.painel-side .link').filter({ hasText: /As minhas FPL/i }).click();
     // Confirma estamos na lista
     await expect(page.getByRole('search')).toBeVisible();
     // Foco fora de inputs (dispara o atalho)
@@ -86,7 +88,7 @@ test.describe('Funcionalidades v1.1', () => {
   test('Wizard do Bloco D abre com 3 passos', async ({ page }) => {
     await login(page);
     // Cria nova FPL
-    await page.getByRole('link', { name: /Nova FPL/i }).click();
+    await page.locator('.painel-side .link').filter({ hasText: /Nova FPL/i }).click();
     await page.locator('select[name="tipo_diploma"]').selectOption('DL');
     await page.locator('input[name="titulo"]').fill('Teste wizard Bloco D');
     await page.locator('select[name="tipo_origem"]').selectOption('OUTRA');
@@ -94,13 +96,10 @@ test.describe('Funcionalidades v1.1', () => {
     await page.getByRole('button', { name: /Criar FPL e validar M0/i }).click();
     await expect(page.getByText(/Em elaboração/).first()).toBeVisible({ timeout: 10_000 });
 
-    // Vai ao tab D — usa o seletor exato pelo data-tab para evitar ambiguidade
-    await page.locator('button.tab[data-tab="D"]').click();
-    // Confirma que o handler está registado
+    // No painel não há tab — Bloco D é um card sempre visível no body.
+    // Confirma que o handler está registado e dispara o wizard diretamente.
     const fnRegistada = await page.evaluate(() => typeof window.abrirWizardBlocoD === 'function');
     expect(fnRegistada).toBe(true);
-    // Invoca-o diretamente — isto evita ambiguidades de seletores e replica
-    // exatamente o que o utilizador vê ao clicar no botão.
     await page.evaluate(() => window.abrirWizardBlocoD());
     // Confirma os 3 passos visíveis
     await expect(page.getByText('Entidade interlocutora')).toBeVisible();

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup B — Editorial · FPL</title>
+<style>
+  /* ═════ B — EDITORIAL ═════
+     Inspirações: Stripe Docs, NYT, court rulings.
+     Filosofia: documento-como-produto. Mistura serif (títulos) + sans (UI) + mono (códigos).
+     Hierarquia tipográfica forte. Sombras suaves. Identificadores destacados. */
+  :root {
+    --tinta:#1a1612; --tinta-2:#5b4a3a; --tinta-3:#8a7a68;
+    --papel:#fbf8f3; --papel-soft:#f3eddc; --linha:#d8cebf; --linha-hair:#e8dfd0;
+    --azul-marinho:#0e2a47; --dourado:#b08020;
+    --serif: 'Source Serif Pro','Iowan Old Style','Apple Garamond',Georgia,serif;
+    --sans:  -apple-system,'Inter','Segoe UI',Roboto,sans-serif;
+    --mono:  ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:15px/1.65 var(--sans);color:var(--tinta);background:var(--papel)}
+  .topbar{background:var(--azul-marinho);color:#fff;padding:10px 0;border-bottom:3px solid var(--dourado)}
+  .topbar-inner{max-width:1280px;margin:0 auto;padding:0 32px;display:flex;align-items:center;gap:16px;font-size:13px}
+  .topbar .crest{width:30px;height:30px;background:var(--dourado);color:var(--azul-marinho);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;border-radius:50%}
+  .topbar .marca{font-family:var(--serif);font-size:17px;font-weight:600}
+  .topbar .esquerda{flex:1}
+  .topbar .ligacoes{display:flex;gap:20px}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;opacity:.9}
+  .topbar a:hover{opacity:1;text-decoration:underline}
+  /* Sidebar fina + main editorial */
+  .layout{display:grid;grid-template-columns:200px 1fr;gap:48px;max-width:1280px;margin:0 auto;padding:48px 32px}
+  .nav-side{font-family:var(--sans);font-size:14px;border-right:1px solid var(--linha-hair);padding-right:32px}
+  .nav-side .grupo{margin-bottom:32px}
+  .nav-side .grupo-tt{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tinta-2);font-weight:700;margin-bottom:12px}
+  .nav-side a{display:block;padding:7px 0;color:var(--tinta-2);text-decoration:none}
+  .nav-side a.active{color:var(--azul-marinho);font-weight:600;border-left:3px solid var(--dourado);padding-left:12px;margin-left:-15px}
+  .nav-side a:hover{color:var(--tinta)}
+  /* Cabeçalho de página em estilo editorial */
+  .titulo-pagina{margin-bottom:48px;padding-bottom:24px;border-bottom:2px solid var(--azul-marinho);max-width:680px}
+  .kicker{font-family:var(--sans);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--dourado);font-weight:600;margin-bottom:12px}
+  h1{font-family:var(--serif);font-size:42px;font-weight:600;color:var(--azul-marinho);line-height:1.15;letter-spacing:-.5px;margin-bottom:12px}
+  .lead{font-family:var(--serif);font-size:19px;color:var(--tinta-2);line-height:1.5;font-style:italic}
+  /* KPIs como dropcaps */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-bottom:48px;padding:24px 0;border-top:1px solid var(--linha);border-bottom:1px solid var(--linha)}
+  .kpi{position:relative}
+  .kpi .num{font-family:var(--serif);font-size:48px;font-weight:600;color:var(--azul-marinho);line-height:1}
+  .kpi .lbl{font-family:var(--sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tinta-2);font-weight:600;margin-top:8px}
+  .kpi .det{font-size:13px;color:var(--tinta-3);margin-top:6px;font-style:italic}
+  /* Secções com pesquisa */
+  .secao{margin-bottom:48px}
+  .secao-cabecalho{margin-bottom:24px}
+  h2{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--azul-marinho);margin-bottom:6px}
+  .secao-desc{font-size:14px;color:var(--tinta-2)}
+  /* Lista de FPL como entradas de jornal */
+  .fpl-lista .entrada{padding:20px 0;border-bottom:1px solid var(--linha-hair);display:grid;grid-template-columns:140px 1fr auto;gap:24px;align-items:start}
+  .fpl-lista .entrada:hover{background:var(--papel-soft);margin:0 -16px;padding-left:16px;padding-right:16px}
+  .fpl-lista .num-proc{font-family:var(--mono);font-size:13px;color:var(--tinta-2);padding-top:4px}
+  .fpl-lista .titulo{font-family:var(--serif);font-size:18px;color:var(--tinta);font-weight:500;line-height:1.35}
+  .fpl-lista .meta{font-size:13px;color:var(--tinta-3);margin-top:4px;font-family:var(--sans)}
+  .fpl-lista .meta strong{color:var(--tinta-2);font-weight:600}
+  .fpl-lista .estado{font-family:var(--sans);font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;padding:5px 10px;border-radius:2px;white-space:nowrap}
+  .e-elab{background:var(--papel-soft);color:var(--tinta-2)}
+  .e-cons{background:#e6efe1;color:#3d5a32}
+  .e-cm{background:#f6dcd2;color:#7a3823}
+  .e-ok{background:#d6e7d4;color:#2d5829}
+  .e-rev{background:#f9eac4;color:#7a5d10}
+  /* Botões */
+  .acoes{margin-top:32px;display:flex;gap:12px}
+  .btn{font-family:var(--sans);font-size:14px;font-weight:600;padding:11px 22px;text-decoration:none;border-radius:2px;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+  .btn.primary{background:var(--azul-marinho);color:#fff}
+  .btn.primary:hover{background:#16365b}
+  .btn.sec{color:var(--azul-marinho);background:transparent;border:1px solid var(--linha)}
+  .btn.sec:hover{background:var(--papel-soft)}
+  /* Pull quote / aviso */
+  .pull-quote{margin:32px 0;padding:20px 24px;border-left:4px solid var(--dourado);background:var(--papel-soft);font-family:var(--serif);font-style:italic;color:var(--tinta-2)}
+  .pull-quote strong{color:var(--azul-marinho);font-style:normal}
+  /* Footer */
+  footer{margin-top:80px;padding:32px;border-top:3px solid var(--azul-marinho);background:var(--papel-soft);text-align:center;font-size:13px;color:var(--tinta-2)}
+  footer .marca-rodape{font-family:var(--serif);font-size:18px;color:var(--azul-marinho);margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="crest">RP</div>
+    <div class="marca">Pegada Legislativa</div>
+    <div class="esquerda"></div>
+    <div class="ligacoes">
+      <span style="opacity:.7">Maria Silva · MAE</span>
+      <a href="#">Notificações <strong>2</strong></a>
+      <a href="#">Sair</a>
+    </div>
+  </div>
+</div>
+<div class="layout">
+  <nav class="nav-side">
+    <div class="grupo">
+      <div class="grupo-tt">Trabalho</div>
+      <a href="#" class="active">Início</a>
+      <a href="#">As minhas FPL</a>
+      <a href="#">Nova FPL</a>
+      <a href="#">Notificações</a>
+    </div>
+    <div class="grupo">
+      <div class="grupo-tt">Conformidade</div>
+      <a href="#">Lei n.º 5-A/2026</a>
+      <a href="#">Lei do Governo</a>
+      <a href="#">Acessibilidade</a>
+    </div>
+    <div class="grupo">
+      <div class="grupo-tt">Conta</div>
+      <a href="#">O meu perfil</a>
+      <a href="#">2FA</a>
+    </div>
+  </nav>
+  <main>
+    <header class="titulo-pagina">
+      <div class="kicker">Início · Pegada Legislativa do Governo</div>
+      <h1>Bem-vinda, Maria.</h1>
+      <p class="lead">Tem doze fichas em curso. Três aguardam a sua validação esta semana e uma ficou em revisão pela Secretaria-Geral.</p>
+    </header>
+    <section class="kpis">
+      <div class="kpi"><div class="num">12</div><div class="lbl">Em curso</div><div class="det">+2 esta semana</div></div>
+      <div class="kpi"><div class="num">3</div><div class="lbl">Em RSE / CM</div><div class="det">próxima reunião 22 mai</div></div>
+      <div class="kpi"><div class="num">8</div><div class="lbl">Publicadas</div><div class="det">média 14 dias até DR</div></div>
+      <div class="kpi"><div class="num">1</div><div class="lbl">Em revisão QA</div><div class="det">SGGOV pediu correção</div></div>
+    </section>
+    <section class="secao">
+      <div class="secao-cabecalho">
+        <h2>Fichas recentes</h2>
+        <div class="secao-desc">Ordenadas por última alteração.</div>
+      </div>
+      <div class="fpl-lista">
+        <div class="entrada">
+          <div class="num-proc">2026/MAE/0042</div>
+          <div>
+            <div class="titulo">Comunidades de energia renovável</div>
+            <div class="meta">Decreto-Lei · <strong>M0 a 12/02/2026</strong> · 5 interlocutores externos</div>
+          </div>
+          <span class="estado e-elab">Em elaboração</span>
+        </div>
+        <div class="entrada">
+          <div class="num-proc">2026/MAE/0041</div>
+          <div>
+            <div class="titulo">Eficiência energética em edifícios públicos</div>
+            <div class="meta">Decreto-Lei · <strong>Consulta pública até 30 abr</strong></div>
+          </div>
+          <span class="estado e-cons">Consulta pública</span>
+        </div>
+        <div class="entrada">
+          <div class="num-proc">2026/MAE/0038</div>
+          <div>
+            <div class="titulo">Resíduos de construção e demolição</div>
+            <div class="meta">Decreto-Lei · <strong>M3 validado a 14/03</strong> · agendado CM 22 mai</div>
+          </div>
+          <span class="estado e-cm">Em CM</span>
+        </div>
+        <div class="entrada">
+          <div class="num-proc">2026/MAE/0035</div>
+          <div>
+            <div class="titulo">Licenciamento ambiental simplificado</div>
+            <div class="meta">Decreto-Lei · <strong>aprovado a 02/04</strong> · aguarda publicação DR</div>
+          </div>
+          <span class="estado e-ok">Aprovado</span>
+        </div>
+        <div class="entrada">
+          <div class="num-proc">2026/MAE/0030</div>
+          <div>
+            <div class="titulo">Captura e armazenamento de carbono</div>
+            <div class="meta">Resolução do CM · <strong>SGGOV pediu correção em 11/05</strong></div>
+          </div>
+          <span class="estado e-rev">Em revisão</span>
+        </div>
+      </div>
+      <div class="pull-quote">
+        <strong>Lembrete legal.</strong> Sem comprovativo válido de M3, M4 e M5, o SmartLegis bloqueia a tramitação do diploma — n.º 4 da RCM v2.
+      </div>
+      <div class="acoes">
+        <a href="#" class="btn primary">Criar nova FPL →</a>
+        <a href="#" class="btn sec">Ver todas as 12</a>
+      </div>
+    </section>
+  </main>
+</div>
+<footer>
+  <div class="marca-rodape">Pegada Legislativa do Governo</div>
+  Secretaria-Geral do Governo · Lei n.º 5-A/2026 · República Portuguesa
+</footer>
+</body>
+</html>

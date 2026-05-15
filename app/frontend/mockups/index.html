@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockups visuais — FPL Ponte</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:14px/1.5 -apple-system,'Inter',Segoe UI,sans-serif;background:#0e1424;color:#e6ecf5;min-height:100vh}
+  .barra{padding:14px 24px;background:#1a2236;border-bottom:1px solid #2a3550;display:flex;align-items:center;gap:14px}
+  .barra h1{font-size:16px;font-weight:600;flex:1}
+  .barra .modo{display:flex;gap:6px}
+  .barra button{background:transparent;color:#a8b3c7;border:1px solid #2a3550;border-radius:6px;padding:6px 14px;font:inherit;cursor:pointer}
+  .barra button:hover{background:#2a3550;color:#fff}
+  .barra button.on{background:#3b66c4;border-color:#3b66c4;color:#fff}
+  .barra a{color:#7aa1e6;text-decoration:none;font-size:13px}
+  .grid{padding:20px;display:grid;gap:20px;grid-template-columns:1fr 1fr}
+  .grid.col1{grid-template-columns:1fr}
+  .card{background:#1a2236;border-radius:10px;overflow:hidden;border:1px solid #2a3550;display:flex;flex-direction:column}
+  .card-head{padding:12px 18px;background:#131b2c;border-bottom:1px solid #2a3550;display:flex;align-items:center;justify-content:space-between}
+  .card-head h2{font-size:15px;font-weight:600;color:#fff}
+  .card-head .desc{font-size:11.5px;color:#7886a0;margin-top:1px}
+  .card-head a{font-size:12px;color:#7aa1e6;text-decoration:none}
+  .card-head a:hover{text-decoration:underline}
+  .frame-wrap{position:relative;height:600px;overflow:hidden;background:#fff}
+  .grid.col1 .frame-wrap{height:80vh}
+  iframe{border:0;width:100%;height:100%;display:block}
+  .grid.zoom .frame-wrap{height:1200px;overflow:auto}
+  .grid.zoom iframe{transform:scale(.5);transform-origin:top left;width:200%;height:200%}
+  .tags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .tag{font-size:10px;background:#2a3550;color:#a8b3c7;padding:2px 8px;border-radius:99px;letter-spacing:.3px}
+  .tag.cor-A{background:#1d4d8c33;color:#7aa1e6}
+  .tag.cor-B{background:#b0802033;color:#d4a418}
+  .tag.cor-C{background:#3b82f633;color:#86bbff}
+  .tag.cor-D{background:#34c75933;color:#86efac}
+</style>
+</head>
+<body>
+<div class="barra">
+  <h1>Mockups visuais · FPL Ponte v1.1</h1>
+  <div class="modo">
+    <button onclick="setLayout('2col')" id="m1" class="on">2 colunas</button>
+    <button onclick="setLayout('1col')" id="m2">Largura total (uma de cada vez)</button>
+    <button onclick="setLayout('zoom')" id="m3">Todos os 4 a 50%</button>
+  </div>
+</div>
+<div id="grid" class="grid">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>A · Govt Modern</h2>
+        <div class="desc">Inspiração: GOV.UK. Oficial, despojado, sério.</div>
+        <div class="tags"><span class="tag cor-A">+ legível</span><span class="tag cor-A">+ autoridade</span><span class="tag">- moderno</span></div>
+      </div>
+      <a href="A-govt-modern.html" target="_blank">Abrir em tab →</a>
+    </div>
+    <div class="frame-wrap"><iframe src="A-govt-modern.html" loading="lazy"></iframe></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>B · Editorial</h2>
+        <div class="desc">Inspiração: Stripe Docs, NYT. Documento como produto.</div>
+        <div class="tags"><span class="tag cor-B">+ elegante</span><span class="tag cor-B">+ peso institucional</span><span class="tag">- frio</span></div>
+      </div>
+      <a href="B-editorial.html" target="_blank">Abrir em tab →</a>
+    </div>
+    <div class="frame-wrap"><iframe src="B-editorial.html" loading="lazy"></iframe></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>C · Workspace</h2>
+        <div class="desc">Inspiração: Linear, Notion. Ferramenta de produtividade densa.</div>
+        <div class="tags"><span class="tag cor-C">+ produtivo</span><span class="tag cor-C">+ moderno</span><span class="tag">- formal</span></div>
+      </div>
+      <a href="C-workspace.html" target="_blank">Abrir em tab →</a>
+    </div>
+    <div class="frame-wrap"><iframe src="C-workspace.html" loading="lazy"></iframe></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>D · Calm</h2>
+        <div class="desc">Inspiração: Things 3, Apple Mail. Calmo, respira, focado.</div>
+        <div class="tags"><span class="tag cor-D">+ bonito</span><span class="tag cor-D">+ sem cansar</span><span class="tag">- denso</span></div>
+      </div>
+      <a href="D-calm.html" target="_blank">Abrir em tab →</a>
+    </div>
+    <div class="frame-wrap"><iframe src="D-calm.html" loading="lazy"></iframe></div>
+  </div>
+</div>
+<script>
+function setLayout(modo) {
+  const g = document.getElementById('grid');
+  g.className = 'grid';
+  ['m1','m2','m3'].forEach(id => document.getElementById(id).classList.remove('on'));
+  if (modo === '2col') { document.getElementById('m1').classList.add('on'); }
+  else if (modo === '1col') { g.classList.add('col1'); document.getElementById('m2').classList.add('on'); }
+  else { g.classList.add('zoom'); document.getElementById('m3').classList.add('on'); }
+}
+</script>
+</body>
+</html>

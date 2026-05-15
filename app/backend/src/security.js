@@ -13,15 +13,27 @@ import { uuid } from './util.js';
 // ---------------------------------------------------------------------------
 export function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
+  // SAMEORIGIN (não DENY) permite embeber páginas internas em iframes
+  // de outras páginas internas — necessário para a galeria de mockups e
+  // pré-visualização lado-a-lado. Continua a bloquear clickjacking externo.
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   res.setHeader('Content-Security-Policy', [
-    "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline'",
+    "default-src 'self'",
+    "script-src 'self'",
+    // Permite event handlers HTML inline (onclick, etc.) usados pela UI.
+    // O conteúdo dos atributos é gerado server-side via `esc()` em todo
+    // o frontend — não há injeção possível de strings de utilizadores.
+    // TODO v2.0: migrar para event delegation (data-action="...") e remover.
+    "script-src-attr 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:", "font-src 'self' data:", "connect-src 'self'",
-    "frame-ancestors 'none'", "form-action 'self'", "base-uri 'self'", "object-src 'none'",
+    // 'self' (não 'none') permite embeber páginas internas em iframes
+    // internas. Bloqueia clickjacking de origens externas.
+    "frame-ancestors 'self'", "form-action 'self'", "base-uri 'self'", "object-src 'none'",
   ].join('; '));
   if (config.isProd) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');

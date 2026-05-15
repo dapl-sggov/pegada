@@ -1,7 +1,13 @@
-// shell.js — Layout permanente: skip-link, banner, topbar, sidebar, footer.
-// Também aloja o badge de notificações e o atalho do tema.
+// shell.js — Layout permanente do painel: sidebar escura 200px + main column.
+//
+// Substitui o shell anterior (header largo + sidebar clara) pelo modelo
+// do design handoff: sidebar à esquerda, header ao topo da main column
+// dentro da própria view (porque o header tem conteúdo dependente da
+// view atual — breadcrumb, marcos stepper na vista de detalhe). Aqui
+// só desenhamos a estrutura permanente: sidebar e contentor main vazio
+// para a view preencher.
 
-import { state, isSggov, isAdmin, myGabinete, gabSigla } from './state.js';
+import { state, isSggov, isAdmin, myGabinete, gabSigla, isQa } from './state.js';
 import { esc, initials } from './utils.js';
 import { setView } from './router.js';
 
@@ -9,89 +15,87 @@ export function renderShell() {
   const user = state.user;
   const sggov = isSggov();
   const adm = isAdmin();
-  const papelLbl = sggov
-    ? 'SGGOV'
-    : (user.papeis.find(p => p.gabinete_id) ? 'Ponto Focal · ' + gabSigla(myGabinete()) : 'Utilizador');
+  const qa = isQa();
+  const ativos = state.fpls?.filter?.(f => !['PUBLICADO', 'ARQUIVADO'].includes(f.estado_workflow)).length;
+  const emCm = state.fpls?.filter?.(f => f.estado_workflow === 'EM_CM').length;
+  const publicadas = state.fpls?.filter?.(f => f.estado_workflow === 'PUBLICADO').length;
+  const validar = state.fpls?.filter?.(f => f.estado_workflow === 'EM_ELABORACAO' && !f.m3_validado_em).length;
   const bellCount = state.notificacoes?.nao_lidas || 0;
-  const tema = state.tema;
+  const papelLbl = sggov
+    ? (adm ? 'SGGOV · Admin' : qa ? 'SGGOV · QA' : 'SGGOV')
+    : (user.papeis.find(p => p.gabinete_id) ? 'PF · ' + gabSigla(myGabinete()) : 'Utilizador');
+
+  document.documentElement.classList.add('painel-mode');
+  document.body.classList.add('painel');
 
   document.getElementById('root').innerHTML = `
     <a href="#main" class="skip-link">Saltar para o conteúdo principal</a>
-    <div class="demo-banner" role="banner">DEMONSTRAÇÃO · FPL Ponte v1.0-rc · Sistema funcional ligado a SQLite real</div>
-    <header class="topbar" role="banner">
-      <div class="brand">
-        <div class="crest" aria-hidden="true">RP</div>
-        <div class="brand-text">
-          <span class="t1">República Portuguesa · Governo</span>
-          <span class="t2">FPL — Pegada Legislativa</span>
+    <div class="painel-app">
+      <aside class="painel-side" aria-label="Menu lateral">
+        <div class="brand">
+          <div class="brand-name">FPL · SGGOV</div>
+          <div class="brand-sub">Pegada Legislativa</div>
         </div>
-      </div>
-      <nav aria-label="Navegação principal">
-        <button data-nav="dashboard" aria-current="${state.view === 'dashboard' ? 'page' : 'false'}" class="${state.view === 'dashboard' ? 'active' : ''}">Início</button>
-        <button data-nav="lista" aria-current="${state.view === 'lista' ? 'page' : 'false'}" class="${state.view === 'lista' ? 'active' : ''}">FPL</button>
-        ${sggov ? `<button data-nav="entidades" aria-current="${state.view === 'entidades' ? 'page' : 'false'}" class="${state.view === 'entidades' ? 'active' : ''}">Entidades RTRI</button>` : ''}
-        ${sggov ? `<button data-nav="auditoria" aria-current="${state.view === 'auditoria' ? 'page' : 'false'}" class="${state.view === 'auditoria' ? 'active' : ''}">Auditoria QA</button>` : ''}
-        ${adm ? `<button data-nav="outbox" aria-current="${state.view === 'outbox' ? 'page' : 'false'}" class="${state.view === 'outbox' ? 'active' : ''}">Outbox</button>` : ''}
-      </nav>
-      <div class="right">
-        <button class="btn ghost sm" id="cmdkBtn" aria-label="Abrir paleta de comandos (Ctrl+K)" title="Paleta de comandos (Ctrl+K)">⌘K</button>
-        <button class="btn ghost sm" id="temaBtn" aria-label="Alterar tema visual" title="Tema atual: ${tema}">${tema === 'escuro' ? '☾' : tema === 'alto-contraste' ? '◐' : tema === 'claro' ? '☀' : '◑'}</button>
-        <button class="bell" aria-label="Notificações${bellCount > 0 ? ' (' + bellCount + ' não lidas)' : ''}" onclick="abrirNotificacoes()">
-          <span aria-hidden="true">🔔</span>
-          ${bellCount > 0 ? `<span class="bell-badge" aria-hidden="true">${bellCount}</span>` : ''}
-        </button>
-        <button class="user" onclick="setView('perfil')" aria-label="Abrir o meu perfil">
-          <div class="avatar" aria-hidden="true">${initials(user.nome)}</div>
-          <div class="meta"><span class="n">${esc(user.nome)}</span><span class="r">${esc(papelLbl)}${user.totp_ativo ? ' · 2FA' : ''}</span></div>
-        </button>
-        <button class="logout-btn" onclick="logout()" aria-label="Terminar sessão">Sair</button>
-      </div>
-    </header>
-    <div class="shell">
-      <aside class="sidebar" aria-label="Menu lateral">
-        <div class="side-section">
-          <div class="side-title" id="sec-trab">Trabalho</div>
-          <nav aria-labelledby="sec-trab">
-            <a class="side-link ${state.view === 'dashboard' ? 'active' : ''}" data-nav="dashboard" tabindex="0" role="link" aria-current="${state.view === 'dashboard' ? 'page' : 'false'}">Início</a>
-            <a class="side-link ${state.view === 'lista' ? 'active' : ''}" data-nav="lista" tabindex="0" role="link">${sggov ? 'Todas as FPL' : 'As minhas FPL'}</a>
-            ${!sggov ? '<a class="side-link" data-nav="nova" tabindex="0" role="link">+ Nova FPL</a>' : ''}
-            <a class="side-link ${state.view === 'perfil' ? 'active' : ''}" data-nav="perfil" tabindex="0" role="link">O meu perfil &amp; 2FA</a>
-          </nav>
+        <div class="group">
+          <div class="group-title">Trabalho</div>
+          <button class="link ${state.view === 'dashboard' ? 'active' : ''}" data-nav="dashboard">
+            <span class="ico" aria-hidden="true">▤</span>Dashboard
+          </button>
+          <button class="link ${state.view === 'lista' || state.view === 'detalhe' ? 'active' : ''}" data-nav="lista">
+            <span class="ico" aria-hidden="true">▦</span>${sggov ? 'Todas as FPL' : 'As minhas FPL'}
+            ${ativos > 0 ? `<span class="pill">${ativos}</span>` : ''}
+          </button>
+          ${!sggov ? `<button class="link ${state.view === 'nova' ? 'active' : ''}" data-nav="nova">
+            <span class="ico" aria-hidden="true">+</span>Nova FPL
+          </button>` : ''}
+          <button class="link" id="bellLink" aria-label="Notificações${bellCount > 0 ? ' (' + bellCount + ' não lidas)' : ''}">
+            <span class="ico" aria-hidden="true">◔</span>Notificações
+            ${bellCount > 0 ? `<span class="pill">${bellCount}</span>` : ''}
+          </button>
         </div>
-        ${sggov ? `
-        <div class="side-section">
-          <div class="side-title" id="sec-sg">SGGOV</div>
-          <nav aria-labelledby="sec-sg">
-            <a class="side-link ${state.view === 'entidades' ? 'active' : ''}" data-nav="entidades" tabindex="0" role="link">Entidades RTRI</a>
-            <a class="side-link ${state.view === 'auditoria' ? 'active' : ''}" data-nav="auditoria" tabindex="0" role="link">Auditoria QA</a>
-            ${adm ? `<a class="side-link ${state.view === 'outbox' ? 'active' : ''}" data-nav="outbox" tabindex="0" role="link">Outbox de email</a>` : ''}
-          </nav>
-        </div>` : ''}
-        ${sggov ? `
-        <div class="side-section">
-          <div class="side-title" id="sec-res">Exportação · Portal do Governo</div>
-          <nav aria-labelledby="sec-res">
-            <a class="side-link ${state.view === 'exportacao' ? 'active' : ''}" data-nav="exportacao" tabindex="0" role="link">Painel de exportação</a>
-            <a class="side-link" href="/api/export/datasets/fpl.json" target="_blank" rel="noopener">Dataset JSON</a>
-            <a class="side-link" href="/api/export/datasets/fpl.csv" target="_blank" rel="noopener">Dataset CSV</a>
-            <a class="side-link" href="/api/export/datasets/fpl.jsonld" target="_blank" rel="noopener">JSON-LD (vocabulário OCDE)</a>
-          </nav>
-        </div>` : ''}
+        <div class="group">
+          <div class="group-title">Vistas</div>
+          ${validar > 0 ? `<button class="link" data-nav="lista"><span class="ico">◐</span>A validar (${validar})</button>` : ''}
+          ${emCm > 0 ? `<button class="link" data-nav="lista"><span class="ico">◔</span>Em CM</button>` : ''}
+          ${publicadas > 0 ? `<button class="link" data-nav="lista"><span class="ico">✓</span>Publicadas</button>` : ''}
+          ${sggov ? `<button class="link ${state.view === 'auditoria' ? 'active' : ''}" data-nav="auditoria"><span class="ico">⚐</span>Auditoria QA</button>` : ''}
+          ${sggov ? `<button class="link ${state.view === 'entidades' ? 'active' : ''}" data-nav="entidades"><span class="ico">⚿</span>Entidades RTRI</button>` : ''}
+          ${sggov ? `<button class="link ${state.view === 'exportacao' ? 'active' : ''}" data-nav="exportacao"><span class="ico">↑</span>Exportação</button>` : ''}
+          ${adm ? `<button class="link ${state.view === 'outbox' ? 'active' : ''}" data-nav="outbox"><span class="ico">✉</span>Outbox</button>` : ''}
+        </div>
+        <div class="group">
+          <div class="group-title">Ajuda</div>
+          <button class="link" id="cmdkLink"><span class="ico">⌘</span>Paleta (⌘K)</button>
+          <button class="link" id="temaLink"><span class="ico" id="temaIco">◑</span>Tema</button>
+          <a class="link" href="/declaracao-acessibilidade.html"><span class="ico">♿</span>Acessibilidade</a>
+        </div>
+        <div class="bottom">
+          <div class="av">${initials(user.nome)}</div>
+          <div class="nm">
+            <strong>${esc(user.nome.split(' ').slice(0, 2).join(' '))}</strong>
+            <span>${esc(papelLbl)}${user.totp_ativo ? ' · 2FA' : ''}</span>
+          </div>
+          <button class="ico" id="logoutBtn" aria-label="Terminar sessão" style="background:none;border:none;color:#cdd5e3;cursor:pointer;margin-left:auto" title="Terminar sessão">⎋</button>
+        </div>
       </aside>
-      <main class="main" id="main" tabindex="-1"></main>
+      <div class="painel-main">
+        <main id="main" class="painel-main-inner" tabindex="-1"></main>
+      </div>
     </div>
-    <footer class="footer" role="contentinfo">
-      FPL Ponte · SGGOV · Lei n.º 5-A/2026 · Demonstração
-      · <a href="/declaracao-acessibilidade.html">Declaração de Acessibilidade</a>
-    </footer>
   `;
-  // Bindings: navegação data-nav (botões + side-links) — clique e teclado
+
+  // Bindings
   document.querySelectorAll('[data-nav]').forEach(el => {
     el.addEventListener('click', () => setView(el.dataset.nav));
     el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setView(el.dataset.nav); } });
   });
-  // Botão da paleta de comandos
-  document.getElementById('cmdkBtn')?.addEventListener('click', () => window.abrirCmdK?.());
-  // Botão do tema (cicla)
-  document.getElementById('temaBtn')?.addEventListener('click', () => window.alternarTema?.());
+  document.getElementById('bellLink')?.addEventListener('click', () => window.abrirNotificacoes?.());
+  document.getElementById('cmdkLink')?.addEventListener('click', () => window.abrirCmdK?.());
+  document.getElementById('temaLink')?.addEventListener('click', () => window.alternarTema?.());
+  document.getElementById('logoutBtn')?.addEventListener('click', () => window.logout?.());
+
+  // Atualiza o ícone do tema
+  const t = state.tema;
+  const ti = document.getElementById('temaIco');
+  if (ti) ti.textContent = t === 'escuro' ? '☾' : t === 'alto-contraste' ? '◐' : t === 'claro' ? '☀' : '◑';
 }

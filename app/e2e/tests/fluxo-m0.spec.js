@@ -16,10 +16,11 @@ test.describe('Fluxo M0 ponta-a-ponta', () => {
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
 
     // Shell autenticado — sidebar visível
-    await expect(page.getByRole('link', { name: /Nova FPL/i })).toBeVisible({ timeout: 10_000 });
+    const novaLink = page.locator('.painel-side .link').filter({ hasText: /Nova FPL/i });
+    await expect(novaLink).toBeVisible({ timeout: 10_000 });
 
-    // Abrir formulário de nova FPL (via sidebar — role=link)
-    await page.getByRole('link', { name: /Nova FPL/i }).click();
+    // Abrir formulário de nova FPL (sidebar do painel — botão com class="link")
+    await novaLink.click();
     await expect(page.getByRole('heading', { name: /Bloco A/i })).toBeVisible({ timeout: 10_000 });
 
     // Preencher Bloco A
@@ -38,18 +39,15 @@ test.describe('Fluxo M0 ponta-a-ponta', () => {
     // Submeter — cria FPL + Bloco B + tenta validar M0 automaticamente
     await page.getByRole('button', { name: /Criar FPL e validar M0/i }).click();
 
-    // Confirmar que ficamos na vista de detalhe da FPL com estado "Em elaboração"
+    // Confirmar que ficamos na vista de detalhe (painel) com estado "Em elaboração"
     // (transição M0: CRIADO → EM_ELABORACAO)
     await expect(page.getByText('Em elaboração').first()).toBeVisible({ timeout: 10_000 });
 
-    // O tab "Comprovativos" mostra 1 (M0 foi emitido)
-    await expect(page.getByRole('tab', { name: /Comprovativos\s*1/i })).toBeVisible({ timeout: 10_000 });
-
-    // Ir ao tab dos comprovativos e confirmar que aparece o jti do M0
-    // (formato: cmp_M0-<uuid>). O JWS completo só aparece no modal "Ver comprovativo".
-    await page.getByRole('tab', { name: /Comprovativos/i }).click();
-    await expect(page.locator('body')).toContainText(/cmp_M0-/);
-    await expect(page.getByText('✓ emitido').first()).toBeVisible();
+    // No painel, o card de Comprovativos mostra "1 / 4" e o jti aparece direto
+    await expect(page.locator('.pc-card-head').filter({ hasText: /Comprovativos/i })).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.painel-body')).toContainText(/cmp_M0-/);
+    // O pill "EMITIDO" do comprovativo está visível
+    await expect(page.locator('.pc-ver-cmp').first()).toBeVisible();
   });
 
   test('Cabeçalhos de segurança vêm corretos', async ({ request }) => {
@@ -57,7 +55,8 @@ test.describe('Fluxo M0 ponta-a-ponta', () => {
     expect(r.status()).toBe(200);
     const h = r.headers();
     expect(h['x-content-type-options']).toBe('nosniff');
-    expect(h['x-frame-options']).toBe('DENY');
+    // SAMEORIGIN (não DENY) — permite embeber páginas internas em iframes internos
+    expect(h['x-frame-options']).toBe('SAMEORIGIN');
     expect(h['content-security-policy']).toContain("default-src 'self'");
     expect(h['referrer-policy']).toBe('strict-origin-when-cross-origin');
   });

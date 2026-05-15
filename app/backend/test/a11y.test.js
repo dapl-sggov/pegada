@@ -35,25 +35,21 @@ test('a11y: declaração de acessibilidade existe e está conforme', () => {
 
 test('a11y: shell + views usam marcação semântica + ARIA + skip-link', () => {
   // O frontend foi modularizado: o shell vive em src/shell.js, o login em
-  // src/views/login.js, etc. Verificamos a presença das marcações nos
-  // ficheiros corretos.
+  // src/views/login.js, a vista de detalhe em src/views/detalhe-painel.js.
   const shell = ler('src/shell.js');
   const login = ler('src/views/login.js');
-  const detalhe = ler('src/views/detalhe.js');
+  const detalhe = ler('src/views/detalhe-painel.js');
 
   // skip-link no shell autenticado
   assert.match(shell, /class="skip-link"/);
-  // landmarks
-  assert.match(shell, /<header[^>]*role="banner"/);
+  // landmarks no shell (sidebar usa aside com aria-label, main tem id e tabindex)
+  assert.match(shell, /<aside[^>]*aria-label="Menu lateral"/);
   assert.match(shell, /<main[^>]*id="main"/);
-  assert.match(shell, /<footer[^>]*role="contentinfo"/);
-  // ARIA dinâmico
-  assert.match(shell, /aria-current="\$\{state\.view/, 'aria-current dinâmico na navegação');
-  assert.match(detalhe, /aria-selected/, 'aria-selected nas tabs');
+  // role/aria no toggle de vista (detalhe-painel)
+  assert.match(detalhe, /role="tablist"/, 'tablist no toggle de vista');
+  assert.match(detalhe, /aria-selected=/, 'aria-selected no toggle');
   assert.match(login, /aria-required="true"/, 'aria-required em campos obrigatórios');
   assert.match(login, /aria-live="polite"/, 'aria-live em alerta de erro');
-  // navegação por teclado nas pseudo-links da sidebar
-  assert.match(shell, /tabindex="0"/);
   // labels descritivos em ícones
   assert.match(shell, /aria-label="Notificações/);
   assert.match(shell, /aria-label="Terminar sessão"/);

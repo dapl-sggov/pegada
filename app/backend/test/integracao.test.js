@@ -105,7 +105,9 @@ test('headers: respostas trazem CSP, X-Frame-Options e X-Content-Type-Options', 
   const r = await c.GET('/health');
   assert.equal(r.status, 200);
   assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
-  assert.equal(r.headers.get('x-frame-options'), 'DENY');
+  // SAMEORIGIN (não DENY) permite iframes internas (galeria de mockups);
+  // continua a bloquear clickjacking externo.
+  assert.equal(r.headers.get('x-frame-options'), 'SAMEORIGIN');
   assert.match(r.headers.get('content-security-policy') || '', /default-src 'self'/);
 });
 
