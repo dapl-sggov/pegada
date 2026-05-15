@@ -39,8 +39,11 @@ const GABINETES = [
 ];
 const PERFIS = [
   {id:'u-maria',nome:'Maria Silva',email:'maria.silva@gov.pt',papel:'PONTO_FOCAL',gabinete:'mae',cor:'#1d3461'},
-  {id:'u-joao',nome:'João Pereira',email:'joao.pereira@gov.pt',papel:'PONTO_FOCAL_ALT',gabinete:'mae',cor:'#2f4f8a'},
+  {id:'u-joao',nome:'João Pereira',email:'joao.pereira@gov.pt',papel:'PONTO_FOCAL_ALT',gabinete:'me',cor:'#2f4f8a'},
   {id:'u-ana',nome:'Ana Santos',email:'ana.santos@gov.pt',papel:'PONTO_FOCAL',gabinete:'ms',cor:'#0f7858'},
+  {id:'u-pedro',nome:'Pedro Lopes',email:'pedro.lopes@gov.pt',papel:'PONTO_FOCAL',gabinete:'mtsss',cor:'#7c2d3e'},
+  {id:'u-sofia',nome:'Sofia Mendes',email:'sofia.mendes@gov.pt',papel:'PONTO_FOCAL',gabinete:'mecic',cor:'#5e3a8a'},
+  {id:'u-luis',nome:'Luís Tavares',email:'luis.tavares@gov.pt',papel:'PONTO_FOCAL',gabinete:'mf',cor:'#1a4a3a'},
   {id:'u-rui',nome:'Rui Ferreira',email:'rui.ferreira@sggov.pt',papel:'SGGOV_QA',gabinete:null,cor:'#a36507'},
   {id:'u-carla',nome:'Carla Almeida',email:'carla.almeida@sggov.pt',papel:'SGGOV_ADMIN',gabinete:null,cor:'#a71728'},
   {id:'u-cidadao',nome:'Acesso Público',email:'—',papel:'PUBLICO',gabinete:null,cor:'#5e6573'},
@@ -96,12 +99,15 @@ function seed() {
       cl_decisao:'Acolheu-se parcialmente a observação sobre regulação tarifária com a reformulação do art. 14.º. Não se acolheu a proposta sobre autarquias por exceder o âmbito do diploma. A questão fiscal foi reencaminhada para o Ministério das Finanças em sede de OE.',
       m0:'2026-01-10T11:32:00Z',m0_por:'u-maria',m1:null,m2:'2026-04-22T11:42:00Z',
       m3:'2026-04-30T16:05:00Z',m3_por:'u-maria',m3_decl:1,m4:null,m5:null,ref_dr:null,
+      rse_prevista:'2026-05-22',cm_prevista:'2026-06-05',dr_prevista:'2026-06-26',
       bloco_d:[
         {id:'d1',data:'2026-02-12',forma:'REUNIAO',entidade:'APREN — Associação Portuguesa de Energias Renováveis',rtri_id:'RTRI/2025/00142',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Adjunta SE',interlocutor:'Presidente APREN; Director-geral',objeto:'Apresentação de proposta de regime para comunidades de energia renovável e simplificação do licenciamento.',sintese:'A APREN propôs um regime único para CER que abranja autoconsumo coletivo, partilha de energia entre membros e venda de excedentes em mercado, sem distinção entre origem solar ou eólica. Defendeu a simplificação do licenciamento até 1 MW de potência instalada.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A proposta de regime único foi acolhida na arquitetura do diploma. Não se acolheu a simplificação até 1 MW por divergir das obrigações de comunicação à ERSE.'},
         {id:'d2',data:'2026-02-19',forma:'VIDEOCONFERENCIA',entidade:'EDP — Energias de Portugal, S.A.',rtri_id:'RTRI/2025/00088',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Chefe de gabinete',interlocutor:'Director Regulação; Director Mercado',objeto:'Análise dos efeitos do diploma na operação da rede de distribuição de energia elétrica.',sintese:'A EDP manifestou preocupação com o aumento da complexidade da gestão de fluxos bidirecionais em zonas de elevada penetração solar, propondo um período transitório de 24 meses para adaptação dos sistemas de medição.',decisao:'NAO_INCORPORADA',justificacao:'O período transitório é incompatível com o calendário das metas PNEC 2030. A questão tarifária é da competência regulatória da ERSE e não cabe no presente diploma.'},
         {id:'d3',data:'2026-02-26',forma:'REUNIAO',entidade:'ZERO — Associação Sistema Terrestre Sustentável',rtri_id:'RTRI/2025/00214',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Adjunta SE',interlocutor:'Coordenador de Energia; Investigadora',objeto:'Contributos sobre a participação de cidadãos com baixos rendimentos em comunidades de energia.',sintese:'A ZERO propôs um mecanismo de comparticipação para participação de cidadãos em situação de pobreza energética, com financiamento via Fundo Ambiental, e a obrigatoriedade de pelo menos 10% dos membros de CER municipais serem agregados elegíveis.',decisao:'INCORPORADA',justificacao:'O mecanismo de comparticipação foi acolhido no art. 17.º. A obrigatoriedade de 10% foi acolhida no art. 12.º/3 com modulação por dimensão da CER. A avaliação de impacto distributivo foi incluída no RIA.'},
         {id:'d4',data:'2026-03-05',forma:'AUDIENCIA',entidade:'Confederação Geral dos Trabalhadores Portugueses (CGTP)',rtri_id:'RTRI/2025/00027',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente',interlocutor:'Coordenador',objeto:'Posição da CGTP sobre transição energética justa e proteção do emprego na cadeia de valor.',sintese:'A CGTP manifestou apoio ao princípio das comunidades de energia mas questionou a inexistência de cláusulas de proteção de emprego. Solicitou a inclusão de um mecanismo de diálogo social no Conselho Consultivo.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A inclusão de representação sindical no Conselho Consultivo foi acolhida no art. 22.º. Não se acolheram cláusulas adicionais por divergir do escopo do diploma.'},
         {id:'d5',data:'2026-03-21',forma:'CORRESPONDENCIA',entidade:'Prof. António Sá da Costa (Universidade de Évora)',rtri_id:'',natureza:'ACADEMIA_PERITO',gov:'Adjunta SE',interlocutor:'',objeto:'Parecer técnico sobre o modelo de cálculo de coeficientes de partilha em autoconsumo coletivo.',sintese:'O parecer propõe um modelo de cálculo dinâmico baseado em consumo histórico ponderado, em alternativa ao modelo estático inicialmente proposto. Apresenta análise comparativa com os modelos italiano e alemão.',decisao:'INCORPORADA',justificacao:'O modelo dinâmico foi acolhido no anexo I, com simplificação de cálculo para CER até 50 membros conforme proposto pelo parecer.'},
+        {id:'d6',data:'2026-04-02',forma:'REUNIAO',entidade:'Coopérnico — Cooperativa de Energias Renováveis',rtri_id:'RTRI/2025/00341',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Adjunta SE',interlocutor:'Presidente da Direção; Vogal técnico',objeto:'Apresentação do modelo cooperativo de energia renovável e propostas de governação democrática para CER.',sintese:'A Coopérnico defendeu a equiparação plena das cooperativas de energia ao regime das CER, com critérios de governação democrática (um membro/um voto) e limites à concentração de participação. Apresentou estudo comparativo com Espanha e Alemanha.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'O regime das CER foi alargado para acolher modelos cooperativos sem necessidade de duplicação normativa. Os critérios de governação democrática foram acolhidos no art. 11.º; o limite à concentração foi diferido para portaria.'},
+        {id:'d7',data:'2026-04-09',forma:'REUNIAO',entidade:'REN — Redes Energéticas Nacionais',rtri_id:'RTRI/2025/00021',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Chefe de gabinete',interlocutor:'Diretor de Sistema; Diretor de Planeamento',objeto:'Análise da capacidade da rede de distribuição face a comunidades de média dimensão.',sintese:'A REN apresentou análise técnica da capacidade da rede em zonas de elevada penetração solar e propôs critérios de prioridade no acesso à rede para CER com componente social.',decisao:null,justificacao:''},
       ],
       bloco_c:[
         {id:'c1',data:'2026-02-08',entidade:'Direção-Geral de Energia e Geologia (DGEG)',cargo:'',forma:'PARECER_ESCRITO',objeto:'Análise técnica do regime',sintese:'A DGEG considera o regime tecnicamente sólido e propôs ajustes a três artigos relativos a procedimentos de comunicação prévia e regimes de exceção para sistemas de pequena escala.'},
@@ -159,7 +165,7 @@ function seed() {
       titulo_curto:'Teletrabalho e direito à desconexão',
       estado:'EM_CM', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo II',
       sintese:'A presente proposta de lei revê o regime do teletrabalho no Código do Trabalho, consagrando o direito à desconexão profissional, clarificando a repartição de custos e estabelecendo um regime supletivo modulável por instrumento de regulamentação coletiva de trabalho.',
-      avaliacao_previa:1, criado_por:'u-carla', criado_em:'2026-01-08T10:00:00Z',
+      avaliacao_previa:1, criado_por:'u-pedro', criado_em:'2026-01-08T10:00:00Z',
       cl_ref:'CL-2026-018', cl_inicio:'2026-02-01', cl_fim:'2026-03-03', cl_n:142,
       cl_sintese:'Os 142 contributos dividem-se entre posições patronais que defendem flexibilidade na definição dos horários de desconexão por acordo coletivo, e posições sindicais que defendem a desconexão como direito imperativo. Várias submissões de trabalhadores individuais sublinham a dificuldade de fiscalização do regime.',
       cl_decisao:'Acolheu-se um regime supletivo modulável por convenção coletiva, equilibrando as posições recolhidas. A fiscalização foi reforçada com a atribuição de competências específicas à ACT.',
@@ -176,10 +182,10 @@ function seed() {
         {jti:'cmp_M4-3pR8vN2kHy6t',marco:'M4',emitido_em:'2026-04-25T10:00:00Z',estado:'VERIFICADO'},
       ],
       versoes:[
-        {n:1,ts:'2026-01-08T09:30:00Z',autor:'Carla Almeida',marco:null,desc:'FPL criada'},
-        {n:2,ts:'2026-01-08T10:00:00Z',autor:'Carla Almeida',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:9,ts:'2026-04-10T10:00:00Z',autor:'Carla Almeida',marco:'M3',desc:'M3 validado · comprovativo emitido'},
-        {n:14,ts:'2026-04-25T10:00:00Z',autor:'Carla Almeida',marco:'M4',desc:'M4 validado · comprovativo emitido · estado → Em CM'},
+        {n:1,ts:'2026-01-08T09:30:00Z',autor:'Pedro Lopes',marco:null,desc:'FPL criada'},
+        {n:2,ts:'2026-01-08T10:00:00Z',autor:'Pedro Lopes',marco:'M0',desc:'M0 validado · comprovativo emitido'},
+        {n:9,ts:'2026-04-10T10:00:00Z',autor:'Pedro Lopes',marco:'M3',desc:'M3 validado · comprovativo emitido'},
+        {n:14,ts:'2026-04-25T10:00:00Z',autor:'Pedro Lopes',marco:'M4',desc:'M4 validado · comprovativo emitido · estado → Em CM'},
       ],
     }),
     mk({
@@ -213,10 +219,99 @@ function seed() {
         {n:16,ts:'2026-04-22T08:00:00Z',autor:'Carla Almeida',marco:'M5',desc:'M5 validado · comprovativo emitido · FPL exportada para o Portal do Governo'},
       ],
     }),
+    // ── Adicionais (v1.2) — cobrem outros gabinetes e estados raros ──
+    mk({
+      id:'fpl-006', numero:'2026/ME/0023', tipo:'DL', gabinete:'me',
+      titulo:'Decreto-Lei que estabelece o regime jurídico das sandboxes regulatórias para tecnologia financeira e cripto-ativos',
+      titulo_curto:'Sandboxes para tecnologia financeira',
+      estado:'EM_CONSULTA_INTERNA', origem:'INICIATIVA_MINISTERIO', ref_origem:'Programa do Governo, Eixo IV, medida 7.1',
+      sintese:'O presente diploma cria um quadro experimental de regulação flexível (sandbox) para empresas de tecnologia financeira e prestadores de serviços em cripto-ativos, em coordenação com o Banco de Portugal, a CMVM e a ASF. Permite testar produtos inovadores em ambiente controlado, com derrogações específicas e supervisão acrescida.',
+      avaliacao_previa:1, criado_por:'u-joao', criado_em:'2026-03-20T10:00:00Z',
+      m0:'2026-03-20T11:00:00Z',m0_por:'u-joao',
+      cm_prevista:'2026-07-10',
+      bloco_c:[
+        {id:'c1',data:'2026-04-05',entidade:'Banco de Portugal',forma:'PARECER_ESCRITO',objeto:'Coordenação com regulador financeiro',sintese:'O BdP confirma a sua disponibilidade para participar na sandbox, sublinhando a necessidade de critérios objetivos para a seleção de candidatos e a salvaguarda das obrigações de prevenção do branqueamento.'},
+        {id:'c2',data:'2026-04-12',entidade:'CMVM',forma:'PARECER_ESCRITO',objeto:'Coordenação com regulador de valores mobiliários',sintese:'A CMVM defende a articulação obrigatória com o regime europeu MiCA na fase de avaliação prévia de cada candidatura, evitando regimes paralelos.'},
+      ],
+      bloco_d:[
+        {id:'d1',data:'2026-04-08',forma:'REUNIAO',entidade:'Portugal Fintech',rtri_id:'',natureza:'OUTRA',gov:'Secretário de Estado da Economia; Adjunto SE',interlocutor:'Presidente; Diretor executivo',objeto:'Apresentação das prioridades do ecossistema fintech para o regime de sandbox.',sintese:'A Portugal Fintech defendeu critérios menos restritivos para a entrada na sandbox e prazos máximos de 6 meses para decisão sobre candidaturas. Apresentou comparativo com sandboxes do Reino Unido e Lituânia.',decisao:null,justificacao:''},
+        {id:'d2',data:'2026-04-15',forma:'VIDEOCONFERENCIA',entidade:'Confederação da Indústria Portuguesa (CIP)',rtri_id:'RTRI/2025/00018',natureza:'RTRI_INSCRITO',gov:'Secretário de Estado da Economia',interlocutor:'Coordenador área digital',objeto:'Posição patronal sobre o regime de sandbox e proteção do consumidor.',sintese:'A CIP defendeu a sandbox como mecanismo de competitividade do mercado nacional mas pediu salvaguardas robustas de proteção do consumidor e mecanismos de saída ordeira do ambiente experimental.',decisao:null,justificacao:''},
+      ],
+      comprovativos:[{jti:'cmp_M0-8nF2kQ7pLx9m',marco:'M0',emitido_em:'2026-03-20T11:00:00Z',estado:'VERIFICADO'}],
+      versoes:[
+        {n:1,ts:'2026-03-20T10:00:00Z',autor:'João Pereira',marco:null,desc:'FPL criada'},
+        {n:2,ts:'2026-03-20T11:00:00Z',autor:'João Pereira',marco:'M0',desc:'M0 validado · comprovativo emitido'},
+        {n:3,ts:'2026-04-08T15:00:00Z',autor:'João Pereira',marco:null,desc:'Bloco D: Portugal Fintech adicionada'},
+      ],
+    }),
+    mk({
+      id:'fpl-007', numero:'2026/MF/0014', tipo:'DL', gabinete:'mf',
+      titulo:'Decreto-Lei que atualiza o regime fiscal aplicável aos rendimentos prediais e às mais-valias imobiliárias',
+      titulo_curto:'Atualização do regime fiscal predial',
+      estado:'APROVADO', origem:'INICIATIVA_MINISTERIO', ref_origem:'OE/2026 art. 235.º',
+      sintese:'O presente decreto-lei executa o regime fiscal autorizado pelo art. 235.º da Lei do OE/2026, atualizando as taxas autónomas aplicáveis aos rendimentos prediais e introduzindo um regime de exclusão tributária parcial para mais-valias provenientes da venda de habitação própria reinvestida em arrendamento acessível.',
+      avaliacao_previa:1, criado_por:'u-luis', criado_em:'2026-02-01T10:00:00Z',
+      cl_ref:'CL-2026-019', cl_inicio:'2026-02-20', cl_fim:'2026-03-22', cl_n:89,
+      cl_sintese:'Os 89 contributos repartem-se entre proprietários particulares (que pedem alargamento das exclusões), associações de inquilinos (que defendem a exclusão condicionada à colocação em arrendamento acessível) e fiscalistas (sublinhando a complexidade do regime de excecção). A maioria apoia o princípio mas pede simplificação.',
+      cl_decisao:'Reformulou-se o art. 7.º para simplificar o regime de exclusão, mantendo o condicionamento ao arrendamento acessível como proposto pelas associações de inquilinos. Não se acolheu o alargamento generalizado das exclusões por razões de neutralidade fiscal.',
+      m0:'2026-02-01T11:00:00Z',m0_por:'u-carla',m1:'2026-02-18T09:00:00Z',m2:'2026-03-25T17:00:00Z',
+      m3:'2026-04-02T11:00:00Z',m3_por:'u-carla',m3_decl:1,m4:'2026-04-18T15:00:00Z',m4_por:'u-carla',m4_decl:1,
+      dr_prevista:'2026-05-25',
+      bloco_d:[
+        {id:'d1',data:'2026-02-15',forma:'REUNIAO',entidade:'Associação Portuguesa de Bancos (APB)',rtri_id:'RTRI/2025/00482',natureza:'RTRI_INSCRITO',gov:'Secretário de Estado dos Assuntos Fiscais',interlocutor:'Secretário-geral',objeto:'Impacto do regime no crédito hipotecário e na avaliação fiscal de garantias.',sintese:'A APB apresentou análise sobre o efeito do regime na avaliação patrimonial das garantias hipotecárias e propôs ajustamentos na fase de execução fiscal de bens reinvestidos.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A clarificação sobre execução fiscal foi acolhida no art. 12.º. A proposta de regime transitório alargado não foi acolhida por razões de previsibilidade orçamental.'},
+        {id:'d2',data:'2026-03-04',forma:'AUDIENCIA',entidade:'Associação dos Inquilinos Lisbonenses',rtri_id:'',natureza:'OUTRA',gov:'Ministro das Finanças; SE Assuntos Fiscais',interlocutor:'Direção',objeto:'Posição sobre o condicionamento da exclusão tributária à colocação no mercado de arrendamento.',sintese:'A AIL defendeu o reforço das condições de elegibilidade para o regime de arrendamento acessível, evitando que a exclusão beneficie habitação devoluta ou alojamento turístico.',decisao:'INCORPORADA',justificacao:'Reforçaram-se os critérios de elegibilidade no art. 9.º com referência ao conceito legal de "arrendamento acessível" da Lei n.º 81/2020.'},
+        {id:'d3',data:'2026-03-12',forma:'CORRESPONDENCIA',entidade:'Ordem dos Contabilistas Certificados (OCC)',rtri_id:'',natureza:'RTRI_FORCA_LEI',gov:'SE Assuntos Fiscais',interlocutor:'Bastonário',objeto:'Parecer sobre simplificação do regime para efeitos de declaração fiscal.',sintese:'A OCC alertou para a complexidade do regime, propondo a simplificação da declaração anual e a criação de um simulador na AT para apoiar a aplicação prática.',decisao:'INCORPORADA',justificacao:'A simplificação foi acolhida no art. 6.º e a AT vai disponibilizar simulador no Portal das Finanças.'},
+      ],
+      comprovativos:[
+        {jti:'cmp_M0-1xQ9pK3wLm7n',marco:'M0',emitido_em:'2026-02-01T11:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M3-6tR4kP2nQy8z',marco:'M3',emitido_em:'2026-04-02T11:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M4-9wH5vB3xLk7p',marco:'M4',emitido_em:'2026-04-18T15:00:00Z',estado:'VERIFICADO'},
+      ],
+      versoes:[
+        {n:1,ts:'2026-02-01T10:00:00Z',autor:'Luís Tavares',marco:null,desc:'FPL criada'},
+        {n:2,ts:'2026-02-01T11:00:00Z',autor:'Luís Tavares',marco:'M0',desc:'M0 validado · comprovativo emitido'},
+        {n:11,ts:'2026-04-02T11:00:00Z',autor:'Luís Tavares',marco:'M3',desc:'M3 validado · comprovativo emitido'},
+        {n:14,ts:'2026-04-18T15:00:00Z',autor:'Luís Tavares',marco:'M4',desc:'M4 validado · estado → Em CM'},
+        {n:15,ts:'2026-04-30T16:00:00Z',autor:'Luís Tavares',marco:null,desc:'Aprovado em Conselho de Ministros'},
+      ],
+    }),
+    mk({
+      id:'fpl-008', numero:'2026/MAI/0009', tipo:'RCM', gabinete:'mai',
+      titulo:'Resolução do Conselho de Ministros que aprova o Plano Nacional de Prevenção e Combate ao Cibercrime 2026–2030',
+      titulo_curto:'PNPCC 2026–2030',
+      estado:'CRIADO', origem:'INICIATIVA_MINISTERIO', ref_origem:'',
+      sintese:'A presente resolução do Conselho de Ministros aprova o Plano Nacional de Prevenção e Combate ao Cibercrime 2026-2030, definindo eixos estratégicos de cooperação entre forças e serviços de segurança, autoridades reguladoras setoriais e o setor privado.',
+      avaliacao_previa:0, criado_por:'u-pedro', criado_em:'2026-05-08T14:00:00Z',
+      versoes:[
+        {n:1,ts:'2026-05-08T14:00:00Z',autor:'Pedro Lopes',marco:null,desc:'FPL criada · aguarda preenchimento do Bloco B antes de validar M0'},
+      ],
+    }),
+    mk({
+      id:'fpl-009', numero:'2026/MECIC/0017', tipo:'DESPACHO', gabinete:'mecic',
+      titulo:'Despacho normativo que define o regime de avaliação de centros de investigação para o triénio 2026–2028',
+      titulo_curto:'Avaliação de centros de investigação 2026–2028',
+      estado:'EM_REVISAO_QA', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo V',
+      sintese:'O presente despacho normativo define os critérios, painéis e procedimentos para a avaliação de centros de investigação científica e de unidades de I&D para o período 2026-2028, em articulação com a FCT e os painéis científicos internacionais.',
+      avaliacao_previa:1, criado_por:'u-sofia', criado_em:'2026-01-25T11:00:00Z',
+      m0:'2026-01-25T12:00:00Z',m0_por:'u-sofia',m1:'2026-02-28T10:00:00Z',
+      cl_ref:'CL-2026-022', cl_inicio:'2026-03-10', cl_fim:'2026-04-10', cl_n:208,
+      bloco_d:[
+        {id:'d1',data:'2026-02-05',forma:'REUNIAO',entidade:'Conselho de Reitores das Universidades Portuguesas (CRUP)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'Ministra; SE Ciência',interlocutor:'Presidente; Vice-presidente',objeto:'Discussão dos critérios de avaliação dos centros e unidades de I&D.',sintese:'O CRUP solicitou maior peso da componente colaborativa e da participação em redes europeias na avaliação. Propôs também painéis com avaliadores estrangeiros maioritários.',decisao:null,justificacao:''},
+        {id:'d2',data:'2026-02-18',forma:'AUDIENCIA',entidade:'Conselho Coordenador dos Institutos Superiores Politécnicos (CCISP)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'SE Ciência',interlocutor:'Presidente',objeto:'Posição sobre critérios diferenciados para o ensino politécnico.',sintese:'O CCISP defendeu critérios de avaliação que valorizem a investigação aplicada e a transferência tecnológica, em distinção da investigação fundamental, para centros associados ao ensino politécnico.',decisao:null,justificacao:''},
+      ],
+      comprovativos:[{jti:'cmp_M0-3rF8kV2pLn7q',marco:'M0',emitido_em:'2026-01-25T12:00:00Z',estado:'VERIFICADO'}],
+      versoes:[
+        {n:1,ts:'2026-01-25T11:00:00Z',autor:'Sofia Mendes',marco:null,desc:'FPL criada'},
+        {n:2,ts:'2026-01-25T12:00:00Z',autor:'Sofia Mendes',marco:'M0',desc:'M0 validado · comprovativo emitido'},
+        {n:8,ts:'2026-05-04T11:00:00Z',autor:'Rui Ferreira',marco:null,desc:'SGGOV pediu correção do Bloco D · decisões em falta'},
+      ],
+    }),
   ];
   const auditorias = [
     {id:'a1',fpl_id:'fpl-001',auditor:'Rui Ferreira',data:'2026-05-02T10:00:00Z',pontuacao:94,observacoes:'FPL com cobertura adequada das interações relevantes. Decisões de incorporação bem fundamentadas. Sugestão menor: explicitar no objeto da entrada D-2 (EDP) se a reunião abrangeu também aspetos tarifários.',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
     {id:'a2',fpl_id:'fpl-003',auditor:'Ana Costa',data:'2026-04-28T10:00:00Z',pontuacao:76,observacoes:'Bloco D com decisões de incorporação por preencher em ambas as entradas. Necessário completar antes de M3.',pedido_correcao:1,estado_correcao:'PENDENTE'},
+    {id:'a3',fpl_id:'fpl-007',auditor:'Rui Ferreira',data:'2026-04-20T11:00:00Z',pontuacao:88,observacoes:'Cobertura adequada das interações relevantes. Decisões de incorporação fundamentadas. Sem pedidos de correção.',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
+    {id:'a4',fpl_id:'fpl-009',auditor:'Rui Ferreira',data:'2026-05-04T11:00:00Z',pontuacao:62,observacoes:'Bloco D incompleto: ambas as entradas (CRUP e CCISP) sem decisão de incorporação preenchida. A consulta pública recebeu 208 contributos mas a síntese e a decisão sobre incorporação no Bloco E também estão por preencher. Bloqueia M3.',pedido_correcao:1,estado_correcao:'EM_CURSO'},
   ];
   const notificacoes = [
     {id:'n1',user:'u-maria',tipo:'M3',titulo:'FPL 2026/MAE/0042 — M3 validado',msg:'O comprovativo de M3 foi emitido. Aguarda agendamento em RSE.',ts:'2026-04-30T16:05:00Z',lida:false,fpl_id:'fpl-001'},
@@ -224,8 +319,12 @@ function seed() {
     {id:'n3',user:'u-maria',tipo:'QA',titulo:'Auditoria QA recebida — 2026/MAE/0042',msg:'Pontuação 94/100. Sem pedidos de correção.',ts:'2026-05-02T10:30:00Z',lida:true,fpl_id:'fpl-001'},
     {id:'n4',user:'u-ana',tipo:'QA',titulo:'Pedido de correção — 2026/MS/0011',msg:'A SGGOV pediu a correção do Bloco D antes de M3.',ts:'2026-04-28T11:00:00Z',lida:false,fpl_id:'fpl-003'},
     {id:'n5',user:'u-rui',tipo:'M4',titulo:'FPL 2026/MTSSS/0007 submetida para CM',msg:'Comprovativo de M4 verificado pelo SmartLegis.',ts:'2026-04-25T10:05:00Z',lida:false,fpl_id:'fpl-004'},
+    {id:'n6',user:'u-joao',tipo:'CONSULTA',titulo:'Consulta interna em curso — 2026/ME/0023',msg:'Aguarda parecer da CMVM e do BdP antes de submissão a consulta pública.',ts:'2026-04-12T14:00:00Z',lida:false,fpl_id:'fpl-006'},
+    {id:'n7',user:'u-sofia',tipo:'QA',titulo:'Pedido de correção — 2026/MECIC/0017',msg:'Bloco D e Bloco E incompletos. M3 bloqueado até resolução.',ts:'2026-05-04T11:30:00Z',lida:false,fpl_id:'fpl-009'},
+    {id:'n8',user:'u-luis',tipo:'M5',titulo:'Aguarda publicação em DR — 2026/MF/0014',msg:'Aprovado em CM em 30/04. Publicação prevista para 25/05.',ts:'2026-05-01T09:00:00Z',lida:true,fpl_id:'fpl-007'},
+    {id:'n9',user:'u-pedro',tipo:'M4',titulo:'Aguarda Conselho de Ministros — 2026/MTSSS/0007',msg:'Comprovativo de M4 verificado. Diploma agendado para CM de 22/05.',ts:'2026-04-25T11:00:00Z',lida:false,fpl_id:'fpl-004'},
   ];
-  return {fpls,auditorias,notificacoes,seq:51};
+  return {fpls,auditorias,notificacoes,seq:80};
 }
 
 function load() {
