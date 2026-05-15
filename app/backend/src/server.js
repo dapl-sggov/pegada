@@ -126,12 +126,16 @@ if(r.ok)location='/';else{const j=await r.json().catch(()=>({}));alert('Falha: '
 </body></html>`);
   });
 
-  // Frontend estático
+  // Frontend estático + demo standalone
   if (servirFrontend) {
     const frontendDir = path.resolve(__dirname, '../../frontend');
+    const demoDir = path.resolve(__dirname, '../../../demo');
+    // /demo/* serve a demonstração interativa autónoma (HTML + JS + CSS),
+    // útil para mostrar externamente sem dependências do backend.
+    app.use('/demo', express.static(demoDir));
     app.use(express.static(frontendDir));
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api')) return next();
+      if (req.path.startsWith('/api') || req.path.startsWith('/demo')) return next();
       res.sendFile(path.join(frontendDir, 'index.html'), err => err && next());
     });
   }

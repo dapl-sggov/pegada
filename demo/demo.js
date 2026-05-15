@@ -452,72 +452,105 @@ function renderShell() {
   const sggov = isSggov();
   const pub = isPublico();
   const nUnread = DB.notificacoes.filter(n=>n.user===u.id && !n.lida).length;
-  let nav, side, body;
+  document.body.classList.add('painel-mode');
 
+  // Layout do PÚBLICO usa um shell diferente (topbar simples + main full-width)
   if (pub) {
-    nav = [['portal','Portal do Governo'],['portal-dataset','Dados abertos']];
-    side = '';
-    body = S.view==='portal-fpl' ? viewPortalFpl() : (S.view==='portal-dataset'?viewPortalDataset():viewPortal());
-  } else {
-    nav = [['dashboard','Início'],['lista', sggov?'Todas as FPL':'As minhas FPL']];
-    if (!sggov) nav.push(['nova','Nova FPL']);
-    if (sggov) { nav.push(['auditoria','Auditoria QA']); nav.push(['entidades','RTRI']); }
-    side = renderSidebar();
-    body = ({
-      dashboard: viewDashboard, lista: viewLista, nova: viewNova, detalhe: viewDetalhe,
-      auditoria: viewAuditoria, entidades: viewEntidades, comprovativos: viewComprovativos,
-    }[S.view] || viewDashboard)();
+    document.body.classList.remove('painel-mode');
+    const body = S.view==='portal-fpl' ? viewPortalFpl() : (S.view==='portal-dataset'?viewPortalDataset():viewPortal());
+    return `
+    <div class="demo-banner">DEMONSTRAÇÃO · dados fictícios · estado guardado apenas neste navegador · <button onclick="confirmReset()">reiniciar demonstração</button></div>
+    <header class="topbar">
+      <div class="brand">
+        <span class="crest">${svg(I.shield)}</span>
+        <span class="bt"><span class="t1">República Portuguesa</span><span class="t2">Portal do Governo</span></span>
+      </div>
+      <nav>
+        <button class="${S.view==='portal'?'active':''}" onclick="go('portal')">Portal do Governo</button>
+        <button class="${S.view==='portal-dataset'?'active':''}" onclick="go('portal-dataset')">Dados abertos</button>
+      </nav>
+      <div class="right">
+        <button class="icon-btn" title="Tema claro/escuro" onclick="toggleTheme();render()">${svg(I.moon)}</button>
+        <div class="userchip" onclick="S.dropdown=S.dropdown==='user'?null:'user';render()">
+          <span class="avatar" style="background:${u.cor}">${inits(u.nome)}</span>
+          <span class="um"><span class="n">${esc(u.nome)}</span><span class="r">${PAPEL_LBL[u.papel]}</span></span>
+        </div>
+        ${S.dropdown==='user'?renderUserMenu():''}
+      </div>
+    </header>
+    <div class="shell"><main class="main">${body}</main></div>
+    <footer class="footer">Portal do Governo · Demonstração · dados fictícios</footer>`;
   }
 
+  // ── Layout autenticado (painel com sidebar escura) ──
+  const body = ({
+    dashboard: viewDashboard, lista: viewLista, nova: viewNova, detalhe: viewDetalhe,
+    auditoria: viewAuditoria, entidades: viewEntidades, comprovativos: viewComprovativos,
+  }[S.view] || viewDashboard)();
+  const isDetalhe = S.view === 'detalhe';
+
   return `
-  <div class="demo-banner">DEMONSTRAÇÃO · dados fictícios · estado guardado apenas neste navegador · <button onclick="confirmReset()">reiniciar demonstração</button></div>
-  <header class="topbar">
-    <div class="brand">
-      <span class="crest">${svg(I.shield)}</span>
-      <span class="bt"><span class="t1">República Portuguesa · SGGOV</span><span class="t2">FPL — Pegada Legislativa</span></span>
+  <div class="painel-app">
+    ${renderSidebar(nUnread)}
+    <div class="painel-main">
+      <div class="demo-banner-top">DEMONSTRAÇÃO · dados fictícios · guardados apenas neste navegador · <button onclick="confirmReset()">reiniciar</button></div>
+      <main id="main" class="painel-main-inner ${isDetalhe?'no-padding':''}" tabindex="-1">${body}</main>
     </div>
-    <nav>${nav.map(([v,l])=>`<button class="${S.view===v||(v==='portal'&&S.view.startsWith('portal'))?'active':''}" onclick="go('${v}')">${l}</button>`).join('')}</nav>
-    <div class="right">
-      <button class="icon-btn" title="Tema claro/escuro" onclick="toggleTheme();render()">${svg(I.moon)}</button>
-      ${!pub?`<button class="icon-btn" title="Notificações" onclick="S.dropdown=S.dropdown==='notif'?null:'notif';render()">${svg(I.bell)}${nUnread?'<span class="dot"></span>':''}</button>`:''}
-      <div class="userchip" onclick="S.dropdown=S.dropdown==='user'?null:'user';render()">
-        <span class="avatar" style="background:${u.cor}">${inits(u.nome)}</span>
-        <span class="um"><span class="n">${esc(u.nome)}</span><span class="r">${PAPEL_LBL[u.papel]}${u.gabinete?' · '+gab(u.gabinete).sigla:''}</span></span>
-      </div>
-      ${S.dropdown==='user'?renderUserMenu():''}
-      ${S.dropdown==='notif'?renderNotifPanel():''}
-    </div>
-  </header>
-  <div class="shell">
-    ${side}
-    <main class="main">${body}</main>
-  </div>
-  <footer class="footer">FPL Ponte · Demonstração interativa autónoma · v0.2 · Secretaria-Geral do Governo · dados fictícios</footer>`;
+    ${S.dropdown==='notif'?renderNotifPanel():''}
+    ${S.dropdown==='user'?renderUserMenu():''}
+  </div>`;
 }
+
 function bindShell() {
   if (S.view==='detalhe') bindDetalhe();
   if (S.view==='nova') bindNova();
 }
-function renderSidebar() {
+
+function renderSidebar(nUnread) {
+  const u = S.user;
   const sggov = isSggov();
   const myFpls = fplsVisiveis();
-  const link = (v,ic,l,count) => `<button class="side-link ${S.view===v?'active':''}" onclick="go('${v}')">${svg(ic)}<span>${l}</span>${count!=null?`<span class="count">${count}</span>`:''}</button>`;
-  return `<aside class="sidebar">
-    <div class="side-sec">
-      <div class="st">Trabalho</div>
-      ${link('dashboard',I.home,'Início')}
-      ${link('lista',I.doc, sggov?'Todas as FPL':'As minhas FPL', myFpls.length)}
-      ${!sggov?link('nova',I.plus,'Nova FPL'):''}
+  const ativos = myFpls.filter(f=>!['PUBLICADO','ARQUIVADO'].includes(f.estado)).length;
+  const emCm = myFpls.filter(f=>f.estado==='EM_CM').length;
+  const publicadas = myFpls.filter(f=>f.estado==='PUBLICADO').length;
+  const validar = myFpls.filter(f=>f.estado==='EM_ELABORACAO' && !f.m3).length;
+  const link = (v,ic,l,extra='') => `<button class="link ${S.view===v?'active':''}" onclick="go('${v}')">${svg(ic)}<span>${l}</span>${extra}</button>`;
+  const pill = (n,gold=true) => n>0 ? `<span class="${gold?'pill':'dot-unread'}">${gold?n:''}</span>` : '';
+
+  return `
+  <aside class="painel-side" aria-label="Menu lateral">
+    <div class="brand">
+      <span class="crest-mini">${svg(I.shield)}</span>
+      <div class="brand-text">
+        <div class="brand-name">FPL · SGGOV</div>
+        <div class="brand-sub">Pegada Legislativa</div>
+      </div>
     </div>
-    ${sggov?`<div class="side-sec">
-      <div class="st">SGGOV</div>
-      ${link('auditoria',I.check,'Auditoria QA', DB.auditorias.length)}
-      ${link('comprovativos',I.key,'Comprovativos')}
-      ${link('entidades',I.search,'Entidades RTRI')}
-    </div>`:''}
-    <div class="side-sec">
-      <div class="st">Transparência</div>
-      <button class="side-link" onclick="S.user=PERFIS.find(p=>p.id==='u-cidadao');go('portal')">${svg(I.globe)}<span>Ver Portal do Governo</span></button>
+    <div class="group">
+      <div class="group-title">Trabalho</div>
+      ${link('dashboard',I.home,'Início')}
+      ${link('lista',I.doc, sggov?'Todas as FPL':'As minhas FPL', pill(ativos))}
+      ${!sggov?link('nova',I.plus,'Nova FPL'):''}
+      <button class="link" onclick="S.dropdown=S.dropdown==='notif'?null:'notif';render()">${svg(I.bell)}<span>Notificações</span>${pill(nUnread)}</button>
+    </div>
+    <div class="group">
+      <div class="group-title">Vistas</div>
+      ${validar>0?`<button class="link" onclick="go('lista')">${svg(I.check)}<span>A validar (${validar})</span></button>`:''}
+      ${emCm>0?`<button class="link" onclick="go('lista')">${svg(I.shield)}<span>Em CM (${emCm})</span></button>`:''}
+      ${publicadas>0?`<button class="link" onclick="go('lista')">${svg(I.check)}<span>Publicadas (${publicadas})</span></button>`:''}
+      ${sggov?link('auditoria',I.shield,'Auditoria QA'):''}
+      ${sggov?link('comprovativos',I.key,'Comprovativos'):''}
+      ${sggov?link('entidades',I.search,'Entidades RTRI'):''}
+    </div>
+    <div class="group">
+      <div class="group-title">Transparência</div>
+      <button class="link" onclick="S.user=PERFIS.find(p=>p.id==='u-cidadao');go('portal')">${svg(I.globe)}<span>Portal do Governo</span></button>
+      <button class="link" onclick="toggleTheme();render()">${svg(I.moon)}<span>Tema claro/escuro</span></button>
+    </div>
+    <div class="bottom">
+      <div class="av" style="background:${u.cor}">${inits(u.nome)}</div>
+      <div class="nm"><strong>${esc(u.nome)}</strong><span>${PAPEL_LBL[u.papel]}${u.gabinete?' · '+gab(u.gabinete).sigla:''}</span></div>
+      <button onclick="logout()" title="Terminar sessão" aria-label="Terminar sessão">${svg(I.out)}</button>
     </div>
   </aside>`;
 }
@@ -834,47 +867,493 @@ function bindNova() {
 }
 
 /* ---------- DETALHE FPL ---------- */
+/* ============ DETALHE — PAINEL + CRONOGRAMA ============
+   Substitui a vista de tabs pelo painel do design handoff:
+   header com toggle Detalhe/Cronograma, stepper M0-M5, e
+   body em grelha de cards ou calendário mensal. */
+
 function viewDetalhe() {
   const f = getFpl(S.fplId);
-  if (!f) return '<div class="card-empty">FPL não encontrada.</div>';
-  const marcos = ['M0','M1','M2','M3','M4','M5'];
-  const mv = {M0:f.m0,M1:f.m1,M2:f.m2,M3:f.m3,M4:f.m4,M5:f.m5};
-  let lastDone = -1; marcos.forEach((m,i)=>{if(mv[m])lastDone=i;});
-  const pm = proxMarco(f);
-  const tabs = [['A','Identificação'],['B','Origem'],['C','Contributos internos',(f.bloco_c||[]).length],['D','Interações externas',(f.bloco_d||[]).length],['E','Consulta pública'],['F','Declaração'],['CMP','Comprovativos',(f.comprovativos||[]).length],['G','Auditoria'],['H','Histórico',(f.versoes||[]).length]];
-  const blocoFns = {A:blocoA,B:blocoB,C:blocoC,D:blocoD,E:blocoE,F:blocoF,CMP:blocoCMP,G:blocoG,H:blocoH};
-  return `
-  <div class="fpl-head">
-    <div class="crumb"><button onclick="go('lista')">${isSggov()?'Todas as FPL':'As minhas FPL'}</button> › ${esc(f.numero)}</div>
-    <div class="flex ac gap-8 wrap">${tag(f.tipo)} ${badge(f.estado)}<span class="muted small">${esc(gab(f.gabinete).nome)}</span></div>
-    <h2>${esc(f.titulo)}</h2>
-    <div class="meta">
-      <div class="mi"><span class="l">N.º Processo</span><span class="v mono">${esc(f.numero)}</span></div>
-      <div class="mi"><span class="l">Origem</span><span class="v">${ORIGENS[f.origem]||'—'}</span></div>
-      <div class="mi"><span class="l">Aberta em</span><span class="v">${fmtD(f.m0||f.criado_em)}</span></div>
-      <div class="mi"><span class="l">Versão</span><span class="v">${(f.versoes||[]).length}</span></div>
-      <div class="mi"><span class="l">Comprovativos</span><span class="v">${(f.comprovativos||[]).length}</span></div>
-      ${f.ref_dr?`<div class="mi"><span class="l">Diário da República</span><span class="v">${esc(f.ref_dr)}</span></div>`:''}
-    </div>
-    <div class="actions">
-      ${!isPublico() && scopeOk(f) && pm==='APROVAR'?`<button class="btn accent" onclick="aprovarCM('${f.id}')">Marcar como aprovado em CM</button>`:''}
-      ${!isPublico() && scopeOk(f) && pm && pm!=='APROVAR'?`<button class="btn primary" onclick="modalValidarMarco('${f.id}','${pm}')">Validar ${pm}${MARCOS_BLOQ.includes(pm)?' (emite comprovativo)':''}</button>`:''}
-      ${isSggov()?`<button class="btn" onclick="modalNovaAuditoria()">${svg(I.shield)} Auditar</button>`:''}
-      ${f.estado==='PUBLICADO'?`<button class="btn" onclick="S.user=PERFIS.find(p=>p.id==='u-cidadao');go('portal-fpl',{fplId:'${f.id}'})">${svg(I.globe)} Ver no Portal do Governo</button>`:''}
-    </div>
-  </div>
-  <div class="pipeline">
-    ${marcos.map((m,i)=>{const done=!!mv[m];const cur=i===lastDone+1&&!done;const bloq=MARCOS_BLOQ.includes(m);
-      return `<div class="pl-step ${done?'done':''} ${cur?'cur':''} ${bloq?'bloq':''}"><div class="m">${done?'✓ '+m:m}</div><div class="n">${({M0:'Abertura',M1:'Pré-CP',M2:'Pós-CP',M3:'Pré-RSE',M4:'Pré-CM',M5:'Publicação'})[m]}${done?' · '+fmtD(mv[m]):''}</div></div>`;
-    }).join('')}
-  </div>
-  <div class="tabs">
-    ${tabs.map(([k,l,c])=>`<div class="tab ${S.tab===k?'active':''}" data-tab="${k}">${l}${c!=null?`<span class="pill">${c}</span>`:''}</div>`).join('')}
-  </div>
-  <div id="tab-content">${(blocoFns[S.tab]||blocoA)(f)}</div>`;
+  if (!f) return '<div class="card-empty" style="padding:32px">FPL não encontrada.</div>';
+  const vista = (sessionStorage.getItem('fpl.detailView.'+f.id) || 'detalhe');
+
+  return painelHeader(f, vista) + (vista === 'cronograma' ? painelCronograma(f) : painelDetalhe(f));
 }
+
 function bindDetalhe() {
-  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{ S.tab=t.dataset.tab; render(); }));
+  // Toggle Detalhe/Cronograma
+  document.querySelectorAll('.painel-toggle [data-vista]').forEach(b => {
+    b.addEventListener('click', () => {
+      sessionStorage.setItem('fpl.detailView.'+S.fplId, b.dataset.vista);
+      render();
+    });
+  });
+}
+
+function painelHeader(f, vista) {
+  const marcos = [
+    {id:'M0',lbl:'Abertura',  data:f.m0, bloq:true},
+    {id:'M1',lbl:'Pré-CP',    data:f.m1, bloq:false},
+    {id:'M2',lbl:'Pós-CP',    data:f.m2, bloq:false},
+    {id:'M3',lbl:'Pré-RSE',   data:f.m3, bloq:true},
+    {id:'M4',lbl:'Pré-CM',    data:f.m4, bloq:true},
+    {id:'M5',lbl:'Publicação',data:f.m5, bloq:true},
+  ];
+  let curIdx = marcos.findIndex(m=>!m.data);
+  marcos.forEach((m,i)=>{ m.estado = m.data ? 'done' : (i===curIdx?'current':'todo'); });
+
+  const est = ESTADOS[f.estado] || {l:f.estado,c:'criado'};
+  const nInter = (f.bloco_d||[]).length;
+  const nCmp = (f.comprovativos||[]).length;
+  const nVer = (f.versoes||[]).length;
+  const cmAprov = !isPublico() && scopeOk(f) && proxMarco(f)==='APROVAR';
+  const pm = proxMarco(f);
+
+  return `
+  <div class="painel-head">
+    <div class="painel-bcrumb">
+      <button onclick="go('lista')">FPL</button> / ${esc(f.numero)}
+    </div>
+    <div class="painel-title-row">
+      <h1 class="painel-title">${esc(f.titulo)}</h1>
+      <span class="painel-estado s-${esc(est.c)}">● ${esc(est.l)}</span>
+    </div>
+    <div class="painel-meta">
+      <span class="pill-tag">${esc(TIPOS[f.tipo]||f.tipo)}</span>
+      <span class="pill-tag">${esc(gab(f.gabinete).sigla)}</span>
+      <span>Versão v${nVer} · ${nVer} ${nVer===1?'versão':'versões'}</span>
+      <span class="sep">·</span>
+      <span>Aberto ${fmtD(f.m0||f.criado_em)}</span>
+      <span class="sep">·</span>
+      <span>${nInter} ${nInter===1?'interação':'interações'}</span>
+      <span class="sep">·</span>
+      <span>${nCmp} ${nCmp===1?'comprovativo':'comprovativos'}</span>
+      ${cmAprov?`<button class="btn sm primary" onclick="aprovarCM('${f.id}')" style="margin-left:8px">Marcar aprovado em CM</button>`:''}
+      ${isSggov()?`<button class="btn sm" onclick="modalNovaAuditoria()" style="margin-left:8px">${svg(I.shield)} Auditar</button>`:''}
+      ${f.estado==='PUBLICADO'?`<button class="btn sm" onclick="S.user=PERFIS.find(p=>p.id==='u-cidadao');go('portal-fpl',{fplId:'${f.id}'})" style="margin-left:8px">${svg(I.globe)} Ver no Portal</button>`:''}
+
+      <div class="painel-toggle" role="tablist" aria-label="Vista da FPL">
+        <button data-vista="detalhe"    role="tab" aria-selected="${vista==='detalhe'}">▦ Detalhe</button>
+        <button data-vista="cronograma" role="tab" aria-selected="${vista==='cronograma'}">▥ Cronograma</button>
+      </div>
+    </div>
+    <div class="painel-stepper">
+      ${marcos.map(m => `
+        <div class="painel-step ${m.estado}">
+          <div class="dot">${m.estado==='done'?'✓':m.id.replace('M','')}</div>
+          <div>
+            <div class="lbl">${m.id} · ${m.lbl}${m.bloq?'<span class="bloq" aria-hidden="true">⚿ bloq.</span>':''}</div>
+            <div class="sub">${m.data?fmtD(m.data):(m.estado==='current'?'a validar agora':'—')}</div>
+            ${m.estado==='current' && !isPublico() && scopeOk(f) && pm && pm!=='APROVAR' ? `<button class="cta" onclick="modalValidarMarco('${f.id}','${m.id}')">Validar ${m.id}</button>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function painelDetalhe(f) {
+  return `<div class="painel-body">
+    ${pcA(f)}
+    ${pcB(f)}
+    ${pcD(f)}
+    ${pcC(f)}
+    ${pcE(f)}
+    ${pcCMP(f)}
+    ${pcF(f)}
+    ${(DB.auditorias.filter(a=>a.fpl_id===f.id).length>0 || isSggov())?pcG(f):''}
+  </div>`;
+}
+
+function pcA(f) {
+  return `<div class="pc-card">
+    <div class="pc-card-head">
+      <div class="pc-letter">A</div>
+      <div><div class="ttl">Identificação</div><div class="sub">Bloco A</div></div>
+      <span class="ok">✓ completo</span>
+    </div>
+    <div class="pc-card-body">
+      <div class="pc-kv">
+        <div class="k">Tipo</div><div class="v">${esc(TIPOS[f.tipo]||f.tipo)}</div>
+        <div class="k">Processo</div><div class="v mono">${esc(f.numero)}</div>
+        <div class="k">Gabinete</div><div class="v">${esc(gab(f.gabinete).nome)}</div>
+        <div class="k">Criação</div><div class="v">${fmtDH(f.criado_em)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pcB(f) {
+  const sintLen = f.sintese?.length || 0;
+  const completo = sintLen >= LIM.SINTESE_B && !!f.origem;
+  const ed = !isPublico() && scopeOk(f);
+  return `<div class="pc-card">
+    <div class="pc-card-head">
+      <div class="pc-letter">B</div>
+      <div><div class="ttl">Origem e motivação</div><div class="sub">Bloco B</div></div>
+      ${completo?'<span class="ok">✓ completo</span>':`<span class="warn">⚠ ${sintLen<LIM.SINTESE_B?'síntese curta':'origem em falta'}</span>`}
+      ${ed?`<button class="more" onclick="modalEditarB('${f.id}')">Editar</button>`:''}
+    </div>
+    <div class="pc-card-body">
+      <div class="pc-kv">
+        <div class="k">Origem</div><div class="v ${!f.origem?'empty':''}">${ORIGENS[f.origem]||'Por preencher'}</div>
+        <div class="k">Referência</div><div class="v ${!f.ref_origem?'empty':''}">${esc(f.ref_origem)||'Não aplicável'}</div>
+        <div class="k">Aval. impacto</div><div class="v">${f.avaliacao_previa===1?'✓ Sim':f.avaliacao_previa===0?'Não':'<span class="v empty">Não indicada</span>'}</div>
+        <div class="k">Síntese</div><div class="v ${!f.sintese?'empty':''}" style="font-size:11.5px;line-height:1.5">${esc((f.sintese||'').slice(0,240))||'Por preencher (mínimo '+LIM.SINTESE_B+' caracteres)'}${sintLen>240?'…':''}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pcD(f) {
+  const ed = !isPublico() && scopeOk(f);
+  const entradas = f.bloco_d || [];
+  const total = entradas.length;
+  const c = entradas.reduce((a,e)=>{
+    if (e.decisao==='INCORPORADA') a.inc++;
+    else if (e.decisao==='PARCIALMENTE_INCORPORADA') a.par++;
+    else if (e.decisao==='NAO_INCORPORADA') a.nao++;
+    else if (e.decisao==='SEM_OBJETO') a.sem++;
+    else a.pend++;
+    return a;
+  }, {inc:0,par:0,nao:0,sem:0,pend:0});
+  const visiveis = entradas.slice(0,5);
+  const restantes = Math.max(0, total - visiveis.length);
+
+  return `<div class="pc-card wide">
+    <div class="pc-card-head">
+      <div class="pc-letter d">D</div>
+      <div>
+        <div class="ttl">Interações externas — núcleo da pegada</div>
+        <div class="sub">Bloco D · Lei n.º 5-A/2026 art.º 4.º</div>
+      </div>
+      ${c.pend>0?`<span class="warn">⚠ ${c.pend} decisão pendente${c.pend>1?'s':''}</span>`:''}
+      <span class="count">${total} entrada${total===1?'':'s'}</span>
+      ${ed?`<button class="more" onclick="modalNovaD('${f.id}')" style="margin-left:8px">+ Adicionar</button>`:''}
+    </div>
+    <div class="pc-card-body">
+      ${total>0?`
+        <div class="pc-bar">
+          ${c.inc>0?`<div style="background:var(--p-success);width:${(c.inc/total)*100}%"></div>`:''}
+          ${c.par>0?`<div style="background:var(--p-gold);width:${(c.par/total)*100}%"></div>`:''}
+          ${c.nao>0?`<div style="background:var(--p-danger);width:${(c.nao/total)*100}%"></div>`:''}
+        </div>
+        <div class="pc-bar-legend">
+          <span><strong style="color:var(--p-success)">${c.inc}</strong> incorporadas</span>
+          <span><strong style="color:var(--p-gold)">${c.par}</strong> parciais</span>
+          <span><strong style="color:var(--p-danger)">${c.nao}</strong> não incorporada${c.nao===1?'':'s'}</span>
+          ${c.sem>0?`<span><strong>${c.sem}</strong> sem objeto</span>`:''}
+          ${c.pend>0?`<span style="margin-left:auto"><strong>${c.pend}</strong> pendente${c.pend===1?'':'s'}</span>`:''}
+        </div>
+        ${visiveis.map(e=>`
+          <div class="pc-mini">
+            <div class="pc-mini-date">${fmtD(e.data)}</div>
+            <div>
+              <div class="pc-mini-ent">${esc(e.entidade)}</div>
+              <div class="pc-mini-sub">${esc(FORMAS[e.forma]||e.forma||'')} · ${e.rtri_id?esc(e.rtri_id):esc(NATUREZAS[e.natureza]||'—')}</div>
+            </div>
+            <div>
+              ${e.decisao
+                ? `<span class="pc-dec ${esc(e.decisao)}">${esc(DECISOES[e.decisao])}</span>`
+                : `<span class="pc-dec PENDENTE">⚠ Pendente</span>`}
+            </div>
+          </div>
+        `).join('')}
+        ${restantes>0?`<button class="pc-more" onclick="modalListaD('${f.id}')">Ver as ${restantes} restantes →</button>`:''}
+      `:'<div class="pc-empty">Sem interações externas registadas</div>'}
+    </div>
+  </div>`;
+}
+
+function pcC(f) {
+  const ed = !isPublico() && scopeOk(f);
+  const lista = f.bloco_c || [];
+  return `<div class="pc-card">
+    <div class="pc-card-head">
+      <div class="pc-letter">C</div>
+      <div><div class="ttl">Contributos internos</div><div class="sub">Bloco C · pareceres formais</div></div>
+      <span class="count">${lista.length}</span>
+      ${ed?`<button class="more" onclick="modalNovaC('${f.id}')" style="margin-left:8px">+</button>`:''}
+    </div>
+    <div class="pc-card-body">
+      ${lista.length===0
+        ? '<div class="pc-empty">Sem contributos registados</div>'
+        : lista.slice(0,4).map(e=>`
+          <div class="pc-mini">
+            <div class="pc-mini-date">${fmtD(e.data)}</div>
+            <div>
+              <div class="pc-mini-ent">${esc(e.entidade)}</div>
+              <div class="pc-mini-sub">${esc(FORMAS_C[e.forma]||e.forma)}</div>
+            </div>
+          </div>
+        `).join('')}
+    </div>
+  </div>`;
+}
+
+function pcE(f) {
+  const ed = !isPublico() && scopeOk(f);
+  const tem = !!f.cl_ref;
+  return `<div class="pc-card">
+    <div class="pc-card-head">
+      <div class="pc-letter">E</div>
+      <div><div class="ttl">Consulta pública</div><div class="sub">Bloco E · ConsultaLEX</div></div>
+      ${tem && f.cl_fim ? '<span class="ok">✓ encerrada</span>' : tem ? '<span class="warn">em curso</span>' : ''}
+      ${ed?`<button class="more" onclick="modalEditarE('${f.id}')" style="margin-left:8px">Editar</button>`:''}
+    </div>
+    <div class="pc-card-body">
+      ${tem?`
+        <div class="pc-kv">
+          <div class="k">Referência</div><div class="v mono">${esc(f.cl_ref)}</div>
+          <div class="k">Período</div><div class="v">${fmtD(f.cl_inicio)} → ${fmtD(f.cl_fim)||'—'}</div>
+          <div class="k">Contributos</div><div class="v"><strong>${f.cl_n||0}</strong> recebido${(f.cl_n||0)===1?'':'s'}</div>
+        </div>
+      `:'<div class="pc-empty">Sem consulta pública registada</div>'}
+    </div>
+  </div>`;
+}
+
+function pcCMP(f) {
+  const cmps = f.comprovativos || [];
+  const marcos = ['M0','M3','M4','M5'];
+  const pendentes = marcos.filter(m=>!cmps.find(c=>c.marco===m));
+  return `<div class="pc-card">
+    <div class="pc-card-head">
+      <div class="pc-letter cmp">⚿</div>
+      <div><div class="ttl">Comprovativos</div><div class="sub">JWS Ed25519 · SmartLegis</div></div>
+      <span class="count">${cmps.length} / 4</span>
+    </div>
+    <div class="pc-card-body">
+      ${cmps.length>0 ? cmps.slice(0,2).map(c=>`
+        <div class="pc-mini">
+          <div class="pc-mini-date">${fmtD(c.emitido_em)}</div>
+          <div>
+            <div class="pc-mini-ent">${esc(c.marco)} ✓</div>
+            <div class="pc-mini-sub">${esc(c.estado||'VALIDO')}</div>
+          </div>
+          <button class="pc-dec INCORPORADA" onclick="modalVerComprovativo('${f.id}','${esc(c.jti)}')" style="cursor:pointer;border:none">VER</button>
+        </div>
+        <div class="pc-sig" title="${esc(c.jti)}">jti: ${esc(c.jti)} · EdDSA<br>${esc((c.jws||'').slice(0,80))}…</div>
+      `).join('') : ''}
+      ${pendentes.length>0?`<div style="font-size:11.5px;color:var(--p-text-mute);margin-top:8px"><strong>${pendentes.length} pendente${pendentes.length===1?'':'s'}:</strong> ${pendentes.join(', ')}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function pcF(f) {
+  const m3 = f.m3 ? '✓ M3 assinada' : 'M3 pendente';
+  const m4 = f.m4 ? '✓ M4 assinada' : 'M4 pendente';
+  const ok = f.m3 && f.m4;
+  return `<div class="pc-card">
+    <div class="pc-card-head">
+      <div class="pc-letter f">F</div>
+      <div><div class="ttl">Declaração</div><div class="sub">Bloco F · ponto focal</div></div>
+      ${ok?'<span class="ok">✓ completas</span>':`<span class="warn">${esc(!f.m3?m3:m4)}</span>`}
+    </div>
+    <div class="pc-card-body">
+      <div class="pc-quote">"Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
+      <div style="font-size:11px;color:var(--p-text-mute);margin-top:10px">${m3} · ${m4}</div>
+    </div>
+  </div>`;
+}
+
+function pcG(f) {
+  const lista = DB.auditorias.filter(a=>a.fpl_id===f.id);
+  return `<div class="pc-card">
+    <div class="pc-card-head">
+      <div class="pc-letter h">G</div>
+      <div><div class="ttl">Auditoria QA</div><div class="sub">SGGOV · pontuação ${lista[0]?.pontuacao||'—'}/100</div></div>
+      <span class="count">${lista.length}</span>
+      ${isSggov()?`<button class="more" onclick="modalNovaAuditoria()" style="margin-left:8px">+</button>`:''}
+    </div>
+    <div class="pc-card-body">
+      ${lista.length===0
+        ? '<div class="pc-empty">Sem auditorias registadas</div>'
+        : lista.slice(0,2).map(a=>`
+          <div class="pc-mini">
+            <div class="pc-mini-date">${fmtD(a.data)}</div>
+            <div>
+              <div class="pc-mini-ent">${esc(a.auditor)}</div>
+              <div class="pc-mini-sub">${a.pedido_correcao?`pedido de correção · ${esc(a.estado_correcao||'PENDENTE')}`:'sem correções'}</div>
+            </div>
+            <div class="pc-dec ${a.pedido_correcao && a.estado_correcao!=='CONCLUIDA'?'PARCIALMENTE_INCORPORADA':'INCORPORADA'}">${a.pontuacao}</div>
+          </div>
+        `).join('')}
+    </div>
+  </div>`;
+}
+
+window.modalListaD = (id) => {
+  const f = getFpl(id); if (!f) return;
+  const todas = f.bloco_d || [];
+  openModal(`
+    <div class="modal-h"><h3>Bloco D · Interações externas (${todas.length})</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-b" style="max-height:65vh;overflow-y:auto">
+      ${todas.map(e=>`
+        <div class="pc-mini" style="padding:10px 0">
+          <div class="pc-mini-date">${fmtD(e.data)}</div>
+          <div>
+            <div class="pc-mini-ent">${esc(e.entidade)}</div>
+            <div class="pc-mini-sub">${esc(FORMAS[e.forma]||e.forma||'')} · ${e.rtri_id?esc(e.rtri_id):esc(NATUREZAS[e.natureza]||'—')}</div>
+            <div class="pc-mini-sub" style="margin-top:4px">${esc((e.objeto||'').slice(0,200))}</div>
+          </div>
+          <div>${e.decisao?`<span class="pc-dec ${esc(e.decisao)}">${esc(DECISOES[e.decisao])}</span>`:`<span class="pc-dec PENDENTE">⚠ Pendente</span>`}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="modal-f"><button class="btn primary" onclick="closeModal()">Fechar</button></div>
+  `, true);
+};
+
+/* ── Cronograma — calendário mensal + lateral de prazos ── */
+function painelCronograma(f) {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
+  const grid = pcGerarGridMes(ano, mes);
+  const eventos = pcCompilarEventos(f);
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const proximos = pcListarProximos(eventos);
+  const isoHoje = pcIsoHoje();
+
+  return `<div class="painel-crono">
+    <div class="crono-cal">
+      <div class="crono-toolbar">
+        <div class="crono-nav"><button aria-label="Mês anterior">‹</button><button aria-label="Mês seguinte">›</button></div>
+        <div class="crono-title">${meses[mes]} ${ano}</div>
+        <div class="crono-legend">
+          <span><i style="background:#0a3161"></i>Marcos</span>
+          <span><i style="background:#9aa5b6"></i>Interações</span>
+          <span><i style="background:#c8102e"></i>RSE / CM</span>
+          <span><i style="background:#1a7f3c"></i>Publicação</span>
+        </div>
+      </div>
+      <div class="crono-weekhead">
+        ${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d=>`<div class="cell">${d}</div>`).join('')}
+      </div>
+      <div class="crono-grid">
+        ${grid.map(d => {
+          const evs = eventos.get(d.iso) || [];
+          const isToday = d.iso === isoHoje;
+          return `<div class="crono-cell ${isToday?'today':''} ${d.dim?'dim':''}">
+            <div class="num">${d.dia===1?`${d.dia} ${meses[d.mes].slice(0,3)}`:d.dia}</div>
+            ${evs.map(e=>`<button class="crono-ev ${esc(e.k)}" ${e.marco?`onclick="modalValidarMarco('${f.id}','${e.marco}')"`:''} title="${esc(e.lbl)}">${esc(e.lbl)}</button>`).join('')}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <aside class="crono-side">
+      <div class="crono-side-hdr">Próximos prazos</div>
+      ${proximos.length===0
+        ? '<div class="pc-empty">Sem prazos próximos.</div>'
+        : proximos.map(p=>`
+          <div class="crono-up-row">
+            <div class="crono-up-date ${p.cor}">
+              <div class="month">${p.mes}</div>
+              <div class="day">${p.dia}</div>
+            </div>
+            <div>
+              <div class="crono-up-title">${esc(p.titulo)}</div>
+              <div class="crono-up-sub">${esc(p.sub)}</div>
+              <div style="margin-top:6px">
+                <span class="crono-up-tag ${esc(p.tag)}">${esc(p.tag)}</span>
+                <span style="font-size:11px;color:var(--p-text-mute)">${esc(p.relativo)}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      <div class="crono-side-hdr" style="margin-top:24px">SLA · médias 2026</div>
+      <div style="font-size:12px;color:var(--p-text-mute);line-height:1.6">
+        M0→M3 mediano: <strong style="color:var(--p-text)">72 dias</strong><br>
+        M3→M5 mediano: <strong style="color:var(--p-text)">34 dias</strong><br>
+        Esta FPL · M0→hoje: <strong style="color:var(--p-text)">${f.m0?pcDiasDesde(f.m0):'—'} dias</strong>
+      </div>
+    </aside>
+  </div>`;
+}
+
+function pcIsoHoje() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function pcDiasDesde(iso) {
+  if (!iso) return '—';
+  return Math.max(0, Math.floor((Date.now()-new Date(iso).getTime())/86400000));
+}
+function pcGerarGridMes(ano, mes) {
+  const primeiro = new Date(ano, mes, 1);
+  const isoFirst = (primeiro.getDay()+6)%7;
+  const inicio = new Date(ano, mes, 1-isoFirst);
+  const out = [];
+  for (let i=0;i<42;i++) {
+    const d = new Date(inicio);
+    d.setDate(inicio.getDate()+i);
+    out.push({
+      dia:d.getDate(), mes:d.getMonth(), ano:d.getFullYear(),
+      iso:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+      dim:d.getMonth()!==mes,
+    });
+  }
+  return out;
+}
+function pcCompilarEventos(f) {
+  const m = new Map();
+  const add = (iso, evt) => {
+    if (!iso) return;
+    const k = iso.slice(0,10);
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push(evt);
+  };
+  ['M0','M1','M2','M3','M4','M5'].forEach(M => {
+    const dt = f[M.toLowerCase()];
+    if (dt) add(dt, {k:M, lbl:`${M}${MARCOS_BLOQ.includes(M)?' ⚿':''} validado`, marco:M});
+  });
+  (f.bloco_d||[]).forEach(e => {
+    add(e.data, {k:'INTER', lbl:(e.entidade||'').slice(0,22)+(e.entidade?.length>22?'…':'')});
+  });
+  if (f.cl_inicio) add(f.cl_inicio, {k:'CP', lbl:'CP · início'});
+  if (f.cl_fim)    add(f.cl_fim,    {k:'CP', lbl:'CP · fim'});
+  if (f.data_publicacao) add(f.data_publicacao, {k:'DR', lbl:'DR publicado'});
+  return m;
+}
+function pcListarProximos(eventos) {
+  const hoje = pcIsoHoje();
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const datas = [...eventos.keys()].filter(d => d >= hoje).sort();
+  const out = [];
+  for (const iso of datas.slice(0, 5)) {
+    const d = new Date(iso);
+    const dias = Math.round((d - new Date(hoje))/86400000);
+    for (const e of eventos.get(iso)) {
+      const cor = e.k==='M3'||e.k==='M4' ? 'gold'
+                : e.k==='M5'||e.k==='DR' ? 'green'
+                : e.k==='RSE'||e.k==='CM' ? 'red' : 'blue';
+      out.push({
+        cor,
+        mes: dias===0 ? 'Hoje' : meses[d.getMonth()],
+        dia: String(d.getDate()).padStart(2,'0'),
+        titulo: e.lbl,
+        sub: pcDescEvento(e),
+        tag: e.k,
+        relativo: dias===0?'hoje':dias===1?'amanhã':`em ${dias} dias`,
+      });
+      if (out.length >= 5) return out;
+    }
+  }
+  return out;
+}
+function pcDescEvento(e) {
+  switch (e.k) {
+    case 'M3': return 'Validação bloqueante · pré-RSE';
+    case 'M4': return 'Validação bloqueante · pré-CM';
+    case 'M5': return 'Validação bloqueante · publicação';
+    case 'RSE': return 'Reunião de Secretários de Estado';
+    case 'CM':  return 'Conselho de Ministros';
+    case 'DR':  return 'Publicação em Diário da República';
+    case 'CP':  return 'Período de consulta pública';
+    case 'INTER': return 'Interação externa registada';
+    default: return '';
+  }
 }
 
 /* ----- BLOCOS ----- */
