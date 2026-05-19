@@ -28,10 +28,25 @@ export async function viewDashboard() {
       <button class="btn primary" data-nav="nova">+ Nova FPL</button>
     </div>
     <div class="kpis">
-      <div class="kpi"><div class="lbl">FPL ativas</div><div class="val">${ativas.length}</div></div>
-      <div class="kpi"><div class="lbl">Em RSE / CM</div><div class="val" style="color:var(--warning)">${fpls.filter(f => ['EM_RSE', 'EM_CM'].includes(f.estado_workflow)).length}</div></div>
-      <div class="kpi"><div class="lbl">Publicadas</div><div class="val" style="color:var(--success)">${publicadas.length}</div></div>
-      <div class="kpi"><div class="lbl">Em revisão QA</div><div class="val" style="color:var(--danger)">${fpls.filter(f => f.estado_workflow === 'EM_REVISAO_QA').length}</div></div>
+      <button class="kpi kpi-btn" onclick="window.filtrarLista({})" aria-label="Ver todas as FPL">
+        <div class="lbl">FPL ativas</div><div class="val">${ativas.length}</div>
+        <div class="kpi-hint">Ver lista →</div>
+      </button>
+      <button class="kpi kpi-btn" onclick="window.filtrarLista({estado:'EM_RSE'})" aria-label="Ver FPL em RSE">
+        <div class="lbl">Em RSE / CM</div>
+        <div class="val" style="color:var(--warning)">${fpls.filter(f => ['EM_RSE', 'EM_CM'].includes(f.estado_workflow)).length}</div>
+        <div class="kpi-hint">Filtrar →</div>
+      </button>
+      <button class="kpi kpi-btn" onclick="window.filtrarLista({estado:'PUBLICADO'})" aria-label="Ver FPL publicadas">
+        <div class="lbl">Publicadas</div>
+        <div class="val" style="color:var(--success)">${publicadas.length}</div>
+        <div class="kpi-hint">Filtrar →</div>
+      </button>
+      <button class="kpi kpi-btn" onclick="window.filtrarLista({estado:'EM_REVISAO_QA'})" aria-label="Ver FPL em revisão QA">
+        <div class="lbl">Em revisão QA</div>
+        <div class="val" style="color:var(--danger)">${fpls.filter(f => f.estado_workflow === 'EM_REVISAO_QA').length}</div>
+        <div class="kpi-hint">Filtrar →</div>
+      </button>
     </div>
     <div class="card">
       <div class="card-head"><h3>FPL recentes</h3><a onclick="setView('lista')">Ver todas →</a></div>

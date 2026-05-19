@@ -8,15 +8,18 @@ import { renderRoot } from './render.js';
 import { renderLogin } from './views/login.js';
 import { ligarAtalhosGlobais } from './cmdk.js';
 import { inicializarTema } from './tema.js';
+import { parseHash } from './router.js';
 // Side-effect imports: registam window.* handlers usados por inline onclick
-import './router.js';
 import './notifications.js';
 import './wizard-bloco-d.js';
 import './diff-viewer.js';
 
 export async function bootApp() {
   await loadGabinetes();
-  state.view = 'dashboard';
+  // Hidrata o state a partir do hash (deep-link); fallback para dashboard.
+  const { view, fplId } = parseHash();
+  state.view = view;
+  if (fplId) state.fplId = fplId;
   // Garante que o cookie CSRF está definido antes de qualquer mutação
   await api('/auth/csrf').catch(() => null);
   renderRoot();

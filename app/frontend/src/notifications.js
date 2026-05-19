@@ -8,6 +8,16 @@ import { toast } from './utils.js';
 let _pollHandle = null;
 let _sse = null;
 
+/**
+ * Estado atual do canal de notificações.
+ * @returns {'sse' | 'polling' | 'desconectado'}
+ */
+export function getEstadoCanal() {
+  if (_sse && _sse.readyState === 1) return 'sse';
+  if (_pollHandle) return 'polling';
+  return 'desconectado';
+}
+
 export async function pollNotificacoes() {
   if (!state.user) return;
   try {

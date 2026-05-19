@@ -3,6 +3,7 @@
 
 import { state } from './state.js';
 import { aplicarTema, toast } from './utils.js';
+import { iconeTema } from './shell.js';
 
 const ORDEM = ['auto', 'claro', 'escuro', 'alto-contraste'];
 const NOMES = {
@@ -23,10 +24,7 @@ window.alternarTema = () => {
   localStorage.setItem('fpl_tema', novo);
   aplicarTema(novo);
   toast('Tema: ' + NOMES[novo], 'info');
-  // Atualiza o botão sem re-renderizar tudo
-  const btn = document.getElementById('temaBtn');
-  if (btn) {
-    btn.textContent = novo === 'escuro' ? '☾' : novo === 'alto-contraste' ? '◐' : novo === 'claro' ? '☀' : '◑';
-    btn.setAttribute('title', 'Tema atual: ' + novo);
-  }
+  // Atualiza o ícone da sidebar sem re-renderizar tudo
+  const ti = document.getElementById('temaIco');
+  if (ti) ti.innerHTML = iconeTema(novo);
 };

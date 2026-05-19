@@ -92,6 +92,7 @@ export function bindNovaFpl() {
   ligarAutosave(form, RASCUNHO_KEY, document.getElementById('autosaveInd'));
 
   document.getElementById('descartarRascunho')?.addEventListener('click', () => {
+    if (!confirm('Descartar rascunho? Esta ação não pode ser desfeita.')) return;
     limparRascunho(RASCUNHO_KEY);
     setView('nova'); // re-renderiza limpo
   });

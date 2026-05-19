@@ -16,6 +16,7 @@ import { esc, fmtData, fmtDH, openModal, closeModal, toast } from '../utils.js';
 import { loadFpl, loadGabinetes } from '../data.js';
 import { setView } from '../router.js';
 import { renderRoot } from '../render.js';
+import { ico } from '../icons.js';
 import './../wizard-bloco-d.js';
 import './../diff-viewer.js';
 
@@ -27,6 +28,17 @@ function vistaAtual() {
 function setVistaAtual(v) {
   sessionStorage.setItem('fpl.detailView.' + state.fplId, v);
 }
+
+// Mapeamento marco → card de destino para o stepper navegável.
+// Click num step sem CTA "Validar" faz scrollIntoView no card respetivo.
+const CARD_DO_MARCO = {
+  M0: 'card-a',   // Identificação
+  M1: 'card-e',   // Consulta pública
+  M2: 'card-e',
+  M3: 'card-d',   // Interações externas (núcleo da pegada)
+  M4: 'card-cmp', // Comprovativos
+  M5: 'card-cmp',
+};
 
 // ---------- Entry point ----------
 export async function viewDetalhePainel() {
@@ -80,16 +92,16 @@ function renderHeader(f, vista) {
         <span>${nAnexos} anexo${nAnexos === 1 ? '' : 's'}</span>
 
         <div class="painel-toggle" role="tablist" aria-label="Vista da FPL">
-          <button data-vista="detalhe"  role="tab" aria-selected="${vista === 'detalhe'}"><span class="ico" aria-hidden="true">▦</span> Detalhe</button>
-          <button data-vista="cronograma" role="tab" aria-selected="${vista === 'cronograma'}"><span class="ico" aria-hidden="true">▥</span> Cronograma</button>
+          <button data-vista="detalhe"  role="tab" aria-selected="${vista === 'detalhe'}"><span class="ico" aria-hidden="true">${ico('dashboard', { size: 13 })}</span> Detalhe</button>
+          <button data-vista="cronograma" role="tab" aria-selected="${vista === 'cronograma'}"><span class="ico" aria-hidden="true">${ico('calendar', { size: 13 })}</span> Cronograma</button>
         </div>
       </div>
       <div class="painel-stepper">
         ${marcos.map(m => `
-          <div class="painel-step ${m.estado}" data-marco="${m.id}">
+          <div class="painel-step ${m.estado}" data-marco="${m.id}" data-card-target="${CARD_DO_MARCO[m.id] || ''}" role="button" tabindex="0" aria-label="${m.id} ${m.label} — ir para a secção">
             <div class="dot">${m.estado === 'done' ? '✓' : m.id.replace('M', '')}</div>
             <div>
-              <div class="lbl">${m.id} · ${m.label}${m.bloq ? '<span class="bloq" aria-hidden="true">⚿ bloq.</span>' : ''}</div>
+              <div class="lbl">${m.id} · ${m.label}${m.bloq ? '<span class="bloq" aria-hidden="true">bloq.</span>' : ''}</div>
               <div class="sub">${m.data ? fmtData(m.data) : (m.estado === 'current' ? 'a validar agora' : '—')}</div>
               ${m.estado === 'current' ? `<button class="cta" data-validar="${m.id}">Validar ${m.id}</button>` : ''}
             </div>
@@ -118,7 +130,7 @@ function renderDetalhe(f) {
 }
 
 function cardA(f) {
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-a">
     <div class="pc-card-head">
       <div class="pc-letter">A</div>
       <div><div class="ttl">Identificação</div><div class="sub">Bloco A</div></div>
@@ -138,7 +150,7 @@ function cardA(f) {
 function cardB(f) {
   const sintLen = f.sintese_problema?.length || 0;
   const completo = sintLen >= 200 && !!f.tipo_origem;
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-b">
     <div class="pc-card-head">
       <div class="pc-letter">B</div>
       <div><div class="ttl">Origem e motivação</div><div class="sub">Bloco B</div></div>
@@ -172,7 +184,7 @@ function cardD(f) {
   const visiveis = entradas.slice(0, 5);
   const restantes = Math.max(0, total - visiveis.length);
 
-  return `<div class="pc-card wide">
+  return `<div class="pc-card wide" id="card-d">
     <div class="pc-card-head">
       <div class="pc-letter d">D</div>
       <div>
@@ -186,14 +198,14 @@ function cardD(f) {
     <div class="pc-card-body">
       ${total > 0 ? `
         <div class="pc-bar">
-          ${counts.inc > 0 ? `<div style="background:var(--panel-success);width:${(counts.inc/total)*100}%"></div>` : ''}
-          ${counts.par > 0 ? `<div style="background:var(--panel-gold);width:${(counts.par/total)*100}%"></div>` : ''}
-          ${counts.nao > 0 ? `<div style="background:var(--panel-danger);width:${(counts.nao/total)*100}%"></div>` : ''}
+          ${counts.inc > 0 ? `<div style="background:var(--success);width:${(counts.inc/total)*100}%"></div>` : ''}
+          ${counts.par > 0 ? `<div style="background:var(--gold);width:${(counts.par/total)*100}%"></div>` : ''}
+          ${counts.nao > 0 ? `<div style="background:var(--danger);width:${(counts.nao/total)*100}%"></div>` : ''}
         </div>
         <div class="pc-bar-legend">
-          <span><strong style="color:var(--panel-success)">${counts.inc}</strong> incorporadas</span>
-          <span><strong style="color:var(--panel-gold)">${counts.par}</strong> parciais</span>
-          <span><strong style="color:var(--panel-danger)">${counts.nao}</strong> não incorporada${counts.nao === 1 ? '' : 's'}</span>
+          <span><strong style="color:var(--success)">${counts.inc}</strong> incorporadas</span>
+          <span><strong style="color:var(--gold)">${counts.par}</strong> parciais</span>
+          <span><strong style="color:var(--danger)">${counts.nao}</strong> não incorporada${counts.nao === 1 ? '' : 's'}</span>
           ${counts.sem > 0 ? `<span><strong>${counts.sem}</strong> sem objeto</span>` : ''}
           ${counts.pend > 0 ? `<span style="margin-left:auto"><strong>${counts.pend}</strong> pendente${counts.pend === 1 ? '' : 's'}</span>` : ''}
         </div>
@@ -212,14 +224,14 @@ function cardD(f) {
           </div>
         `).join('')}
         ${restantes > 0 ? `<button class="pc-more" id="verRestantesD">Ver as ${restantes} restantes →</button>` : ''}
-      ` : '<div class="empty-hint" style="font-size:12px;color:var(--panel-text-mute);font-style:italic">Sem interações externas registadas</div>'}
+      ` : '<div class="empty-hint" style="font-size:12px;color:var(--text-muted);font-style:italic">Sem interações externas registadas</div>'}
     </div>
   </div>`;
 }
 
 function cardC(f) {
   const lista = f.bloco_c || [];
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-c">
     <div class="pc-card-head">
       <div class="pc-letter">C</div>
       <div><div class="ttl">Contributos internos</div><div class="sub">Bloco C · pareceres formais</div></div>
@@ -228,7 +240,7 @@ function cardC(f) {
     </div>
     <div class="pc-card-body">
       ${lista.length === 0
-        ? '<div style="font-size:12px;color:var(--panel-text-mute);font-style:italic">Sem contributos registados</div>'
+        ? '<div style="font-size:12px;color:var(--text-muted);font-style:italic">Sem contributos registados</div>'
         : lista.slice(0, 4).map(e => `
           <div class="pc-mini">
             <div class="pc-mini-date">${fmtData(e.data)}</div>
@@ -245,7 +257,7 @@ function cardC(f) {
 function cardE(f) {
   const tem = !!f.consulta_lex_ref;
   const total = f.consulta_lex_n_contributos || 0;
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-e">
     <div class="pc-card-head">
       <div class="pc-letter">E</div>
       <div><div class="ttl">Consulta pública</div><div class="sub">Bloco E · ConsultaLEX</div></div>
@@ -259,7 +271,7 @@ function cardE(f) {
           <div class="k">Período</div><div class="v">${fmtData(f.consulta_lex_inicio)} → ${fmtData(f.consulta_lex_fim) || '—'}</div>
           <div class="k">Contributos</div><div class="v"><strong>${total}</strong> recebido${total === 1 ? '' : 's'}</div>
         </div>
-      ` : '<div style="font-size:12px;color:var(--panel-text-mute);font-style:italic">Sem consulta pública registada</div>'}
+      ` : '<div style="font-size:12px;color:var(--text-muted);font-style:italic">Sem consulta pública registada</div>'}
     </div>
   </div>`;
 }
@@ -269,7 +281,7 @@ function cardComprovativos(f) {
   const marcosBloq = ['M0', 'M3', 'M4', 'M5'];
   const emitidos = cmps.length;
   const pendentes = marcosBloq.filter(m => !cmps.find(c => c.marco === m));
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-cmp">
     <div class="pc-card-head">
       <div class="pc-letter cmp">⚿</div>
       <div><div class="ttl">Comprovativos</div><div class="sub">JWS Ed25519 · SmartLegis</div></div>
@@ -287,7 +299,7 @@ function cardComprovativos(f) {
         </div>
         <div class="pc-sig" title="${esc(c.jti)}">jti: ${esc(c.jti)} · kid: ${esc(c.kid || '')} · EdDSA<br>${esc((c.jws || '').slice(0, 80))}…</div>
       `).join('') : ''}
-      ${pendentes.length > 0 ? `<div style="font-size:11.5px;color:var(--panel-text-mute);margin-top:8px"><strong>${pendentes.length} pendente${pendentes.length === 1 ? '' : 's'}:</strong> ${pendentes.join(', ')}</div>` : ''}
+      ${pendentes.length > 0 ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:8px"><strong>${pendentes.length} pendente${pendentes.length === 1 ? '' : 's'}:</strong> ${pendentes.join(', ')}</div>` : ''}
     </div>
   </div>`;
 }
@@ -296,7 +308,7 @@ function cardF(f) {
   const m3 = f.m3_validado_em ? '✓ M3 assinada' : 'M3 pendente';
   const m4 = f.m4_validado_em ? '✓ M4 assinada' : 'M4 pendente';
   const status = f.m3_validado_em && f.m4_validado_em ? 'ok' : 'warn';
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-f">
     <div class="pc-card-head">
       <div class="pc-letter f">F</div>
       <div><div class="ttl">Declaração</div><div class="sub">Bloco F · ponto focal</div></div>
@@ -304,23 +316,23 @@ function cardF(f) {
     </div>
     <div class="pc-card-body">
       <div class="pc-quote">"Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
-      <div style="font-size:11px;color:var(--panel-text-mute);margin-top:10px">${m3} · ${m4}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px">${m3} · ${m4}</div>
     </div>
   </div>`;
 }
 
 function cardAnexos(f) {
   const anexos = state.anexos || [];
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-anexos">
     <div class="pc-card-head">
-      <div class="pc-letter f" style="background:#1a7f3c">⎙</div>
+      <div class="pc-letter anex">⎙</div>
       <div><div class="ttl">Anexos</div><div class="sub">PDFs e documentos</div></div>
       <span class="count">${anexos.length}</span>
       <button class="pc-more" id="addAnexo" style="margin-left:8px">+</button>
     </div>
     <div class="pc-card-body">
       ${anexos.length === 0
-        ? '<div style="font-size:12px;color:var(--panel-text-mute);font-style:italic">Sem anexos</div>'
+        ? '<div style="font-size:12px;color:var(--text-muted);font-style:italic">Sem anexos</div>'
         : anexos.slice(0, 3).map(a => `
           <div class="pc-mini">
             <div class="pc-mini-date">${fmtData(a.upload_em)}</div>
@@ -331,7 +343,7 @@ function cardAnexos(f) {
             <a class="pc-dec INCORPORADA" href="/api/anexos/${esc(a.id)}" target="_blank" rel="noopener" style="text-decoration:none">↓</a>
           </div>
         `).join('')}
-      ${anexos.length > 3 ? `<div style="font-size:11.5px;color:var(--panel-text-mute);margin-top:6px">+ ${anexos.length - 3} mais</div>` : ''}
+      ${anexos.length > 3 ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px">+ ${anexos.length - 3} mais</div>` : ''}
     </div>
   </div>`;
 }
@@ -339,7 +351,7 @@ function cardAnexos(f) {
 function cardG(f) {
   const lista = state.auditorias || [];
   const qa = isQa();
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-g">
     <div class="pc-card-head">
       <div class="pc-letter h">G</div>
       <div><div class="ttl">Auditoria QA</div><div class="sub">SGGOV · pontuação ${lista[0]?.pontuacao || '—'}/100</div></div>
@@ -366,8 +378,12 @@ function cardG(f) {
 // ═══════════════════════════════════════════════════════════════════════════
 function renderCronograma(f) {
   const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mesAtual = hoje.getMonth();
+  const baseAno = hoje.getFullYear();
+  const baseMes = hoje.getMonth();
+  // Aplica offset (state.cronoMesOffset) — botões ‹/› e atalhos [/] navegam aqui.
+  const dataAlvo = new Date(baseAno, baseMes + (state.cronoMesOffset || 0), 1);
+  const ano = dataAlvo.getFullYear();
+  const mesAtual = dataAlvo.getMonth();
   const grid = gerarGridMes(ano, mesAtual);
   const eventos = compilarEventos(f);
   const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
@@ -376,7 +392,11 @@ function renderCronograma(f) {
   return `<div class="painel-crono">
     <div class="crono-cal">
       <div class="crono-toolbar">
-        <div class="crono-nav"><button aria-label="Mês anterior">‹</button><button aria-label="Mês seguinte">›</button></div>
+        <div class="crono-nav">
+          <button id="cronoPrev" aria-label="Mês anterior" title="Mês anterior · atalho [">‹</button>
+          <button id="cronoHoje" aria-label="Hoje" title="Voltar a hoje" style="width:auto;padding:0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Hoje</button>
+          <button id="cronoNext" aria-label="Mês seguinte" title="Mês seguinte · atalho ]">›</button>
+        </div>
         <div class="crono-title">${meses[mesAtual]} ${ano}</div>
         <div class="crono-legend">
           <span><i style="background:#0a3161"></i>Marcos</span>
@@ -402,7 +422,7 @@ function renderCronograma(f) {
     </div>
     <aside class="crono-side">
       <div class="crono-side-hdr">Próximos prazos</div>
-      ${proximos.length === 0 ? '<div style="font-size:12px;color:var(--panel-text-mute);font-style:italic">Sem prazos próximos.</div>' : proximos.map(p => `
+      ${proximos.length === 0 ? '<div style="font-size:12px;color:var(--text-muted);font-style:italic">Sem prazos próximos.</div>' : proximos.map(p => `
         <div class="crono-up-row">
           <div class="crono-up-date ${p.cor}">
             <div class="month">${p.mes}</div>
@@ -413,7 +433,7 @@ function renderCronograma(f) {
             <div class="crono-up-sub">${esc(p.sub)}</div>
             <div style="margin-top:6px">
               <span class="crono-up-tag ${esc(p.tag)}">${esc(p.tag)}</span>
-              <span style="font-size:11px;color:var(--panel-text-mute)">${esc(p.relativo)}</span>
+              <span style="font-size:11px;color:var(--text-muted)">${esc(p.relativo)}</span>
             </div>
           </div>
         </div>
@@ -424,12 +444,13 @@ function renderCronograma(f) {
 }
 
 function renderSla() {
+  const m0 = state.fpl?.m0_validado_em;
   return `
     <div class="crono-side-hdr" style="margin-top:24px">SLA · médias 2026</div>
     <div class="crono-sla">
       M0→M3 mediano: <strong>72 dias</strong><br>
       M3→M5 mediano: <strong>34 dias</strong><br>
-      Esta FPL · M0→hoje: <strong>${diasDesde(state.fpl.m0_validado_em)} dias</strong>
+      Esta FPL · M0→hoje: <strong>${m0 ? diasDesde(m0) + ' dias' : '—'}</strong>
     </div>`;
 }
 
@@ -538,19 +559,47 @@ function descricaoEvento(e) {
 // Bindings — registados após o renderRoot
 // ═══════════════════════════════════════════════════════════════════════════
 export function bindDetalhePainel() {
-  // Toggle de vista
+  // Toggle de vista (sincronizado com o hash via setView)
   document.querySelectorAll('.painel-toggle [data-vista]').forEach(btn => {
     btn.addEventListener('click', () => {
       const v = btn.dataset.vista;
       setVistaAtual(v);
-      renderRoot();
+      setView('detalhe', { fplId: state.fplId, sub: v });
     });
   });
   // Breadcrumb
   document.getElementById('bcVoltar')?.addEventListener('click', () => setView('lista'));
-  // CTAs do stepper
+  // CTAs do stepper (botão "Validar Mx")
   document.querySelectorAll('[data-validar]').forEach(btn => {
-    btn.addEventListener('click', () => window.abrirValidacaoMarco(btn.dataset.validar));
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.abrirValidacaoMarco(btn.dataset.validar);
+    });
+  });
+  // Stepper navegável: clicar num step (que não tem CTA ativo) faz scroll
+  // ao card correspondente e destaca-o brevemente.
+  document.querySelectorAll('.painel-step[data-card-target]').forEach(step => {
+    const target = step.dataset.cardTarget;
+    if (!target) return;
+    const ir = () => {
+      const el = document.getElementById(target);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.classList.remove('highlight');
+      // force reflow para reiniciar a animação
+      // eslint-disable-next-line no-unused-expressions
+      void el.offsetWidth;
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 1300);
+    };
+    step.addEventListener('click', (e) => {
+      // Não interfere com o botão "Validar"
+      if (e.target.closest('[data-validar]')) return;
+      ir();
+    });
+    step.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); }
+    });
   });
   // Bindings dos cards
   document.getElementById('editBlocoB')?.addEventListener('click', () => window.abrirEditarBlocoB());
@@ -563,6 +612,10 @@ export function bindDetalhePainel() {
   document.querySelectorAll('.pc-ver-cmp').forEach(b => {
     b.addEventListener('click', () => window.verComprovativo(b.dataset.jti));
   });
+  // Navegação do cronograma
+  document.getElementById('cronoPrev')?.addEventListener('click', () => { state.cronoMesOffset = (state.cronoMesOffset || 0) - 1; renderRoot(); });
+  document.getElementById('cronoNext')?.addEventListener('click', () => { state.cronoMesOffset = (state.cronoMesOffset || 0) + 1; renderRoot(); });
+  document.getElementById('cronoHoje')?.addEventListener('click', () => { state.cronoMesOffset = 0; renderRoot(); });
   // Eventos do calendário
   document.querySelectorAll('.crono-ev[data-marco]').forEach(b => {
     const m = b.dataset.marco;

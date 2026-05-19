@@ -22,6 +22,12 @@ export const state = {
   pending2FA: null,
   // Filtros persistentes na vista de lista (preservados ao trocar de view)
   filtrosLista: { q: '', estado: '', gabinete: '', tipo: '' },
+  // Ordenação da lista (sortable)
+  listaSort: { col: 'numero_processo', dir: 'desc' },
+  // Offset de mês no cronograma (-1 = mês anterior; +1 = seguinte)
+  cronoMesOffset: 0,
+  // MRU da paleta cmdK (top-5 comandos mais recentes, persistido em localStorage)
+  cmdkMru: JSON.parse(localStorage.getItem('fpl_cmdk_mru') || '[]'),
   // Tema selecionado pelo utilizador (sobrepõe-se a prefers-color-scheme)
   tema: localStorage.getItem('fpl_tema') || 'auto', // auto | claro | escuro | alto-contraste
 };

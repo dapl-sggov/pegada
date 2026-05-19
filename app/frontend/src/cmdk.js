@@ -7,12 +7,32 @@ import { state, isSggov, isAdmin } from './state.js';
 import { esc, openModal, closeModal } from './utils.js';
 import { setView } from './router.js';
 import { loadFpls } from './data.js';
+import { renderRoot } from './render.js';
+
+// MRU: persiste top-5 labels usados recentemente. Ordena a paleta para mostrar
+// estes primeiro, sem duplicar.
+function pushMru(label) {
+  const cur = state.cmdkMru.filter(x => x !== label);
+  cur.unshift(label);
+  state.cmdkMru = cur.slice(0, 5);
+  try { localStorage.setItem('fpl_cmdk_mru', JSON.stringify(state.cmdkMru)); } catch {}
+}
+function ordenarPorMru(lista) {
+  const mru = state.cmdkMru || [];
+  if (!mru.length) return lista;
+  const idx = (lbl) => {
+    const i = mru.indexOf(lbl);
+    return i === -1 ? 999 : i;
+  };
+  return [...lista].sort((a, b) => idx(a.lbl) - idx(b.lbl));
+}
 
 const ATALHOS_DOC = [
   { tecla: 'Ctrl/⌘+K', acao: 'Abrir esta paleta' },
   { tecla: 'g d', acao: 'Ir para o Início' },
   { tecla: 'g f', acao: 'Ir para a lista de FPL' },
   { tecla: 'n', acao: 'Nova FPL (se ponto focal)' },
+  { tecla: '[ / ]', acao: 'Cronograma — mês anterior / seguinte' },
   { tecla: '?', acao: 'Mostrar atalhos' },
   { tecla: 'Esc', acao: 'Fechar modais e a paleta' },
 ];
@@ -52,7 +72,7 @@ function comandosContextuais() {
 window.abrirCmdK = async () => {
   // Carrega FPL para que apareçam na paleta
   if (state.user) await loadFpls().catch(() => {});
-  comandosBase = comandosContextuais();
+  comandosBase = ordenarPorMru(comandosContextuais());
 
   openModal(`
     <div class="modal-head" style="padding:8px 14px">
@@ -95,7 +115,11 @@ window.abrirCmdK = async () => {
 
 window._cmdkExec = (i) => {
   const c = (window._cmdkFiltrados || [])[i];
-  if (c) { closeModal(); c.acao(); }
+  if (c) {
+    pushMru(c.lbl);
+    closeModal();
+    c.acao();
+  }
 };
 
 function mostrarAtalhos() {
@@ -144,5 +168,8 @@ export function ligarAtalhosGlobais() {
     // Atalhos simples
     if (e.key === 'n' && state.user && !isSggov()) { setView('nova'); }
     else if (e.key === '?') { e.preventDefault(); mostrarAtalhos(); }
+    // Navegação mensal do cronograma (só na vista de detalhe / cronograma)
+    else if (e.key === '[' && state.view === 'detalhe') { state.cronoMesOffset = (state.cronoMesOffset || 0) - 1; renderRoot(); }
+    else if (e.key === ']' && state.view === 'detalhe') { state.cronoMesOffset = (state.cronoMesOffset || 0) + 1; renderRoot(); }
   });
 }

@@ -1,7 +1,5 @@
-// views/lista.js — Lista de FPL com pesquisa global + filtros (item #5).
-//
-// Os filtros são guardados em `state.filtrosLista` para que o utilizador
-// possa navegar para uma FPL e voltar à lista mantendo o contexto.
+// views/lista.js — Lista de FPL com pesquisa global, filtros, chips de
+// filtros ativos e ordenação por coluna (sortable).
 
 import { state, isSggov, gabSigla } from '../state.js';
 import { ESTADOS_LBL, TIPOS } from '../constants.js';
@@ -9,20 +7,34 @@ import { esc, fmtData, badge, tag } from '../utils.js';
 import { loadFpls, loadGabinetes } from '../data.js';
 import { renderRoot } from '../render.js';
 
+const COLS_SORTABLE = {
+  numero_processo: 'N.º Processo',
+  tipo_diploma:    'Tipo',
+  titulo:          'Título',
+  gabinete_id:     'Gabinete',
+  estado_workflow: 'Estado',
+  m0_validado_em:  'M0',
+  m3_validado_em:  'M3',
+  m5_validado_em:  'M5',
+};
+
 export async function viewLista() {
   await loadFpls();
   await loadGabinetes();
   const f = state.filtrosLista;
   const filtradas = aplicarFiltros(state.fpls, f);
+  const ordenadas = aplicarOrdenacao(filtradas, state.listaSort);
 
   const ESTADOS = Object.keys(ESTADOS_LBL);
   const filtroAtivo = !!(f.q || f.estado || f.gabinete || f.tipo);
+  const chips = construirChips(f);
+  const sort = state.listaSort;
 
   return `
     <div class="page-head">
       <div>
         <div class="page-title">${isSggov() ? 'Todas as FPL' : 'As minhas FPL'}</div>
-        <div class="page-sub">${filtradas.length} de ${state.fpls.length} fichas${filtroAtivo ? ' (filtrado)' : ''}</div>
+        <div class="page-sub">${ordenadas.length} de ${state.fpls.length} fichas${filtroAtivo ? ' (filtrado)' : ''}</div>
       </div>
       ${isSggov() ? '' : '<button class="btn primary" data-nav="nova">+ Nova FPL</button>'}
     </div>
@@ -59,13 +71,19 @@ export async function viewLista() {
       </div>
     </div>
 
+    ${chips.length ? `<div class="chips" aria-label="Filtros ativos">${chips.map(c => `
+      <span class="chip">${esc(c.lbl)}<button class="x" type="button" data-clear="${c.key}" aria-label="Remover filtro ${esc(c.lbl)}">×</button></span>
+    `).join('')}</div>` : ''}
+
     <div class="card">
       <table class="tbl tbl-sortable">
         <thead><tr>
-          <th>N.º Processo</th><th>Tipo</th><th>Título</th><th>Gabinete</th><th>Estado</th><th>M0</th><th>M3</th><th>M5</th>
+          ${Object.entries(COLS_SORTABLE).map(([col, lbl]) => `
+            <th data-sort="${col}" class="${sort.col === col ? 'sort-' + sort.dir : ''}">${lbl}</th>
+          `).join('')}
         </tr></thead>
         <tbody>
-          ${filtradas.length === 0 ? `<tr><td colspan="8" class="card-empty">${filtroAtivo ? 'Nenhuma FPL corresponde aos filtros.' : 'Sem FPL. Crie a primeira.'}</td></tr>` : filtradas.map(f => `
+          ${ordenadas.length === 0 ? `<tr><td colspan="8" class="card-empty">${filtroAtivo ? 'Nenhuma FPL corresponde aos filtros.' : 'Sem FPL. Crie a primeira.'}</td></tr>` : ordenadas.map(f => `
             <tr onclick="setView('detalhe',{fplId:'${f.id}'})">
               <td><strong>${esc(f.numero_processo)}</strong></td>
               <td>${tag(f.tipo_diploma)}</td>
@@ -98,6 +116,27 @@ function aplicarFiltros(fpls, f) {
   });
 }
 
+function aplicarOrdenacao(fpls, sort) {
+  const { col, dir } = sort;
+  const m = dir === 'asc' ? 1 : -1;
+  return [...fpls].sort((a, b) => {
+    let av = a[col] ?? '', bv = b[col] ?? '';
+    // Datas e strings comparam-se lexicograficamente (ISO 8601 ordena bem)
+    if (av < bv) return -1 * m;
+    if (av > bv) return  1 * m;
+    return 0;
+  });
+}
+
+function construirChips(f) {
+  const out = [];
+  if (f.q)        out.push({ key: 'q',        lbl: `Pesquisa: "${f.q}"` });
+  if (f.estado)   out.push({ key: 'estado',   lbl: `Estado: ${ESTADOS_LBL[f.estado]?.lbl || f.estado}` });
+  if (f.gabinete) out.push({ key: 'gabinete', lbl: `Gabinete: ${gabSigla(f.gabinete)}` });
+  if (f.tipo)     out.push({ key: 'tipo',     lbl: `Tipo: ${TIPOS[f.tipo] || f.tipo}` });
+  return out;
+}
+
 export function bindLista() {
   const re = (id) => document.getElementById(id);
   let timer;
@@ -106,10 +145,31 @@ export function bindLista() {
     clearTimeout(timer); timer = setTimeout(() => renderRoot(), 200);
   });
   re('fListaEstado')?.addEventListener('change', e => { state.filtrosLista.estado = e.target.value; renderRoot(); });
-  re('fListaGab')?.addEventListener('change', e => { state.filtrosLista.gabinete = e.target.value; renderRoot(); });
-  re('fListaTipo')?.addEventListener('change', e => { state.filtrosLista.tipo = e.target.value; renderRoot(); });
-  re('fListaLimpar')?.addEventListener('click', () => {
+  re('fListaGab')?.addEventListener('change',    e => { state.filtrosLista.gabinete = e.target.value; renderRoot(); });
+  re('fListaTipo')?.addEventListener('change',   e => { state.filtrosLista.tipo = e.target.value; renderRoot(); });
+  re('fListaLimpar')?.addEventListener('click',  () => {
     state.filtrosLista = { q: '', estado: '', gabinete: '', tipo: '' };
     renderRoot();
+  });
+
+  // Chips: remover filtro individual
+  document.querySelectorAll('.chip [data-clear]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.filtrosLista[btn.dataset.clear] = '';
+      renderRoot();
+    });
+  });
+
+  // Sortable: clique no cabeçalho cicla dir; clique noutra coluna fica em desc
+  document.querySelectorAll('.tbl-sortable th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (state.listaSort.col === col) {
+        state.listaSort.dir = state.listaSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.listaSort = { col, dir: 'desc' };
+      }
+      renderRoot();
+    });
   });
 }

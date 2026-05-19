@@ -429,7 +429,13 @@ function notificar(userId, tipo, titulo, msg, fpl_id) {
 }
 
 /* ============ ESTADO DA APP ============ */
-const S = { user:null, view:'dashboard', fplId:null, tab:'A', dropdown:null };
+const S = {
+  user:null, view:'dashboard', fplId:null, tab:'A', dropdown:null,
+  // F3 extras
+  cronoMesOffset: 0,
+  listaSort: { col: 'numero', dir: 'desc' },
+  listaQ: '',
+};
 
 function isSggov() { return S.user && ['SGGOV_QA','SGGOV_ADMIN'].includes(S.user.papel); }
 function isPublico() { return S.user && S.user.papel==='PUBLICO'; }
@@ -472,20 +478,60 @@ function applyTheme(t){ document.documentElement.dataset.theme = t; try{localSto
 function toggleTheme(){ applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'); }
 applyTheme((()=>{try{return localStorage.getItem('fpl-demo-theme')||'light';}catch{return'light';}})());
 
-/* ============ NAVEGAÇÃO ============ */
+/* ============ NAVEGAÇÃO (hash routing + history) ============ */
+const VIEWS_SIMPLES_DEMO = new Set(['dashboard','lista','nova','comprovativos','entidades','auditoria','portal','perfil']);
+
+function parseHashDemo() {
+  const raw = (window.location.hash || '').replace(/^#\/?/, '');
+  if (!raw) return { view: null, fplId: null, sub: null };
+  const parts = raw.split('/').filter(Boolean);
+  if (parts[0] === 'fpl' && parts[1]) return { view: 'detalhe', fplId: parts[1], sub: parts[2] || null };
+  if (VIEWS_SIMPLES_DEMO.has(parts[0])) return { view: parts[0], fplId: null, sub: null };
+  return { view: null, fplId: null, sub: null };
+}
+
+function buildHashDemo(view, fplId, sub) {
+  if (view === 'detalhe' && fplId) return sub ? `#/fpl/${fplId}/${sub}` : `#/fpl/${fplId}`;
+  return `#/${view}`;
+}
+
+let _demoIgnoreHash = false;
+
 function go(view, opts={}) {
   S.view = view;
   if (opts.fplId!==undefined) S.fplId = opts.fplId;
   if (opts.tab) S.tab = opts.tab;
+  if (opts.sub && view === 'detalhe') {
+    try { sessionStorage.setItem('fpl.detailView.' + S.fplId, opts.sub); } catch {}
+  }
   S.dropdown = null;
+  const novo = buildHashDemo(view, S.fplId, opts.sub);
+  if (window.location.hash !== novo) {
+    _demoIgnoreHash = true;
+    window.location.hash = novo;
+  }
   render();
   window.scrollTo(0,0);
 }
 window.go = go;
 
+window.addEventListener('hashchange', () => {
+  if (_demoIgnoreHash) { _demoIgnoreHash = false; return; }
+  if (!S.user) return; // login não usa hash
+  const p = parseHashDemo();
+  if (!p.view) return;
+  S.view = p.view;
+  if (p.fplId) S.fplId = p.fplId;
+  if (p.sub) { try { sessionStorage.setItem('fpl.detailView.' + p.fplId, p.sub); } catch {} }
+  render();
+});
+
 function login(perfilId) {
   S.user = PERFIS.find(p=>p.id===perfilId);
-  S.view = isPublico() ? 'portal' : 'dashboard';
+  // Após login, se houver um hash válido respeita-o; caso contrário vai para o default
+  const p = parseHashDemo();
+  S.view = p.view || (isPublico() ? 'portal' : 'dashboard');
+  if (p.fplId) S.fplId = p.fplId;
   render();
 }
 window.login = login;
@@ -656,6 +702,7 @@ function renderShell() {
 function bindShell() {
   if (S.view==='detalhe') bindDetalhe();
   if (S.view==='nova') bindNova();
+  if (S.view==='lista') bindLista();
 }
 
 function renderSidebar(nUnread) {
@@ -748,8 +795,16 @@ window.abrirNotif = (id) => {
 };
 window.confirmReset = () => {
   openModal(`<div class="modal-h"><h3>Reiniciar demonstração</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
-  <div class="modal-b"><div class="alert warning"><span class="at">Repõe todos os dados de demonstração</span>Todas as alterações que fez (FPL criadas, marcos validados, edições) serão descartadas e os dados voltam ao estado inicial.</div></div>
-  <div class="modal-f"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn danger" onclick="resetDB();closeModal();S.view='dashboard';S.fplId=null;render();toast('Demonstração reiniciada.','success')">Reiniciar</button></div>`);
+  <div class="modal-b reset-modal">
+    <div class="alert danger"><span class="at">Acção irreversível</span>Todas as alterações que fez (FPL criadas, marcos validados, edições) serão descartadas e os dados voltam ao estado inicial.</div>
+    <label style="display:block;margin-top:14px;font-weight:600;font-size:13px;color:var(--ink-2)">Para confirmar, escreva <code class="mono" style="background:var(--surface-2);padding:1px 5px;border-radius:3px">RESET</code> em maiúsculas:</label>
+    <input type="text" id="resetConfirmInp" placeholder="RESET" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="modal-f"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn danger" id="resetConfirmBtn" disabled onclick="resetDB();closeModal();S.view='dashboard';S.fplId=null;window.location.hash='#/dashboard';render();toast('Demonstração reiniciada.','success')">Reiniciar</button></div>`);
+  const inp = document.getElementById('resetConfirmInp');
+  const btn = document.getElementById('resetConfirmBtn');
+  inp?.addEventListener('input', () => { btn.disabled = inp.value !== 'RESET'; });
+  setTimeout(() => inp?.focus(), 50);
 };
 
 /* ---------- DASHBOARD ---------- */
@@ -848,16 +903,44 @@ function dashSggov() {
 }
 
 /* ---------- LISTA ---------- */
+const LISTA_COLS_DEMO = {
+  numero:   'N.º Processo',
+  tipo:     'Tipo',
+  titulo:   'Título',
+  gabinete: 'Gabinete',
+  estado:   'Estado',
+  m0:       'M0',
+  m3:       'M3',
+  m5:       'M5',
+};
 function viewLista() {
-  const fpls = fplsVisiveis();
+  const all = fplsVisiveis();
+  const q = (S.listaQ || '').toLowerCase().trim();
+  let filt = q ? all.filter(f => (`${f.numero} ${f.titulo} ${f.titulo_curto||''} ${gab(f.gabinete).sigla}`).toLowerCase().includes(q)) : all;
+  const sort = S.listaSort;
+  filt = [...filt].sort((a,b) => {
+    let av = a[sort.col] ?? '', bv = b[sort.col] ?? '';
+    if (sort.col === 'gabinete') { av = gab(av).sigla; bv = gab(bv).sigla; }
+    if (av < bv) return sort.dir === 'asc' ? -1 : 1;
+    if (av > bv) return sort.dir === 'asc' ?  1 : -1;
+    return 0;
+  });
+  const chips = q ? [`<span class="chip">Pesquisa: "${esc(q)}"<button class="x" type="button" onclick="window._demoLimparQ()" aria-label="Limpar pesquisa">×</button></span>`] : [];
   return `
   <div class="page-head">
-    <div><div class="pt">${isSggov()?'Todas as FPL':'As minhas FPL'}</div><div class="ps">${fpls.length} fichas de pegada legislativa</div></div>
+    <div><div class="pt">${isSggov()?'Todas as FPL':'As minhas FPL'}</div><div class="ps">${filt.length} de ${all.length} fichas${q ? ' (filtrado)' : ''}</div></div>
     ${!isSggov()?`<button class="btn primary" onclick="go('nova')">${svg(I.plus)} Nova FPL</button>`:''}
   </div>
+  <div class="filters">
+    <input type="search" id="demoListaQ" value="${esc(S.listaQ || '')}" placeholder="Pesquisar por número, título, gabinete..." aria-label="Pesquisar FPL" autocomplete="off">
+    <div class="sep"></div>
+  </div>
+  ${chips.length ? `<div class="chips" aria-label="Filtros ativos">${chips.join('')}</div>` : ''}
   <div class="card">
-    <table class="tbl"><thead><tr><th>N.º Processo</th><th>Tipo</th><th>Título</th><th>Gabinete</th><th>Estado</th><th>M0</th><th>M3</th><th>M5</th></tr></thead><tbody>
-    ${fpls.length?fpls.map(f=>`
+    <table class="tbl tbl-sortable"><thead><tr>
+      ${Object.entries(LISTA_COLS_DEMO).map(([col,lbl]) => `<th data-sort="${col}" class="${sort.col===col?'sort-'+sort.dir:''}">${lbl}</th>`).join('')}
+    </tr></thead><tbody>
+    ${filt.length?filt.map(f=>`
       <tr class="clickable" onclick="go('detalhe',{fplId:'${f.id}'})">
         <td><strong class="mono">${esc(f.numero)}</strong></td>
         <td>${tag(f.tipo)}</td>
@@ -1036,6 +1119,16 @@ function bindNova() {
    header com toggle Detalhe/Cronograma, stepper M0-M5, e
    body em grelha de cards ou calendário mensal. */
 
+// Mapeamento marco → card de destino para o stepper navegável.
+const CARD_DO_MARCO_DEMO = {
+  M0: 'card-a',
+  M1: 'card-e',
+  M2: 'card-e',
+  M3: 'card-d',
+  M4: 'card-cmp',
+  M5: 'card-cmp',
+};
+
 function viewDetalhe() {
   const f = getFpl(S.fplId);
   if (!f) return '<div class="card-empty" style="padding:32px">FPL não encontrada.</div>';
@@ -1045,14 +1138,71 @@ function viewDetalhe() {
 }
 
 function bindDetalhe() {
-  // Toggle Detalhe/Cronograma
+  // Toggle Detalhe/Cronograma (sincroniza com hash)
   document.querySelectorAll('.painel-toggle [data-vista]').forEach(b => {
     b.addEventListener('click', () => {
-      sessionStorage.setItem('fpl.detailView.'+S.fplId, b.dataset.vista);
+      const v = b.dataset.vista;
+      sessionStorage.setItem('fpl.detailView.'+S.fplId, v);
+      go('detalhe', { fplId: S.fplId, sub: v });
+    });
+  });
+  // Stepper navegável: scroll-to-card com highlight
+  document.querySelectorAll('.painel-step[data-card-target]').forEach(step => {
+    const target = step.dataset.cardTarget;
+    if (!target) return;
+    const ir = () => {
+      const el = document.getElementById(target);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.classList.remove('highlight');
+      void el.offsetWidth;
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 1300);
+    };
+    step.addEventListener('click', (e) => {
+      if (e.target.closest('.cta')) return; // não interfere com "Validar"
+      ir();
+    });
+    step.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); }
+    });
+  });
+  // Cronograma — navegação mensal
+  document.getElementById('cronoPrev')?.addEventListener('click', () => { S.cronoMesOffset = (S.cronoMesOffset||0) - 1; render(); });
+  document.getElementById('cronoNext')?.addEventListener('click', () => { S.cronoMesOffset = (S.cronoMesOffset||0) + 1; render(); });
+  document.getElementById('cronoHoje')?.addEventListener('click', () => { S.cronoMesOffset = 0; render(); });
+}
+
+function bindLista() {
+  let timer;
+  const inp = document.getElementById('demoListaQ');
+  inp?.addEventListener('input', (e) => {
+    S.listaQ = e.target.value;
+    clearTimeout(timer);
+    timer = setTimeout(() => render(), 200);
+  });
+  document.querySelectorAll('.tbl-sortable th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (S.listaSort.col === col) {
+        S.listaSort.dir = S.listaSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        S.listaSort = { col, dir: 'desc' };
+      }
       render();
     });
   });
 }
+window._demoLimparQ = () => { S.listaQ = ''; render(); };
+
+// Atalhos globais [ / ] na demo para navegar o cronograma
+document.addEventListener('keydown', (e) => {
+  if (!S.user) return;
+  const t = e.target;
+  if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+  if (e.key === '[' && S.view === 'detalhe') { S.cronoMesOffset = (S.cronoMesOffset||0) - 1; render(); }
+  else if (e.key === ']' && S.view === 'detalhe') { S.cronoMesOffset = (S.cronoMesOffset||0) + 1; render(); }
+});
 
 function painelHeader(f, vista) {
   const marcos = [
@@ -1097,18 +1247,18 @@ function painelHeader(f, vista) {
       ${f.estado==='PUBLICADO'?`<button class="btn sm" onclick="S.user=PERFIS.find(p=>p.id==='u-cidadao');go('portal-fpl',{fplId:'${f.id}'})" style="margin-left:8px">${svg(I.globe)} Ver no Portal</button>`:''}
 
       <div class="painel-toggle" role="tablist" aria-label="Vista da FPL">
-        <button data-vista="detalhe"    role="tab" aria-selected="${vista==='detalhe'}">▦ Detalhe</button>
-        <button data-vista="cronograma" role="tab" aria-selected="${vista==='cronograma'}">▥ Cronograma</button>
+        <button data-vista="detalhe"    role="tab" aria-selected="${vista==='detalhe'}">${svg(I.list)} Detalhe</button>
+        <button data-vista="cronograma" role="tab" aria-selected="${vista==='cronograma'}">${svg(I.bar)} Cronograma</button>
       </div>
     </div>
     <div class="painel-stepper">
       ${marcos.map(m => `
-        <div class="painel-step ${m.estado}">
+        <div class="painel-step ${m.estado}" data-card-target="${CARD_DO_MARCO_DEMO[m.id]||''}" role="button" tabindex="0" aria-label="${m.id} ${m.lbl} — ir para a secção">
           <div class="dot">${m.estado==='done'?'✓':m.id.replace('M','')}</div>
           <div>
-            <div class="lbl">${m.id} · ${m.lbl}${m.bloq?'<span class="bloq" aria-hidden="true">⚿ bloq.</span>':''}</div>
+            <div class="lbl">${m.id} · ${m.lbl}${m.bloq?'<span class="bloq" aria-hidden="true">bloq.</span>':''}</div>
             <div class="sub">${m.data?fmtD(m.data):(m.estado==='current'?'a validar agora':'—')}</div>
-            ${m.estado==='current' && !isPublico() && scopeOk(f) && pm && pm!=='APROVAR' ? `<button class="cta" onclick="modalValidarMarco('${f.id}','${m.id}')">Validar ${m.id}</button>` : ''}
+            ${m.estado==='current' && !isPublico() && scopeOk(f) && pm && pm!=='APROVAR' ? `<button class="cta" onclick="event.stopPropagation();modalValidarMarco('${f.id}','${m.id}')">Validar ${m.id}</button>` : ''}
           </div>
         </div>
       `).join('')}
@@ -1130,7 +1280,7 @@ function painelDetalhe(f) {
 }
 
 function pcA(f) {
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-a">
     <div class="pc-card-head">
       <div class="pc-letter">A</div>
       <div><div class="ttl">Identificação</div><div class="sub">Bloco A</div></div>
@@ -1151,7 +1301,7 @@ function pcB(f) {
   const sintLen = f.sintese?.length || 0;
   const completo = sintLen >= LIM.SINTESE_B && !!f.origem;
   const ed = !isPublico() && scopeOk(f);
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-b">
     <div class="pc-card-head">
       <div class="pc-letter">B</div>
       <div><div class="ttl">Origem e motivação</div><div class="sub">Bloco B</div></div>
@@ -1184,7 +1334,7 @@ function pcD(f) {
   const visiveis = entradas.slice(0,5);
   const restantes = Math.max(0, total - visiveis.length);
 
-  return `<div class="pc-card wide">
+  return `<div class="pc-card wide" id="card-d">
     <div class="pc-card-head">
       <div class="pc-letter d">D</div>
       <div>
@@ -1232,7 +1382,7 @@ function pcD(f) {
 function pcC(f) {
   const ed = !isPublico() && scopeOk(f);
   const lista = f.bloco_c || [];
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-c">
     <div class="pc-card-head">
       <div class="pc-letter">C</div>
       <div><div class="ttl">Contributos internos</div><div class="sub">Bloco C · pareceres formais</div></div>
@@ -1258,7 +1408,7 @@ function pcC(f) {
 function pcE(f) {
   const ed = !isPublico() && scopeOk(f);
   const tem = !!f.cl_ref;
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-e">
     <div class="pc-card-head">
       <div class="pc-letter">E</div>
       <div><div class="ttl">Consulta pública</div><div class="sub">Bloco E · ConsultaLEX</div></div>
@@ -1281,7 +1431,7 @@ function pcCMP(f) {
   const cmps = f.comprovativos || [];
   const marcos = ['M0','M3','M4','M5'];
   const pendentes = marcos.filter(m=>!cmps.find(c=>c.marco===m));
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-cmp">
     <div class="pc-card-head">
       <div class="pc-letter cmp">⚿</div>
       <div><div class="ttl">Comprovativos</div><div class="sub">JWS Ed25519 · SmartLegis</div></div>
@@ -1308,7 +1458,7 @@ function pcF(f) {
   const m3 = f.m3 ? '✓ M3 assinada' : 'M3 pendente';
   const m4 = f.m4 ? '✓ M4 assinada' : 'M4 pendente';
   const ok = f.m3 && f.m4;
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-f">
     <div class="pc-card-head">
       <div class="pc-letter f">F</div>
       <div><div class="ttl">Declaração</div><div class="sub">Bloco F · ponto focal</div></div>
@@ -1323,7 +1473,7 @@ function pcF(f) {
 
 function pcG(f) {
   const lista = DB.auditorias.filter(a=>a.fpl_id===f.id);
-  return `<div class="pc-card">
+  return `<div class="pc-card" id="card-g">
     <div class="pc-card-head">
       <div class="pc-letter h">G</div>
       <div><div class="ttl">Auditoria QA</div><div class="sub">SGGOV · pontuação ${lista[0]?.pontuacao||'—'}/100</div></div>
@@ -1372,8 +1522,9 @@ window.modalListaD = (id) => {
 /* ── Cronograma — calendário mensal + lateral de prazos ── */
 function painelCronograma(f) {
   const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = hoje.getMonth();
+  const dataAlvo = new Date(hoje.getFullYear(), hoje.getMonth() + (S.cronoMesOffset || 0), 1);
+  const ano = dataAlvo.getFullYear();
+  const mes = dataAlvo.getMonth();
   const grid = pcGerarGridMes(ano, mes);
   const eventos = pcCompilarEventos(f);
   const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
@@ -1383,7 +1534,11 @@ function painelCronograma(f) {
   return `<div class="painel-crono">
     <div class="crono-cal">
       <div class="crono-toolbar">
-        <div class="crono-nav"><button aria-label="Mês anterior">‹</button><button aria-label="Mês seguinte">›</button></div>
+        <div class="crono-nav">
+          <button id="cronoPrev" aria-label="Mês anterior" title="Mês anterior · atalho [">‹</button>
+          <button id="cronoHoje" aria-label="Hoje" title="Voltar a hoje" style="width:auto;padding:0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Hoje</button>
+          <button id="cronoNext" aria-label="Mês seguinte" title="Mês seguinte · atalho ]">›</button>
+        </div>
         <div class="crono-title">${meses[mes]} ${ano}</div>
         <div class="crono-legend">
           <span><i style="background:#0a3161"></i>Marcos</span>
