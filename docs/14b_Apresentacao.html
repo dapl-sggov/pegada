@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Pegada Legislativa — apresentação técnica · DAPL/DSSD → DSTD + SmartLegis · Maio 2026">
+<title>Pegada Legislativa · Pré-instalação na RING — Apresentação</title>
+
+<link rel="preload" as="font" type="font/woff2" href="../app/frontend/assets/fonts/plex-sans-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="../app/frontend/assets/fonts/fraunces-latin.woff2" crossorigin>
+
+<style>
+/* ─── Fontes self-hosted (mesmas da app) ─── */
+@font-face { font-family:'Fraunces'; font-style:normal; font-weight:200 800; font-display:swap;
+  src: url('../app/frontend/assets/fonts/fraunces-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Fraunces'; font-style:normal; font-weight:200 800; font-display:swap;
+  src: url('../app/frontend/assets/fonts/fraunces-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:300 700; font-display:swap;
+  src: url('../app/frontend/assets/fonts/plex-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:300 700; font-display:swap;
+  src: url('../app/frontend/assets/fonts/plex-sans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap;
+  src: url('../app/frontend/assets/fonts/plex-mono-500-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ─── Tokens ─── */
+:root{
+  --gov:#0a3161; --gov-dark:#06203f; --gov-light:#1d4d8c;
+  --gold:#b08020; --gold-bg:#fff8e6; --gold-border:#f3d27a;
+  --red:#c8102e; --green:#1a7f3c;
+  --ink:#0c1729; --ink-2:#3a4658; --ink-3:#5b6478; --ink-4:#9aa5b6;
+  --bg:#f1f4f8; --surface:#fff; --surface-2:#fafbfc;
+  --border:#d9e0ea; --border-hair:#eef0f3;
+  --display:'Fraunces','Newsreader',Georgia,serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Consolas,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;overflow:hidden;background:var(--ink);font-family:var(--body);color:var(--ink);font-feature-settings:'ss01','cv11'}
+
+/* ─── Container de slides (16:9 letterbox) ─── */
+.deck{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0c1729}
+.stage{
+  width:min(96vw, calc(96vh * 16 / 9));
+  height:min(96vh, calc(96vw * 9 / 16));
+  position:relative;
+  background:var(--bg);
+  border-radius:8px;
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.55);
+  overflow:hidden;
+}
+
+.slide{
+  position:absolute;inset:0;
+  padding:48px 64px;
+  display:flex;flex-direction:column;
+  opacity:0;visibility:hidden;
+  transition:opacity .35s ease, transform .35s ease;
+  transform:translateY(8px);
+  background:var(--bg);
+}
+.slide.active{opacity:1;visibility:visible;transform:none}
+
+/* ─── Tipografia ─── */
+h1,h2,h3,h4{font-family:var(--display);font-weight:800;color:var(--ink);letter-spacing:-.025em;line-height:1.05}
+.eyebrow{font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.title{font-size:64px;line-height:1.02;margin-bottom:14px}
+.title.lg{font-size:80px}
+.subtitle{font-family:var(--body);font-weight:300;font-size:22px;color:var(--ink-3);line-height:1.4;max-width:880px}
+.kicker{font-family:var(--body);font-weight:500;font-size:14px;color:var(--ink-3);letter-spacing:.4px;margin-bottom:8px}
+.body{font-family:var(--body);font-weight:400;font-size:18px;color:var(--ink-2);line-height:1.55}
+.body.sm{font-size:15px}
+.mono{font-family:var(--mono);font-weight:500}
+.lead{font-size:24px;font-weight:400;color:var(--ink);line-height:1.4}
+strong.hilite{color:var(--gov);font-weight:600}
+strong.gold{color:var(--gold);font-weight:600}
+
+/* ─── Capa ─── */
+.slide.cover{background:var(--ink);color:#fff;justify-content:center;padding:0}
+.slide.cover .crest{position:absolute;top:48px;left:64px;width:48px;height:48px;border-radius:50%;background:rgba(176,128,32,.15);display:flex;align-items:center;justify-content:center;color:var(--gold)}
+.slide.cover .crest svg{width:26px;height:26px}
+.slide.cover .meta-top{position:absolute;top:60px;left:124px;font-family:var(--body);font-weight:500;font-size:14px;letter-spacing:.5px;color:#cdd5e3}
+.slide.cover .center{padding:0 80px;max-width:1100px;margin:0 auto}
+.slide.cover .eyebrow{color:var(--gold)}
+.slide.cover h1{color:#fff;font-size:88px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.slide.cover .subtitle{color:#a8b3c7;font-size:24px;max-width:none;margin-top:18px}
+.slide.cover .fitas{position:absolute;top:0;bottom:0;right:0;width:160px;pointer-events:none}
+.slide.cover .fita{position:absolute;top:25%;bottom:25%;width:6px}
+.slide.cover .fita.f1{right:96px;background:var(--gold)}
+.slide.cover .fita.f2{right:78px;background:var(--gov-light);top:35%;bottom:35%}
+.slide.cover .fita.f3{right:60px;background:#fff;opacity:.18;top:20%;bottom:20%;width:3px}
+.slide.cover .author{position:absolute;bottom:48px;left:64px;font-family:var(--body);font-weight:400;font-size:13px;color:#7886a0;letter-spacing:.4px}
+.slide.cover .author strong{color:#fff;font-weight:600}
+
+/* ─── Slide header padrão (não-capa) ─── */
+.slide-head{margin-bottom:24px}
+.slide h2{font-size:44px;margin-bottom:6px}
+.slide-body{flex:1;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+
+/* ─── Grids ─── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+.two-col.aside{grid-template-columns:1fr 1.4fr}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+
+/* ─── Cards/blocks ─── */
+.block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 22px}
+.block .lbl{font-family:var(--body);font-weight:300;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink-3);margin-bottom:8px}
+.block .v{font-family:var(--display);font-weight:800;font-size:48px;color:var(--ink);line-height:1;letter-spacing:-.03em}
+.block .v.gold{color:var(--gold)}
+.block .v.gov{color:var(--gov)}
+.block .d{font-family:var(--body);font-size:13px;color:var(--ink-3);margin-top:8px;line-height:1.4}
+
+.callout{background:var(--gold-bg);border:1px solid var(--gold-border);border-left:4px solid var(--gold);border-radius:6px;padding:14px 18px}
+.callout .lbl{font-family:var(--body);font-weight:700;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.callout .txt{font-family:var(--body);font-size:14px;color:var(--ink-2);line-height:1.5}
+
+/* ─── Listas ─── */
+ul.clean{list-style:none}
+ul.clean li{padding:8px 0;border-bottom:1px dashed var(--border-hair);font-size:16px;color:var(--ink-2);line-height:1.5;display:flex;gap:14px}
+ul.clean li:last-child{border-bottom:none}
+ul.clean li .n{font-family:var(--mono);font-weight:500;color:var(--gold);flex-shrink:0;min-width:28px}
+ul.clean li .t strong{color:var(--ink);font-weight:600}
+
+ul.checks{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:8px 24px}
+ul.checks li{font-size:14px;color:var(--ink-2);padding:4px 0;display:flex;gap:10px;line-height:1.4}
+ul.checks li::before{content:"✓";color:var(--green);font-weight:700;flex-shrink:0}
+ul.checks li.x::before{content:"○";color:var(--ink-4)}
+
+/* ─── Marcos M0-M5 (slide 2/3) ─── */
+.marcos{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:24px}
+.marco{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 12px;text-align:center;position:relative}
+.marco.bloq{border-color:var(--gold);background:linear-gradient(180deg,var(--gold-bg) 0%,#fff 100%)}
+.marco .id{font-family:var(--mono);font-weight:500;font-size:11px;color:var(--ink-3);letter-spacing:1px}
+.marco .lbl{font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink);margin:4px 0 2px;letter-spacing:-.02em}
+.marco .desc{font-family:var(--body);font-size:11px;color:var(--ink-3);line-height:1.3}
+.marco.bloq .id{color:var(--gold)}
+.marco.bloq::after{content:"BLOQUEANTE";position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:var(--gold);color:#fff;font-family:var(--body);font-weight:700;font-size:8px;letter-spacing:.6px;padding:1px 6px;border-radius:99px;white-space:nowrap}
+
+/* ─── Tabela compacta ─── */
+table.t{width:100%;border-collapse:collapse;font-family:var(--body);font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+table.t th{text-align:left;padding:10px 12px;background:var(--ink);color:#fff;font-weight:700;font-size:11px;letter-spacing:.8px;text-transform:uppercase;border-bottom:2px solid var(--gold)}
+table.t td{padding:10px 12px;border-bottom:1px solid var(--border-hair);color:var(--ink-2);vertical-align:top;line-height:1.4}
+table.t tr:nth-child(even) td{background:var(--surface-2)}
+table.t tr:last-child td{border-bottom:none}
+table.t td.num{font-family:var(--mono);font-weight:500;color:var(--gold);width:36px;text-align:center}
+
+/* ─── Diagrama de fluxo (SmartLegis) ─── */
+.flow{display:grid;grid-template-columns:1fr 60px 1fr 60px 1fr;align-items:center;gap:0;margin-top:24px}
+.flow-node{background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:18px;text-align:center;min-height:140px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.flow-node.gov{border-color:var(--gov);background:linear-gradient(180deg,#fff 0%,#e8eef7 100%)}
+.flow-node.gold{border-color:var(--gold);background:linear-gradient(180deg,#fff 0%,var(--gold-bg) 100%)}
+.flow-node .icn{width:36px;height:36px;border-radius:50%;background:var(--gov);color:#fff;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;font-family:var(--mono);font-weight:700;font-size:14px}
+.flow-node.gold .icn{background:var(--gold)}
+.flow-node .nm{font-family:var(--display);font-weight:800;font-size:18px;color:var(--ink);letter-spacing:-.02em}
+.flow-node .desc{font-family:var(--body);font-size:11.5px;color:var(--ink-3);line-height:1.4}
+.flow-arrow{display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--ink-3);font-size:18px}
+.flow-arrow .lbl{position:absolute;font-size:9px;font-family:var(--body);font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-top:36px;text-align:center;width:80px}
+
+/* ─── Calendário/Gantt ─── */
+.gantt{display:flex;flex-direction:column;gap:6px;margin-top:8px;font-family:var(--body)}
+.gantt-row{display:grid;grid-template-columns:200px 1fr 60px;gap:14px;align-items:center;font-size:13px}
+.gantt-row .lbl{color:var(--ink-2);font-weight:500}
+.gantt-row .bar-wrap{height:22px;background:var(--surface-2);border-radius:3px;position:relative;border:1px solid var(--border-hair)}
+.gantt-row .bar{position:absolute;top:0;bottom:0;background:var(--gov);border-radius:2px;display:flex;align-items:center;padding:0 8px;color:#fff;font-size:11px;font-weight:700}
+.gantt-row .bar.gold{background:var(--gold)}
+.gantt-row .bar.green{background:var(--green)}
+.gantt-row .who{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:right;font-weight:500}
+
+/* ─── Matriz pronto/depende ─── */
+.matriz{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.col-pronto, .col-depende{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 22px}
+.col-pronto{border-top:3px solid var(--green)}
+.col-depende{border-top:3px solid var(--gold)}
+.col-pronto h3,.col-depende h3{font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px}
+.col-pronto h3{color:var(--green)}
+.col-depende h3{color:var(--gold)}
+.col-pronto ul,.col-depende ul{list-style:none}
+.col-pronto li,.col-depende li{padding:5px 0;font-size:13px;color:var(--ink-2);border-bottom:1px dashed var(--border-hair);line-height:1.4}
+.col-pronto li:last-child,.col-depende li:last-child{border-bottom:none}
+
+/* ─── Slide final ─── */
+.slide.final{background:var(--ink);color:#fff;justify-content:center;align-items:center;text-align:center;padding:0}
+.slide.final h2{color:#fff;font-size:72px;letter-spacing:-.03em}
+.slide.final .subtitle{color:#a8b3c7;font-size:20px;max-width:680px;margin-top:20px}
+.slide.final .qr{position:absolute;bottom:40px;left:64px;display:flex;flex-direction:column;gap:4px;text-align:left}
+.slide.final .qr .doc{font-family:var(--mono);font-weight:500;font-size:11px;color:var(--gold);letter-spacing:.5px}
+.slide.final .qr .pth{font-family:var(--mono);font-size:11px;color:#7886a0}
+.slide.final .stamp{position:absolute;bottom:40px;right:64px;display:flex;flex-direction:column;text-align:right;gap:2px}
+.slide.final .stamp .ttl{font-family:var(--body);font-weight:700;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold)}
+.slide.final .stamp .v{font-family:var(--display);font-weight:800;font-size:32px;color:#fff;letter-spacing:-.02em}
+
+/* ─── Diagrama integrações ─── */
+.integ-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+.integ{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 12px;text-align:center;font-size:11px;color:var(--ink-3)}
+.integ .nm{font-family:var(--display);font-weight:800;font-size:16px;color:var(--ink);margin-bottom:4px;letter-spacing:-.02em}
+.integ.bloq{border-color:var(--gold);background:var(--gold-bg)}
+.integ.bloq .nm{color:var(--gov-dark)}
+.integ .tag{display:inline-block;font-family:var(--mono);font-weight:500;font-size:9px;padding:1px 6px;border-radius:2px;margin-top:6px}
+.integ .tag.bloq{background:var(--gold);color:#fff;letter-spacing:.4px}
+.integ .tag.opt{background:var(--border-hair);color:var(--ink-3);letter-spacing:.3px}
+
+/* ─── Footer/Nav ─── */
+.deck-foot{position:fixed;bottom:18px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:14px;color:#cdd5e3;font-family:var(--body);font-size:12px;z-index:10}
+.dots{display:flex;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;border:none;padding:0}
+.dot.active{background:var(--gold);width:18px;border-radius:99px;transition:all .25s}
+.counter{font-family:var(--mono);font-weight:500;font-size:11px;color:#7886a0;min-width:48px;text-align:center}
+.deck-foot .hint{font-size:11px;color:#5b6478;letter-spacing:.3px;margin-left:12px}
+.deck-foot .hint kbd{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:10px;color:#cdd5e3}
+
+/* ─── Notas para impressão (A4 landscape, uma página por slide) ─── */
+@media print {
+  @page { size: A4 landscape; margin: 0 }
+  html,body{background:#fff;overflow:visible;height:auto}
+  .deck{position:static;background:#fff;display:block}
+  .stage{width:100%;height:100vh;border-radius:0;box-shadow:none;page-break-after:always}
+  .slide{position:static;opacity:1!important;visibility:visible!important;transform:none!important;height:100vh;page-break-after:always}
+  .deck-foot{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){.slide{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="stage" id="stage">
+
+    <!-- 1 · CAPA -->
+    <section class="slide cover active" data-title="Capa">
+      <div class="crest" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 5 V12 C4 17 7.5 21 12 22 C16.5 21 20 17 20 12 V5 Z"/><circle cx="12" cy="11" r="2.5" fill="currentColor"/></svg>
+      </div>
+      <div class="meta-top">SGGOV · Pegada Legislativa · Maio 2026</div>
+      <div class="fitas" aria-hidden="true"><div class="fita f1"></div><div class="fita f2"></div><div class="fita f3"></div></div>
+      <div class="center">
+        <div class="eyebrow">Apresentação técnica · pré-instalação</div>
+        <h1>Pegada Legislativa<br>do Governo</h1>
+        <p class="subtitle">Caderno de perguntas para a equipa da rede do Governo e contrato técnico com o SmartLegis. Lei n.º 5-A/2026 entra em vigor a 27 de julho de 2026.</p>
+      </div>
+      <div class="author">Apresentado por <strong>DAPL/DSSD — Projeto Pegada Legislativa</strong> · destinatários: <strong>DSTD + equipa SmartLegis</strong></div>
+    </section>
+
+    <!-- 2 · O REGIME -->
+    <section class="slide" data-title="O regime">
+      <div class="slide-head">
+        <div class="eyebrow">§1 · O regime legal + a arquitetura técnica</div>
+        <h2>O regime legal + a arquitetura técnica</h2>
+      </div>
+      <div class="slide-body">
+        <p class="lead">A Lei n.º 5-A/2026 obriga cada diploma elaborado pelo Governo a ter uma <strong class="hilite">Ficha de Pegada Legislativa (FPL)</strong> que documente interlocutores e contributos.</p>
+        <p class="body">A <strong class="hilite">DAPL/DSSD desenhou o sistema de marcos bloqueantes</strong> abaixo como mecanismo técnico para garantir o preenchimento efetivo da FPL no momento certo de cada tramitação. M0/M1/M4/M5 não constam da letra da lei — são a arquitetura que torna a obrigação legal verificável.</p>
+        <div class="marcos">
+          <div class="marco bloq"><div class="id">M0</div><div class="lbl">Abertura</div><div class="desc">Identificação + origem + síntese ≥200c</div></div>
+          <div class="marco bloq"><div class="id">M1</div><div class="lbl">Pré-RSE</div><div class="desc">Versão inicial + Bloco D com interlocutores prévios</div></div>
+          <div class="marco"><div class="id">M2</div><div class="lbl">Pós-RSE · Abertura CP</div><div class="desc">Abre consulta pública no ConsultaLEX</div></div>
+          <div class="marco"><div class="id">M3</div><div class="lbl">Encerramento CP</div><div class="desc">Contributos importados + síntese</div></div>
+          <div class="marco bloq"><div class="id">M4</div><div class="lbl">Pré-CM</div><div class="desc">Exige M1+M3 internos + QA sem pendências</div></div>
+          <div class="marco bloq"><div class="id">M5</div><div class="lbl">Publicação</div><div class="desc">Referência DR + URL</div></div>
+        </div>
+        <div class="callout">
+          <div class="lbl">Resultado prático</div>
+          <div class="txt">Sem prova válida de <strong class="hilite">M1 e M4</strong>, o <strong class="hilite">SmartLegis</strong> recusa a tramitação para RSE e CM. É este acoplamento — desenhado por nós — que transforma a obrigação legal num controlo efetivo. <strong class="gold">Nota de desenho:</strong> a consulta pública passa a ocorrer <strong class="hilite">depois da RSE, entre M1 e M4</strong> — é a sequência que adotámos para que o Conselho de Ministros decida já com os contributos públicos integrados.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · A APLICAÇÃO -->
+    <section class="slide" data-title="A aplicação">
+      <div class="slide-head">
+        <div class="eyebrow">§2 · A aplicação</div>
+        <h2>FPL Ponte — visão funcional</h2>
+      </div>
+      <div class="slide-body">
+        <div class="two-col aside">
+          <div>
+            <p class="kicker">Três classes de utilizadores</p>
+            <p class="body">Pontos Focais (PF) de cada ministério criam, preenchem e validam as FPLs do seu gabinete. A SGGOV (papéis QA e Admin) audita. O GSEPCM consulta antes de agendar CM.</p>
+            <p class="kicker" style="margin-top:18px">Cada validação de marco bloqueante (decorre do nosso desenho)</p>
+            <ul class="clean" style="margin-top:6px">
+              <li><span class="n">1·</span><span class="t">Servidor valida regras e devolve <strong>422 com pendências</strong> se falhar</span></li>
+              <li><span class="n">2·</span><span class="t">Calcula <span class="mono">SHA-256</span> canónico do snapshot</span></li>
+              <li><span class="n">3·</span><span class="t">Emite <strong>JWS Ed25519</strong> com chave privada do cofre</span></li>
+              <li><span class="n">4·</span><span class="t">Persiste comprovativo (retenção 10 anos)</span></li>
+              <li><span class="n">5·</span><span class="t">PF copia o JWS e cola no SmartLegis</span></li>
+            </ul>
+          </div>
+          <div>
+            <p class="kicker">Componentes da UI</p>
+            <ul class="clean" style="margin-top:6px">
+              <li><span class="n">·</span><span class="t"><strong>Dashboard</strong> com KPIs e FPL recentes</span></li>
+              <li><span class="n">·</span><span class="t"><strong>Lista</strong> filtrável e ordenável</span></li>
+              <li><span class="n">·</span><span class="t"><strong>Detalhe</strong> com 9 cards (A·B·C·D·E·CMP·F·Anexos·G), stepper M0..M5, cronograma</span></li>
+              <li><span class="n">·</span><span class="t"><strong>Wizard 3 passos</strong> para registar interação externa</span></li>
+              <li><span class="n">·</span><span class="t"><strong>Validação de marco</strong> com checklist do que falta</span></li>
+            </ul>
+            <div class="callout" style="margin-top:18px">
+              <div class="lbl">Fallback</div>
+              <div class="txt">Todas as integrações externas têm modo <span class="mono">mock</span>/<span class="mono">manual</span>. A app <strong>arranca e opera</strong> mesmo com tudo desligado.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · ARQUITETURA -->
+    <section class="slide" data-title="Arquitetura">
+      <div class="slide-head">
+        <div class="eyebrow">§2.4 · Stack técnico</div>
+        <h2>Arquitetura na RING</h2>
+      </div>
+      <div class="slide-body">
+        <div class="three-col">
+          <div class="block">
+            <div class="lbl">Backend</div>
+            <div class="v gov" style="font-size:24px">Node.js 22 + Express</div>
+            <div class="d">Sem frameworks pesados. <span class="mono">crypto</span> nativo para Ed25519. Container não-root.</div>
+          </div>
+          <div class="block">
+            <div class="lbl">Dados</div>
+            <div class="v gov" style="font-size:24px">Postgres 16 · Redis 7 · MinIO</div>
+            <div class="d">Cache, rate-limit e filas em Redis. Anexos PDF/DOC/XLS em MinIO (S3-compatível).</div>
+          </div>
+          <div class="block">
+            <div class="lbl">Frontend</div>
+            <div class="v gov" style="font-size:24px">Vanilla JS modular</div>
+            <div class="d">Sem build step. Fontes <strong class="hilite">self-hosted</strong> (Fraunces + IBM Plex). CSP estrita.</div>
+          </div>
+        </div>
+        <div class="three-col" style="margin-top:18px">
+          <div class="block">
+            <div class="lbl">Segurança HTTP</div>
+            <div class="d" style="margin-top:0;line-height:1.55"><strong class="hilite">CSP</strong> <span class="mono">default-src 'self'</span> · <strong class="hilite">CSRF</strong> double-submit cookie · <strong class="hilite">rate-limit</strong> 240/min · <strong class="hilite">2FA TOTP</strong> RFC 6238 · headers de hardening · bloqueio de conta após 8 falhas.</div>
+          </div>
+          <div class="block">
+            <div class="lbl">Chave do comprovativo</div>
+            <div class="d" style="margin-top:0;line-height:1.55"><strong class="gold">Ed25519</strong>. Privada no cofre de segredos (<span class="mono">0600</span>, ou HSM). Nunca na BD, nunca versionada. Rotação anual com janela 90d.</div>
+          </div>
+          <div class="block">
+            <div class="lbl">Acesso</div>
+            <div class="d" style="margin-top:0;line-height:1.55">Sem face pública. <strong class="hilite">VPN do Governo</strong> + autenticação contra <strong class="hilite">LDAP/AD</strong> + 2FA para papéis sensíveis. Reverse proxy interno termina TLS.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · ACOPLAMENTO SMARTLEGIS -->
+    <section class="slide" data-title="Acoplamento SmartLegis">
+      <div class="slide-head">
+        <div class="eyebrow">§3 · Contrato técnico</div>
+        <h2>O acoplamento FPL ⇄ SmartLegis</h2>
+      </div>
+      <div class="slide-body">
+        <p class="lead">Não há chamada síncrona entre os dois sistemas. O contrato é <strong class="hilite">um JWS Ed25519</strong> que viaja por cópia/cola (ou API), verificado offline com a chave pública previamente entregue.</p>
+        <div class="flow">
+          <div class="flow-node gov">
+            <div class="icn">FPL</div>
+            <div class="nm">FPL Ponte</div>
+            <div class="desc">Emite JWS em cada marco bloqueante (M0/M1/M4/M5)</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="icn" style="background:var(--ink-3)">👤</div>
+            <div class="nm">Ponto Focal</div>
+            <div class="desc">Copia o JWS e cola no SmartLegis na altura da submissão</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node gold">
+            <div class="icn">SL</div>
+            <div class="nm">SmartLegis</div>
+            <div class="desc">Verifica offline com chave pública registada localmente · bloqueia se inválido</div>
+          </div>
+        </div>
+        <div class="callout">
+          <div class="lbl">Vantagem deste desenho</div>
+          <div class="txt">Sem dependência operacional entre os dois sistemas. SmartLegis indisponível? FPL emite comprovativos na mesma. FPL indisponível? Comprovativos já emitidos continuam válidos por 10 anos.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 · O QUE O SMARTLEGIS DESENVOLVE -->
+    <section class="slide" data-title="O que o SmartLegis desenvolve">
+      <div class="slide-head">
+        <div class="eyebrow">§3 · SmartLegis</div>
+        <h2>O que o SmartLegis tem de desenvolver</h2>
+      </div>
+      <div class="slide-body">
+        <div class="two-col">
+          <div>
+            <p class="kicker">Etapa 1 · Verificador offline (~6 sem)</p>
+            <ul class="clean" style="margin-top:6px">
+              <li><span class="n">a)</span><span class="t">Decompor o JWS e verificar <span class="mono">alg=EdDSA</span> (rejeitar <span class="mono">none</span>)</span></li>
+              <li><span class="n">b)</span><span class="t">Validar <span class="mono">typ=fpl-comprovativo+jws</span></span></li>
+              <li><span class="n">c)</span><span class="t">Selecionar chave pelo <span class="mono">kid</span> (registada localmente)</span></li>
+              <li><span class="n">d)</span><span class="t">Verificar assinatura, <span class="mono">iat</span>, <span class="mono">exp</span>, <span class="mono">iss</span>, <span class="mono">marco</span></span></li>
+            </ul>
+            <p class="kicker" style="margin-top:18px">Regra de aceitação por estado</p>
+            <table class="t">
+              <thead><tr><th>Estado</th><th>Comprovativos exigidos</th></tr></thead>
+              <tbody>
+                <tr><td>Submissão a RSE</td><td class="mono">M0 + M1</td></tr>
+                <tr><td>Submissão a CM</td><td class="mono">M0 + M1 + M4</td></tr>
+                <tr><td>Publicação no DR</td><td class="mono">M0 + M1 + M4 + M5</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <p class="kicker">Bibliotecas standard</p>
+            <table class="t">
+              <thead><tr><th>Linguagem</th><th>Biblioteca</th></tr></thead>
+              <tbody>
+                <tr><td>Java</td><td>Nimbus JOSE+JWT 9.x</td></tr>
+                <tr><td>.NET</td><td>Microsoft.IdentityModel.Tokens 7.x</td></tr>
+                <tr><td>Node.js</td><td>crypto nativo (≥18)</td></tr>
+                <tr><td>Python</td><td>joserfc</td></tr>
+              </tbody>
+            </table>
+            <p class="kicker" style="margin-top:18px">Validação conjunta</p>
+            <p class="body sm">A integração só é conforme quando o SmartLegis passa nos <strong class="gold">6 vetores de teste</strong> (TV1–TV6) disponibilizados pela FPL Ponte em <span class="mono">/.well-known/fpl-test-vectors.json</span>.</p>
+            <p class="body sm" style="margin-top:8px"><em>Esta verificação <strong class="hilite">decorre da nossa arquitetura, com mandato legal</strong> — não diretamente da letra da Lei n.º 5-A/2026. É o que torna a obrigação de preenchimento da FPL um controlo verificável no momento da tramitação.</em></p>
+            <div class="callout" style="margin-top:14px">
+              <div class="lbl">Especificação completa</div>
+              <div class="txt"><span class="mono">docs/12_Especificacao_Comprovativo_SmartLegis.md</span> — 11 secções, algoritmo de verificação em pseudo-código, plano de rotação, vetores de teste.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 · INTEGRAÇÕES -->
+    <section class="slide" data-title="Integrações">
+      <div class="slide-head">
+        <div class="eyebrow">§2.5 · Integrações externas</div>
+        <h2>Sete integrações, todas com fallback</h2>
+      </div>
+      <div class="slide-body">
+        <p class="lead">A app <strong class="hilite">arranca e opera</strong> com todas em modo <span class="mono">mock</span>/<span class="mono">manual</span>. Cada uma ativa-se por configuração, sem coordenação de deploy.</p>
+        <div class="integ-grid">
+          <div class="integ bloq">
+            <div class="nm">SmartLegis</div>
+            <div>Verificação dos JWS</div>
+            <div class="tag bloq">CRÍTICO</div>
+          </div>
+          <div class="integ">
+            <div class="nm">LDAP / AD</div>
+            <div>Diretório interno</div>
+            <div class="tag opt">FALLBACK LOCAL</div>
+          </div>
+          <div class="integ">
+            <div class="nm">SMTP Estado</div>
+            <div>Notificações</div>
+            <div class="tag opt">FALLBACK OUTBOX</div>
+          </div>
+          <div class="integ">
+            <div class="nm">RTRI · AR</div>
+            <div>Validação de entidades</div>
+            <div class="tag opt">FALLBACK CACHE</div>
+          </div>
+          <div class="integ">
+            <div class="nm">ConsultaLEX</div>
+            <div>Webhook HMAC SHA-256 — gerido internamente pela DSTD</div>
+            <div class="tag opt">FALLBACK CSV</div>
+          </div>
+          <div class="integ">
+            <div class="nm">DRE · INCM</div>
+            <div>Polling de publicações</div>
+            <div class="tag opt">FALLBACK MANUAL</div>
+          </div>
+          <div class="integ">
+            <div class="nm">Portal do Governo</div>
+            <div>Exportação periódica</div>
+            <div class="tag opt">EXPORT MANUAL</div>
+          </div>
+          <div class="integ">
+            <div class="nm">Cofre de segredos</div>
+            <div>Chave Ed25519</div>
+            <div class="tag bloq">CRÍTICO</div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <div class="lbl">Princípio operacional</div>
+          <div class="txt">A aplicação <strong>nunca bloqueia uma operação de negócio por falha de infraestrutura externa</strong> — apenas por falha de regra de validação. Detalhes em <span class="mono">docs/13_Contratos_Integracao_Externa.md</span>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 · MATRIZ -->
+    <section class="slide" data-title="Matriz pronto vs depende">
+      <div class="slide-head">
+        <div class="eyebrow">§4 · Estado actual</div>
+        <h2>O que entregamos vs. o que depende de vós</h2>
+      </div>
+      <div class="slide-body">
+        <div class="matriz">
+          <div class="col-pronto">
+            <h3>Pronto do nosso lado</h3>
+            <ul>
+              <li>Backend completo · workflow, marcos, comprovativos</li>
+              <li>Frontend completo · dashboard, lista, detalhe, cronograma</li>
+              <li><span class="mono">docker-compose</span> com Postgres + Redis + MinIO</li>
+              <li>CSP estrita, CSRF, rate-limit, 2FA TOTP</li>
+              <li>Self-hosting de fontes (Fraunces + IBM Plex)</li>
+              <li>Especificação do comprovativo (docs/12)</li>
+              <li>Contratos de integração externa (docs/13)</li>
+              <li>Runbook operacional (docs/06)</li>
+              <li>DPIA + threat models (docs/09, 10, 11)</li>
+              <li>Imagem Docker em <span class="mono">ghcr.io/dapl-sggov/pegada</span></li>
+            </ul>
+          </div>
+          <div class="col-depende">
+            <h3>Depende da DSTD · SmartLegis · AR · INCM</h3>
+            <ul>
+              <li><strong>Verificador no SmartLegis</strong> · ~6 sem</li>
+              <li><strong>VM/container host na RING</strong> · recursos atribuídos</li>
+              <li><strong>Reverse proxy interno + TLS</strong> · certificado</li>
+              <li><strong>LDAP/AD endpoint</strong> · URL, bind, grupos</li>
+              <li><strong>SMTP relay do Estado</strong> · host, porta, From</li>
+              <li><strong>Cofre de segredos</strong> · chave Ed25519</li>
+              <li><strong>VLAN + firewall</strong> · ingress/egress whitelist</li>
+              <li><strong>API RTRI</strong> · acordo com Assembleia da República</li>
+              <li><strong>Webhook ConsultaLEX</strong> · coordenação interna com DSTD (operadora ConsultaLEX)</li>
+              <li><strong>API DRE</strong> · confirmar com INCM</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 · DECISÕES BLOQUEANTES -->
+    <section class="slide" data-title="Decisões bloqueantes">
+      <div class="slide-head">
+        <div class="eyebrow">§5–§9 · Top 5 decisões</div>
+        <h2>Decisões bloqueantes</h2>
+      </div>
+      <div class="slide-body">
+        <p class="lead">Estas cinco respostas determinam o calendário possível. <strong class="hilite">Precisam de fechar nos próximos 10 dias úteis.</strong></p>
+        <table class="t">
+          <thead><tr><th style="width:36px">#</th><th>Decisão</th><th style="width:160px">Quem decide</th><th>Porquê é bloqueante</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td><strong>Nome DNS interno</strong> definitivo (sugestão <span class="mono">fpl.sggov.gov.pt</span>)</td><td>DSTD + DAPL/DSSD</td><td>Hardcoded no <span class="mono">iss</span> do JWS — mudar implica nova chave e redistribuição</td></tr>
+            <tr><td class="num">2</td><td><strong>Cofre de segredos</strong> e modo da chave Ed25519 (HSM ou ficheiro 0600?)</td><td>DSTD</td><td>Afeta o módulo de assinatura e o procedimento de rotação</td></tr>
+            <tr><td class="num">3</td><td><strong>Calendário do SmartLegis</strong> para o verificador (T0 + 10 sem)</td><td>SmartLegis</td><td>Prazo legal de 27 jul é o limite duro</td></tr>
+            <tr><td class="num">4</td><td><strong>Diretório interno</strong> — LDAP/AD URL, base DN, conta de bind, mapeamento de grupos</td><td>DSTD</td><td>Sem isto fica em modo <span class="mono">local</span> (não escala)</td></tr>
+            <tr><td class="num">5</td><td><strong>VLAN, firewall ingress/egress</strong> e reverse proxy interno</td><td>DSTD</td><td>Sem ingress não há acesso; sem egress as integrações ficam manuais</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 10 · ÁREAS DE PERGUNTAS -->
+    <section class="slide" data-title="Áreas de perguntas">
+      <div class="slide-head">
+        <div class="eyebrow">§5–§16 · Estrutura do questionário</div>
+        <h2>12 áreas de perguntas no questionário longo</h2>
+      </div>
+      <div class="slide-body">
+        <div class="three-col" style="grid-template-columns:repeat(4,1fr);gap:12px">
+          <div class="block"><div class="lbl">§5 Plataforma</div><div class="d" style="margin:0">VM, container, K8s? Recursos. SO host. Ambientes.</div></div>
+          <div class="block"><div class="lbl">§6 Rede e DNS</div><div class="d" style="margin:0">VLAN, FQDN, TLS, reverse proxy, firewall.</div></div>
+          <div class="block"><div class="lbl">§7 Acesso</div><div class="d" style="margin:0">VPN, SSO institucional, 2FA institucional vs. TOTP.</div></div>
+          <div class="block"><div class="lbl">§8 Serviços de dados</div><div class="d" style="margin:0">Postgres/Redis/MinIO geridos vs. container. Backup. WORM.</div></div>
+          <div class="block"><div class="lbl">§9 Cofre de segredos</div><div class="d" style="margin:0">Vault / HSM. Chave Ed25519. Restantes segredos.</div></div>
+          <div class="block"><div class="lbl">§10 Distribuição imagem</div><div class="d" style="margin:0">GHCR → registry interno. Scan. Cadência de updates.</div></div>
+          <div class="block"><div class="lbl">§11 Observabilidade</div><div class="d" style="margin:0">Prometheus, AlertManager, logs centralizados, uptime.</div></div>
+          <div class="block"><div class="lbl">§12 Integrações Estado</div><div class="d" style="margin:0">LDAP, SMTP, RTRI, ConsultaLEX, DRE.</div></div>
+          <div class="block"><div class="lbl">§13 SmartLegis</div><div class="d" style="margin:0">Linguagem, calendário, entrega de chave, UX de erro.</div></div>
+          <div class="block"><div class="lbl">§14 RGPD / Soberania</div><div class="d" style="margin:0">DPIA, CNPD, acessibilidade WCAG, pen-test.</div></div>
+          <div class="block" style="background:var(--gold-bg);border-color:var(--gold-border)"><div class="lbl" style="color:var(--gold)">§15 NIS2</div><div class="d" style="margin:0;color:var(--ink)">Classificação, CISO, SOC/SIEM, incidentes, auditorias.</div></div>
+          <div class="block"><div class="lbl">§16 Cronograma</div><div class="d" style="margin:0">Prazo legal, caminho crítico, operação corrente, sign-off.</div></div>
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <div class="lbl">Documento completo</div>
+          <div class="txt"><span class="mono">docs/14_Questionario_Infraestrutura.md</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 · CALENDÁRIO -->
+    <section class="slide" data-title="Calendário">
+      <div class="slide-head">
+        <div class="eyebrow">§3.4 + §15 · Calendário conjunto</div>
+        <h2>Calendário até ao go-live</h2>
+      </div>
+      <div class="slide-body">
+        <p class="lead">Plano proposto · 10 semanas a partir de T0 (validação deste documento).</p>
+        <div class="gantt">
+          <div class="gantt-row"><span class="lbl">1. Validação dos docs (12, 13, 14)</span><div class="bar-wrap"><div class="bar" style="left:0;width:8%">T0</div></div><span class="who">DAPL+DSTD+SL</span></div>
+          <div class="gantt-row"><span class="lbl">2. Geração da chave Ed25519</span><div class="bar-wrap"><div class="bar gold" style="left:8%;width:14%">2 sem</div></div><span class="who">DAPL/DSSD · DSTD</span></div>
+          <div class="gantt-row"><span class="lbl">3. Entrega da chave pública</span><div class="bar-wrap"><div class="bar gold" style="left:22%;width:8%">1 sem</div></div><span class="who">DAPL/DSSD → SL</span></div>
+          <div class="gantt-row"><span class="lbl">4. Implementação no SmartLegis</span><div class="bar-wrap"><div class="bar" style="left:8%;width:50%">6 sem</div></div><span class="who">SmartLegis</span></div>
+          <div class="gantt-row"><span class="lbl">5. Provisionamento RING (VM, VLAN, TLS)</span><div class="bar-wrap"><div class="bar" style="left:0;width:40%">4 sem</div></div><span class="who">DSTD</span></div>
+          <div class="gantt-row"><span class="lbl">6. Ligação ao diretório interno</span><div class="bar-wrap"><div class="bar" style="left:30%;width:20%">2 sem</div></div><span class="who">DSTD + DAPL</span></div>
+          <div class="gantt-row"><span class="lbl">7. Testes conjuntos com TV1–TV6</span><div class="bar-wrap"><div class="bar" style="left:58%;width:20%">2 sem</div></div><span class="who">DAPL/DSSD + SL</span></div>
+          <div class="gantt-row"><span class="lbl">8. Pen-test externo + remediação</span><div class="bar-wrap"><div class="bar" style="left:50%;width:30%">3 sem</div></div><span class="who">Externo</span></div>
+          <div class="gantt-row"><span class="lbl">9. DPIA → CNPD</span><div class="bar-wrap"><div class="bar" style="left:20%;width:50%">5 sem</div></div><span class="who">DAPL/DSSD (EPD)</span></div>
+          <div class="gantt-row"><span class="lbl">10. Modo "sombra" antes do go-live</span><div class="bar-wrap"><div class="bar green" style="left:80%;width:14%">5 dias</div></div><span class="who">DAPL/DSSD + 2 min.</span></div>
+          <div class="gantt-row"><span class="lbl">11. Go-live em produção</span><div class="bar-wrap"><div class="bar green" style="left:94%;width:6%">T0+10sem</div></div><span class="who">CONJUNTO</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 · PRAZO E PRÓXIMOS PASSOS -->
+    <section class="slide" data-title="Próximos passos">
+      <div class="slide-head">
+        <div class="eyebrow">Próximos passos</div>
+        <h2>Pedido concreto desta reunião</h2>
+      </div>
+      <div class="slide-body">
+        <div class="two-col aside">
+          <div>
+            <ul class="clean">
+              <li><span class="n">1·</span><span class="t"><strong>Calendarizar resposta</strong> às 5 decisões bloqueantes — proposta: 10 dias úteis</span></li>
+              <li><span class="n">2·</span><span class="t">Identificar o <strong>ponto de contacto único</strong> na DSTD para esta instalação</span></li>
+              <li><span class="n">3·</span><span class="t">Confirmar <strong>calendário do SmartLegis</strong> ou identificar dependências em risco</span></li>
+              <li><span class="n">4·</span><span class="t">Marcar <strong>reunião técnica</strong> com a especificação do comprovativo aberta para Q&amp;A</span></li>
+            </ul>
+          </div>
+          <div>
+            <div class="block" style="background:linear-gradient(135deg,var(--gov) 0%,var(--gov-dark) 100%);border-color:var(--gov);color:#fff">
+              <div class="lbl" style="color:var(--gold)">Prazo legal</div>
+              <div class="v" style="color:#fff;font-size:56px">27 · jul · 2026</div>
+              <div class="d" style="color:#cdd5e3">Entrada em vigor da Lei n.º 5-A/2026. Caminho crítico: instalação na RING + verificador no SmartLegis + ligação ao diretório + DPIA submetida à CNPD.</div>
+            </div>
+            <div class="callout" style="margin-top:14px">
+              <div class="lbl">Documentos a circular antes da reunião</div>
+              <div class="txt">
+                <span class="mono">docs/14a_Questionario_OnePager.pdf</span> (1 página)<br>
+                <span class="mono">docs/14_Questionario_Infraestrutura.md</span> (completo)<br>
+                <span class="mono">docs/12_Especificacao_Comprovativo_SmartLegis.md</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 · CONFORMIDADE NIS2 -->
+    <section class="slide" data-title="Conformidade NIS2">
+      <div class="slide-head">
+        <div class="eyebrow">Conformidade · obrigação não negociável</div>
+        <h2>Conformidade NIS2 — duas frentes</h2>
+      </div>
+      <div class="slide-body">
+        <p class="lead">A NIS2 aplica-se à aplicação inteira, não apenas a processos que correm em redor dela. A <strong class="hilite">análise técnica já foi feita</strong> do nosso lado; falta fechar a <strong class="hilite">integração institucional com a DSTD</strong>.</p>
+        <div class="two-col">
+          <div class="col-pronto">
+            <h3>O nosso lado · análise feita</h3>
+            <ul>
+              <li><strong>10 requisitos do art. 21.º</strong> analisados em <span class="mono">docs/15</span></li>
+              <li><strong>5 cumprem</strong> totalmente · Ed25519, RBAC, SBOM, 2FA TOTP, threat models</li>
+              <li><strong>3 parciais</strong> · gestão de incidentes, continuidade, criptografia em repouso</li>
+              <li><strong>1 a iniciar</strong> · avaliação periódica formal de eficácia</li>
+              <li><strong>1 dependente</strong> · programa de formação</li>
+              <li><strong>Nenhum requisito em incumprimento</strong></li>
+            </ul>
+          </div>
+          <div class="col-depende">
+            <h3>Depende da DSTD</h3>
+            <ul>
+              <li>Classificação como <strong>sistema de entidade essencial</strong></li>
+              <li><strong>CISO institucional</strong> que valida configuração antes do go-live</li>
+              <li><strong>SOC / SIEM central</strong> que recebe os logs JSON estruturados</li>
+              <li>Canal de notificação <strong>CNCS</strong> · 24h alerta · 72h notificação · 1 mês relatório</li>
+              <li><strong>Encriptação em repouso</strong> dos volumes (LUKS / equivalente)</li>
+              <li>Inscrição da aplicação no <strong>inventário CMDB</strong> institucional</li>
+              <li><strong>Auditorias formais</strong> cadenciadas (interna anual + externa bienal)</li>
+              <li><strong>Programa de formação obrigatória</strong> para PFs, QA e Admin</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <div class="lbl">Onde está documentado</div>
+          <div class="txt">Análise técnica completa em <span class="mono">docs/15_Conformidade_NIS2.md</span>. Integração com processos institucionais detalhada em <span class="mono">docs/14 §15</span>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 · CAPA FINAL -->
+    <section class="slide final" data-title="Obrigado">
+      <div class="center" style="padding:0 80px">
+        <div class="eyebrow" style="color:var(--gold)">Pegada Legislativa · 2026</div>
+        <h2>Obrigado.</h2>
+        <p class="subtitle">A documentação técnica está disponível no repositório do projeto. As decisões fechadas nas próximas duas semanas determinam o calendário possível.</p>
+      </div>
+      <div class="qr">
+        <div class="doc">Documento completo</div>
+        <div class="pth">github.com/dapl-sggov/pegada · docs/14_Questionario_Infraestrutura.md</div>
+      </div>
+      <div class="stamp">
+        <div class="ttl">Apresentado por</div>
+        <div class="v">DAPL/DSSD</div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="deck-foot">
+  <div class="dots" id="dots"></div>
+  <div class="counter" id="counter">1 / 14</div>
+  <div class="hint"><kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>F</kbd> ecrã inteiro · <kbd>P</kbd> imprimir (1 página por slide)</div>
+</div>
+
+<script>
+(() => {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsContainer = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const total = slides.length;
+  let current = 0;
+
+  // Inicializa dots
+  slides.forEach((s, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.title = s.dataset.title || ('Slide ' + (i+1));
+    dot.setAttribute('aria-label', 'Ir para slide ' + (i+1) + ': ' + (s.dataset.title || ''));
+    dot.addEventListener('click', () => go(i));
+    dotsContainer.appendChild(dot);
+  });
+
+  function go(i) {
+    if (i < 0 || i >= total || i === current) return;
+    slides[current].classList.remove('active');
+    slides[i].classList.add('active');
+    dotsContainer.children[current].classList.remove('active');
+    dotsContainer.children[i].classList.add('active');
+    current = i;
+    counter.textContent = (i+1) + ' / ' + total;
+    // Atualiza hash para deep-link
+    try { history.replaceState(null, '', '#' + (i+1)); } catch {}
+  }
+
+  // Lê hash inicial
+  const initial = parseInt((location.hash || '').replace('#',''), 10);
+  if (!isNaN(initial) && initial >= 1 && initial <= total) go(initial - 1);
+
+  // Teclado
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+    else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); window.print(); }
+  });
+
+  // Click no fundo escuro avança; click no slide não
+  document.querySelector('.deck').addEventListener('click', (e) => {
+    if (e.target.closest('.slide') || e.target.closest('.deck-foot')) return;
+    go(current + 1);
+  });
+})();
+</script>
+</body>
+</html>
