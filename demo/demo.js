@@ -24,7 +24,7 @@ const NATUREZAS = {RTRI_INSCRITO:'Representante de interesses inscrito no RTRI',
 const FORMAS = {REUNIAO:'Reunião presencial',AUDIENCIA:'Audiência',VIDEOCONFERENCIA:'Videoconferência',CORRESPONDENCIA:'Correspondência escrita',CONTRIBUTO_ESPONTANEO:'Contributo espontâneo',OUTRA:'Outra'};
 const FORMAS_C = {PARECER_ESCRITO:'Parecer escrito',REUNIAO:'Reunião',AUDIENCIA:'Audiência'};
 const DECISOES = {INCORPORADA:'Incorporada',PARCIALMENTE_INCORPORADA:'Parcialmente incorporada',NAO_INCORPORADA:'Não incorporada',SEM_OBJETO:'Sem objeto'};
-const MARCOS_BLOQ = ['M0','M3','M4','M5'];
+const MARCOS_BLOQ = ['M0','M1','M4','M5'];
 const LIM = {SINTESE_B:200,SINTESE_E:300,DECISAO_E:200,OBJETO_D:50,SINTESE_D:100,JUSTIF_D:100};
 
 // XXV Governo Constitucional — siglas oficiais dos ministérios.
@@ -107,12 +107,11 @@ function seed() {
       estado:'EM_RSE', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo III, medida 4.2',
       sintese:'O presente diploma estabelece o quadro jurídico para a constituição e funcionamento de comunidades de energia renovável (CER), em conformidade com a Diretiva (UE) 2018/2001 (RED II), criando condições para a participação ativa de cidadãos, autarquias e PME na transição energética. Visa eliminar barreiras administrativas e tarifárias e estabelecer um modelo de partilha de energia produzida em autoconsumo coletivo.',
       avaliacao_previa:1, criado_por:'u-maria', criado_em:'2026-01-10T09:14:00Z',
-      cl_ref:'CL-2026-031', cl_inicio:'2026-03-15', cl_fim:'2026-04-14', cl_n:67,
-      cl_sintese:'Os 67 contributos manifestam apoio amplo ao regime, com observações focadas em três pontos: regulação tarifária da energia partilhada em autoconsumo coletivo; papel das autarquias na constituição de CER municipais; e tratamento fiscal dos excedentes vendidos à rede pelas pessoas singulares. Receberam-se ainda contributos sobre o regime de partilha de excedentes entre autoconsumidores não-membros de CER.',
-      cl_decisao:'Acolheu-se parcialmente a observação sobre regulação tarifária com a reformulação do art. 14.º. Não se acolheu a proposta sobre autarquias por exceder o âmbito do diploma. A questão fiscal foi reencaminhada para o Ministério das Finanças em sede de OE.',
-      m0:'2026-01-10T11:32:00Z',m0_por:'u-maria',m1:null,m2:'2026-04-22T11:42:00Z',
-      m3:'2026-04-30T16:05:00Z',m3_por:'u-maria',m3_decl:1,m4:null,m5:null,ref_dr:null,
-      rse_prevista:'2026-05-22',cm_prevista:'2026-06-05',dr_prevista:'2026-06-26',
+      cl_ref:null, cl_inicio:null, cl_fim:null, cl_n:null, cl_sintese:null, cl_decisao:null,
+      m0:'2026-01-10T11:32:00Z',m0_por:'u-maria',
+      m1:'2026-04-30T16:05:00Z',m1_por:'u-maria',m1_decl:1,
+      m2:null,m3:null,m4:null,m5:null,ref_dr:null,
+      rse_prevista:'2026-05-22',cp_prevista_inicio:'2026-05-30',cp_prevista_fim:'2026-06-29',cm_prevista:'2026-07-10',dr_prevista:'2026-07-25',
       bloco_d:[
         {id:'d1',data:'2026-02-12',forma:'REUNIAO',entidade:'APREN — Associação Portuguesa de Energias Renováveis',rtri_id:'RTRI/2025/00142',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Adjunta SE',interlocutor:'Presidente APREN; Director-geral',objeto:'Apresentação de proposta de regime para comunidades de energia renovável e simplificação do licenciamento.',sintese:'A APREN propôs um regime único para CER que abranja autoconsumo coletivo, partilha de energia entre membros e venda de excedentes em mercado, sem distinção entre origem solar ou eólica. Defendeu a simplificação do licenciamento até 1 MW de potência instalada.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A proposta de regime único foi acolhida na arquitetura do diploma. Não se acolheu a simplificação até 1 MW por divergir das obrigações de comunicação à ERSE.'},
         {id:'d2',data:'2026-02-19',forma:'VIDEOCONFERENCIA',entidade:'EDP — Energias de Portugal, S.A.',rtri_id:'RTRI/2025/00088',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Chefe de gabinete',interlocutor:'Director Regulação; Director Mercado',objeto:'Análise dos efeitos do diploma na operação da rede de distribuição de energia elétrica.',sintese:'A EDP manifestou preocupação com o aumento da complexidade da gestão de fluxos bidirecionais em zonas de elevada penetração solar, propondo um período transitório de 24 meses para adaptação dos sistemas de medição.',decisao:'NAO_INCORPORADA',justificacao:'O período transitório é incompatível com o calendário das metas PNEC 2030. A questão tarifária é da competência regulatória da ERSE e não cabe no presente diploma.'},
@@ -120,7 +119,7 @@ function seed() {
         {id:'d4',data:'2026-03-05',forma:'AUDIENCIA',entidade:'Confederação Geral dos Trabalhadores Portugueses (CGTP)',rtri_id:'RTRI/2025/00027',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente',interlocutor:'Coordenador',objeto:'Posição da CGTP sobre transição energética justa e proteção do emprego na cadeia de valor.',sintese:'A CGTP manifestou apoio ao princípio das comunidades de energia mas questionou a inexistência de cláusulas de proteção de emprego. Solicitou a inclusão de um mecanismo de diálogo social no Conselho Consultivo.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A inclusão de representação sindical no Conselho Consultivo foi acolhida no art. 22.º. Não se acolheram cláusulas adicionais por divergir do escopo do diploma.'},
         {id:'d5',data:'2026-03-21',forma:'CORRESPONDENCIA',entidade:'Prof. António Sá da Costa (Universidade de Évora)',rtri_id:'',natureza:'ACADEMIA_PERITO',gov:'Adjunta SE',interlocutor:'',objeto:'Parecer técnico sobre o modelo de cálculo de coeficientes de partilha em autoconsumo coletivo.',sintese:'O parecer propõe um modelo de cálculo dinâmico baseado em consumo histórico ponderado, em alternativa ao modelo estático inicialmente proposto. Apresenta análise comparativa com os modelos italiano e alemão.',decisao:'INCORPORADA',justificacao:'O modelo dinâmico foi acolhido no anexo I, com simplificação de cálculo para CER até 50 membros conforme proposto pelo parecer.'},
         {id:'d6',data:'2026-04-02',forma:'REUNIAO',entidade:'Coopérnico — Cooperativa de Energias Renováveis',rtri_id:'RTRI/2025/00341',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Adjunta SE',interlocutor:'Presidente da Direção; Vogal técnico',objeto:'Apresentação do modelo cooperativo de energia renovável e propostas de governação democrática para CER.',sintese:'A Coopérnico defendeu a equiparação plena das cooperativas de energia ao regime das CER, com critérios de governação democrática (um membro/um voto) e limites à concentração de participação. Apresentou estudo comparativo com Espanha e Alemanha.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'O regime das CER foi alargado para acolher modelos cooperativos sem necessidade de duplicação normativa. Os critérios de governação democrática foram acolhidos no art. 11.º; o limite à concentração foi diferido para portaria.'},
-        {id:'d7',data:'2026-04-09',forma:'REUNIAO',entidade:'REN — Redes Energéticas Nacionais',rtri_id:'RTRI/2025/00021',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Chefe de gabinete',interlocutor:'Diretor de Sistema; Diretor de Planeamento',objeto:'Análise da capacidade da rede de distribuição face a comunidades de média dimensão.',sintese:'A REN apresentou análise técnica da capacidade da rede em zonas de elevada penetração solar e propôs critérios de prioridade no acesso à rede para CER com componente social.',decisao:null,justificacao:''},
+        {id:'d7',data:'2026-04-09',forma:'REUNIAO',entidade:'REN — Redes Energéticas Nacionais',rtri_id:'RTRI/2025/00021',natureza:'RTRI_INSCRITO',gov:'Secretária de Estado do Ambiente; Chefe de gabinete',interlocutor:'Diretor de Sistema; Diretor de Planeamento',objeto:'Análise da capacidade da rede de distribuição face a comunidades de média dimensão.',sintese:'A REN apresentou análise técnica da capacidade da rede em zonas de elevada penetração solar e propôs critérios de prioridade no acesso à rede para CER com componente social.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'Os critérios de prioridade no acesso à rede para CER de componente social foram acolhidos no art. 19.º. A proposta de mecanismo escalonado de ligação foi remetida para regulamentação da ERSE, por exceder o âmbito do diploma.'},
       ],
       bloco_c:[
         {id:'c1',data:'2026-02-08',entidade:'Direção-Geral de Energia e Geologia (DGEG)',cargo:'',forma:'PARECER_ESCRITO',objeto:'Análise técnica do regime',sintese:'A DGEG considera o regime tecnicamente sólido e propôs ajustes a três artigos relativos a procedimentos de comunicação prévia e regimes de exceção para sistemas de pequena escala.'},
@@ -129,13 +128,12 @@ function seed() {
       ],
       comprovativos:[
         {jti:'cmp_M0-a3F27Kx9bMnQ',marco:'M0',emitido_em:'2026-01-10T11:32:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M3-9fK2bL7xQw4p',marco:'M3',emitido_em:'2026-04-30T16:05:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M1-9fK2bL7xQw4p',marco:'M1',emitido_em:'2026-04-30T16:05:00Z',estado:'VERIFICADO'},
       ],
       versoes:[
         {n:1,ts:'2026-01-10T09:14:00Z',autor:'Maria Silva',marco:null,desc:'FPL criada · Bloco A preenchido'},
         {n:2,ts:'2026-01-10T11:32:00Z',autor:'Maria Silva',marco:'M0',desc:'M0 validado · comprovativo emitido · estado → Em elaboração'},
-        {n:8,ts:'2026-04-22T11:42:00Z',autor:'Maria Silva',marco:'M2',desc:'M2 registado · síntese da consulta pública preenchida'},
-        {n:13,ts:'2026-04-30T16:05:00Z',autor:'Maria Silva',marco:'M3',desc:'M3 validado · comprovativo emitido · estado → Em RSE'},
+        {n:13,ts:'2026-04-30T16:05:00Z',autor:'Maria Silva',marco:'M1',desc:'M1 validado · declaração assinada · comprovativo emitido · estado → Em RSE'},
       ],
     }),
     mk({
@@ -159,17 +157,23 @@ function seed() {
       estado:'EM_CONSULTA_PUBLICA', origem:'INICIATIVA_MINISTERIO', ref_origem:'',
       sintese:'Estabelece o quadro jurídico para a partilha de dados pseudonimizados do Serviço Nacional de Saúde para fins de investigação científica, com salvaguardas específicas para categorias especiais de dados nos termos do RGPD e mecanismos de governação por comité de acesso multidisciplinar.',
       avaliacao_previa:1, criado_por:'u-ana', criado_em:'2026-02-15T10:00:00Z',
-      cl_ref:'CL-2026-024', cl_inicio:'2026-04-20', cl_fim:'2026-05-20', cl_n:23,
-      m0:'2026-02-15T10:00:00Z',m0_por:'u-ana',m1:'2026-04-15T10:00:00Z',
+      cl_ref:'CL-2026-024', cl_inicio:'2026-05-12', cl_fim:null, cl_n:23,
+      m0:'2026-02-15T10:00:00Z',m0_por:'u-ana',
+      m1:'2026-04-15T10:00:00Z',m1_por:'u-ana',m1_decl:1,
+      m2:'2026-05-10T10:00:00Z',m3:null,m4:null,m5:null,
       bloco_d:[
-        {id:'d1',data:'2026-03-10',forma:'REUNIAO',entidade:'Ordem dos Médicos',rtri_id:'RTRI/2025/00061',natureza:'RTRI_FORCA_LEI',gov:'SE Saúde; Chefe de gabinete',interlocutor:'Bastonário',objeto:'Posição da Ordem dos Médicos sobre o acesso de investigadores a dados clínicos pseudonimizados.',sintese:'A Ordem manifestou apoio ao regime mas alertou para a necessidade de garantias adicionais quanto à pseudonimização e à participação de comissões de ética na aprovação de cada projeto de investigação.',decisao:'',justificacao:''},
-        {id:'d2',data:'2026-03-18',forma:'AUDIENCIA',entidade:'Conselho Nacional de Ética para as Ciências da Vida',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'Ministra; SE Saúde',interlocutor:'Presidente',objeto:'Parecer sobre o modelo de governação do regime de partilha de dados de saúde.',sintese:'O CNECV emitiu parecer favorável, sublinhando a importância de um comité de acesso multidisciplinar e a revisão anual do regime.',decisao:'',justificacao:''},
+        {id:'d1',data:'2026-03-10',forma:'REUNIAO',entidade:'Ordem dos Médicos',rtri_id:'RTRI/2025/00061',natureza:'RTRI_FORCA_LEI',gov:'SE Saúde; Chefe de gabinete',interlocutor:'Bastonário',objeto:'Posição da Ordem dos Médicos sobre o acesso de investigadores a dados clínicos pseudonimizados.',sintese:'A Ordem manifestou apoio ao regime mas alertou para a necessidade de garantias adicionais quanto à pseudonimização e à participação de comissões de ética na aprovação de cada projeto de investigação.',decisao:'INCORPORADA',justificacao:'Reforçaram-se as garantias de pseudonimização no art. 8.º e tornou-se obrigatória a apreciação prévia por comissão de ética em todos os projetos com tratamento de categorias especiais, conforme proposto pela Ordem dos Médicos.'},
+        {id:'d2',data:'2026-03-18',forma:'AUDIENCIA',entidade:'Conselho Nacional de Ética para as Ciências da Vida',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'Ministra; SE Saúde',interlocutor:'Presidente',objeto:'Parecer sobre o modelo de governação do regime de partilha de dados de saúde.',sintese:'O CNECV emitiu parecer favorável, sublinhando a importância de um comité de acesso multidisciplinar e a revisão anual do regime.',decisao:'INCORPORADA',justificacao:'A composição multidisciplinar do comité de acesso ficou consagrada no art. 14.º. A obrigatoriedade de revisão anual do regime de governação ficou prevista no art. 23.º.'},
       ],
-      comprovativos:[{jti:'cmp_M0-2hX8wK4mLp9q',marco:'M0',emitido_em:'2026-02-15T10:00:00Z',estado:'VERIFICADO'}],
+      comprovativos:[
+        {jti:'cmp_M0-2hX8wK4mLp9q',marco:'M0',emitido_em:'2026-02-15T10:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M1-7yQ3kF8nLp2w',marco:'M1',emitido_em:'2026-04-15T10:00:00Z',estado:'VERIFICADO'},
+      ],
       versoes:[
         {n:1,ts:'2026-02-15T09:30:00Z',autor:'Ana Santos',marco:null,desc:'FPL criada'},
         {n:2,ts:'2026-02-15T10:00:00Z',autor:'Ana Santos',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:5,ts:'2026-04-15T10:00:00Z',autor:'Ana Santos',marco:'M1',desc:'M1 registado · abertura de consulta pública'},
+        {n:5,ts:'2026-04-15T10:00:00Z',autor:'Ana Santos',marco:'M1',desc:'M1 validado · declaração assinada · estado → Em RSE'},
+        {n:7,ts:'2026-05-10T10:00:00Z',autor:'Ana Santos',marco:'M2',desc:'M2 registado · abertura de consulta pública · estado → Em consulta pública'},
       ],
     }),
     mk({
@@ -179,11 +183,16 @@ function seed() {
       estado:'EM_CM', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo II',
       sintese:'A presente proposta de lei revê o regime do teletrabalho no Código do Trabalho, consagrando o direito à desconexão profissional, clarificando a repartição de custos e estabelecendo um regime supletivo modulável por instrumento de regulamentação coletiva de trabalho.',
       avaliacao_previa:1, criado_por:'u-pedro', criado_em:'2026-01-08T10:00:00Z',
-      cl_ref:'CL-2026-018', cl_inicio:'2026-02-01', cl_fim:'2026-03-03', cl_n:142,
+      cl_ref:'CL-2026-018', cl_inicio:'2026-02-10', cl_fim:'2026-03-12', cl_n:142,
       cl_sintese:'Os 142 contributos dividem-se entre posições patronais que defendem flexibilidade na definição dos horários de desconexão por acordo coletivo, e posições sindicais que defendem a desconexão como direito imperativo. Várias submissões de trabalhadores individuais sublinham a dificuldade de fiscalização do regime.',
       cl_decisao:'Acolheu-se um regime supletivo modulável por convenção coletiva, equilibrando as posições recolhidas. A fiscalização foi reforçada com a atribuição de competências específicas à ACT.',
-      m0:'2026-01-08T10:00:00Z',m0_por:'u-carla',m1:'2026-01-30T10:00:00Z',m2:'2026-03-15T10:00:00Z',
-      m3:'2026-04-10T10:00:00Z',m3_por:'u-carla',m3_decl:1,m4:'2026-04-25T10:00:00Z',m4_por:'u-carla',m4_decl:1,
+      m0:'2026-01-08T10:00:00Z',m0_por:'u-pedro',
+      m1:'2026-02-02T10:00:00Z',m1_por:'u-pedro',m1_decl:1,
+      m2:'2026-02-09T10:00:00Z',
+      m3:'2026-03-20T10:00:00Z',
+      m4:'2026-04-15T10:00:00Z',m4_por:'u-pedro',m4_decl:1,
+      m5:null,ref_dr:null,
+      cm_prevista:'2026-05-22',
       bloco_d:[
         {id:'d1',data:'2026-01-15',forma:'REUNIAO',entidade:'Confederação da Indústria Portuguesa (CIP)',rtri_id:'RTRI/2025/00018',natureza:'RTRI_INSCRITO',gov:'Ministro; SE Trabalho',interlocutor:'Presidente',objeto:'Posição patronal sobre o regime do teletrabalho e do direito à desconexão.',sintese:'A CIP propôs flexibilidade na definição dos horários de desconexão por acordo coletivo, manifestando preocupação com a rigidez de um regime imperativo único.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'Acolheu-se a modulação por convenção coletiva, mantendo um patamar mínimo imperativo de proteção. A proposta de flexibilidade total não foi acolhida.'},
         {id:'d2',data:'2026-01-22',forma:'REUNIAO',entidade:'Confederação Geral dos Trabalhadores Portugueses (CGTP)',rtri_id:'RTRI/2025/00027',natureza:'RTRI_INSCRITO',gov:'Ministro',interlocutor:'Coordenador',objeto:'Posição sindical sobre o direito à desconexão.',sintese:'A CGTP defendeu a desconexão como direito imperativo, sem possibilidade de derrogação por contratação coletiva, e o reforço dos meios de fiscalização da ACT.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'Acolheu-se o reforço da ACT. Não se acolheu a imperatividade absoluta, optando-se por um patamar mínimo com modulação coletiva.'},
@@ -191,14 +200,16 @@ function seed() {
       ],
       comprovativos:[
         {jti:'cmp_M0-7yR3kP9nQw2m',marco:'M0',emitido_em:'2026-01-08T10:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M3-4tH8vB2xLk6p',marco:'M3',emitido_em:'2026-04-10T10:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M4-3pR8vN2kHy6t',marco:'M4',emitido_em:'2026-04-25T10:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M1-4tH8vB2xLk6p',marco:'M1',emitido_em:'2026-02-02T10:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M4-3pR8vN2kHy6t',marco:'M4',emitido_em:'2026-04-15T10:00:00Z',estado:'VERIFICADO'},
       ],
       versoes:[
         {n:1,ts:'2026-01-08T09:30:00Z',autor:'Pedro Lopes',marco:null,desc:'FPL criada'},
         {n:2,ts:'2026-01-08T10:00:00Z',autor:'Pedro Lopes',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:9,ts:'2026-04-10T10:00:00Z',autor:'Pedro Lopes',marco:'M3',desc:'M3 validado · comprovativo emitido'},
-        {n:14,ts:'2026-04-25T10:00:00Z',autor:'Pedro Lopes',marco:'M4',desc:'M4 validado · comprovativo emitido · estado → Em CM'},
+        {n:7,ts:'2026-02-02T10:00:00Z',autor:'Pedro Lopes',marco:'M1',desc:'M1 validado · declaração assinada · comprovativo emitido · estado → Em RSE'},
+        {n:9,ts:'2026-02-09T10:00:00Z',autor:'Pedro Lopes',marco:'M2',desc:'M2 registado · abertura de consulta pública · estado → Em consulta pública'},
+        {n:12,ts:'2026-03-20T10:00:00Z',autor:'Pedro Lopes',marco:'M3',desc:'M3 registado · encerramento da consulta pública'},
+        {n:14,ts:'2026-04-15T10:00:00Z',autor:'Pedro Lopes',marco:'M4',desc:'M4 validado · declaração assinada · comprovativo emitido · estado → Em CM'},
       ],
     }),
     mk({
@@ -208,11 +219,14 @@ function seed() {
       estado:'PUBLICADO', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo IV',
       sintese:'O presente diploma consolida e moderniza o quadro normativo da mediação extrajudicial em matérias civis e comerciais, alinhando o regime nacional com as melhores práticas europeias e reforçando o estatuto do mediador certificado e a executoriedade dos acordos de mediação.',
       avaliacao_previa:1, criado_por:'u-carla', criado_em:'2025-09-01T10:00:00Z',
-      cl_ref:'CL-2025-211', cl_inicio:'2025-11-01', cl_fim:'2025-12-01', cl_n:34,
+      cl_ref:'CL-2025-211', cl_inicio:'2025-11-05', cl_fim:'2025-12-05', cl_n:34,
       cl_sintese:'Os 34 contributos recebidos incidem sobretudo sobre a certificação de mediadores, a articulação com os julgados de paz e a executoriedade dos acordos. As ordens profissionais manifestaram posições convergentes quanto à exigência de formação certificada.',
       cl_decisao:'Acolheu-se o reforço dos requisitos de certificação e clarificou-se a articulação com os julgados de paz. A executoriedade dos acordos homologados foi consagrada nos termos propostos pela generalidade dos contributos.',
-      m0:'2025-09-01T10:00:00Z',m0_por:'u-carla',m1:'2025-10-15T10:00:00Z',m2:'2025-12-20T10:00:00Z',
-      m3:'2026-02-10T10:00:00Z',m3_por:'u-carla',m3_decl:1,m4:'2026-03-05T10:00:00Z',m4_por:'u-carla',m4_decl:1,
+      m0:'2025-09-01T10:00:00Z',m0_por:'u-carla',
+      m1:'2025-10-28T10:00:00Z',m1_por:'u-carla',m1_decl:1,
+      m2:'2025-11-04T10:00:00Z',
+      m3:'2025-12-12T10:00:00Z',
+      m4:'2026-03-05T10:00:00Z',m4_por:'u-carla',m4_decl:1,
       m5:'2026-04-22T08:00:00Z',ref_dr:'DR n.º 78/2026, Série I, de 22-04-2026', data_publicacao:'2026-04-22T08:00:00Z',
       bloco_d:[
         {id:'d1',data:'2025-10-02',forma:'REUNIAO',entidade:'Ordem dos Advogados',rtri_id:'',natureza:'RTRI_FORCA_LEI',gov:'SE Justiça',interlocutor:'Bastonária',objeto:'Posição da Ordem dos Advogados sobre o estatuto do mediador e a articulação com o patrocínio judiciário.',sintese:'A Ordem dos Advogados defendeu requisitos de formação certificada equivalentes e a clarificação da articulação entre a mediação e o patrocínio judiciário, evitando sobreposições de competências.',decisao:'INCORPORADA',justificacao:'Os requisitos de formação certificada foram consagrados no art. 9.º. A articulação com o patrocínio judiciário foi clarificada no art. 24.º.'},
@@ -220,15 +234,17 @@ function seed() {
       ],
       comprovativos:[
         {jti:'cmp_M0-9wQ2xK7nLp4m',marco:'M0',emitido_em:'2025-09-01T10:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M3-2bH7vN9kLx3p',marco:'M3',emitido_em:'2026-02-10T10:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M1-2bH7vN9kLx3p',marco:'M1',emitido_em:'2025-10-28T10:00:00Z',estado:'VERIFICADO'},
         {jti:'cmp_M4-5tR3kP8nQy7m',marco:'M4',emitido_em:'2026-03-05T10:00:00Z',estado:'VERIFICADO'},
         {jti:'cmp_M5-7wQx1aF9bL3m',marco:'M5',emitido_em:'2026-04-22T08:00:00Z',estado:'VERIFICADO'},
       ],
       versoes:[
         {n:1,ts:'2025-09-01T09:30:00Z',autor:'Carla Almeida',marco:null,desc:'FPL criada'},
         {n:2,ts:'2025-09-01T10:00:00Z',autor:'Carla Almeida',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:11,ts:'2026-02-10T10:00:00Z',autor:'Carla Almeida',marco:'M3',desc:'M3 validado · comprovativo emitido'},
-        {n:15,ts:'2026-03-05T10:00:00Z',autor:'Carla Almeida',marco:'M4',desc:'M4 validado · comprovativo emitido'},
+        {n:7,ts:'2025-10-28T10:00:00Z',autor:'Carla Almeida',marco:'M1',desc:'M1 validado · declaração assinada · comprovativo emitido · estado → Em RSE'},
+        {n:9,ts:'2025-11-04T10:00:00Z',autor:'Carla Almeida',marco:'M2',desc:'M2 registado · abertura de consulta pública'},
+        {n:11,ts:'2025-12-12T10:00:00Z',autor:'Carla Almeida',marco:'M3',desc:'M3 registado · encerramento da consulta pública'},
+        {n:15,ts:'2026-03-05T10:00:00Z',autor:'Carla Almeida',marco:'M4',desc:'M4 validado · comprovativo emitido · estado → Em CM'},
         {n:16,ts:'2026-04-22T08:00:00Z',autor:'Carla Almeida',marco:'M5',desc:'M5 validado · comprovativo emitido · FPL exportada para o Portal do Governo'},
       ],
     }),
@@ -264,11 +280,15 @@ function seed() {
       estado:'APROVADO', origem:'INICIATIVA_MINISTERIO', ref_origem:'OE/2026 art. 235.º',
       sintese:'O presente decreto-lei executa o regime fiscal autorizado pelo art. 235.º da Lei do OE/2026, atualizando as taxas autónomas aplicáveis aos rendimentos prediais e introduzindo um regime de exclusão tributária parcial para mais-valias provenientes da venda de habitação própria reinvestida em arrendamento acessível.',
       avaliacao_previa:1, criado_por:'u-luis', criado_em:'2026-02-01T10:00:00Z',
-      cl_ref:'CL-2026-019', cl_inicio:'2026-02-20', cl_fim:'2026-03-22', cl_n:89,
+      cl_ref:'CL-2026-019', cl_inicio:'2026-03-02', cl_fim:'2026-04-01', cl_n:89,
       cl_sintese:'Os 89 contributos repartem-se entre proprietários particulares (que pedem alargamento das exclusões), associações de inquilinos (que defendem a exclusão condicionada à colocação em arrendamento acessível) e fiscalistas (sublinhando a complexidade do regime de excecção). A maioria apoia o princípio mas pede simplificação.',
       cl_decisao:'Reformulou-se o art. 7.º para simplificar o regime de exclusão, mantendo o condicionamento ao arrendamento acessível como proposto pelas associações de inquilinos. Não se acolheu o alargamento generalizado das exclusões por razões de neutralidade fiscal.',
-      m0:'2026-02-01T11:00:00Z',m0_por:'u-carla',m1:'2026-02-18T09:00:00Z',m2:'2026-03-25T17:00:00Z',
-      m3:'2026-04-02T11:00:00Z',m3_por:'u-carla',m3_decl:1,m4:'2026-04-18T15:00:00Z',m4_por:'u-carla',m4_decl:1,
+      m0:'2026-02-01T11:00:00Z',m0_por:'u-luis',
+      m1:'2026-02-24T09:00:00Z',m1_por:'u-luis',m1_decl:1,
+      m2:'2026-03-01T17:00:00Z',
+      m3:'2026-04-09T11:00:00Z',
+      m4:'2026-04-25T15:00:00Z',m4_por:'u-luis',m4_decl:1,
+      m5:null,ref_dr:'DR n.º __/2026, Série I, de __-__-2026',
       dr_prevista:'2026-05-25',
       bloco_d:[
         {id:'d1',data:'2026-02-15',forma:'REUNIAO',entidade:'Associação Portuguesa de Bancos (APB)',rtri_id:'RTRI/2025/00482',natureza:'RTRI_INSCRITO',gov:'Secretário de Estado dos Assuntos Fiscais',interlocutor:'Secretário-geral',objeto:'Impacto do regime no crédito hipotecário e na avaliação fiscal de garantias.',sintese:'A APB apresentou análise sobre o efeito do regime na avaliação patrimonial das garantias hipotecárias e propôs ajustamentos na fase de execução fiscal de bens reinvestidos.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A clarificação sobre execução fiscal foi acolhida no art. 12.º. A proposta de regime transitório alargado não foi acolhida por razões de previsibilidade orçamental.'},
@@ -277,15 +297,17 @@ function seed() {
       ],
       comprovativos:[
         {jti:'cmp_M0-1xQ9pK3wLm7n',marco:'M0',emitido_em:'2026-02-01T11:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M3-6tR4kP2nQy8z',marco:'M3',emitido_em:'2026-04-02T11:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M4-9wH5vB3xLk7p',marco:'M4',emitido_em:'2026-04-18T15:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M1-6tR4kP2nQy8z',marco:'M1',emitido_em:'2026-02-24T09:00:00Z',estado:'VERIFICADO'},
+        {jti:'cmp_M4-9wH5vB3xLk7p',marco:'M4',emitido_em:'2026-04-25T15:00:00Z',estado:'VERIFICADO'},
       ],
       versoes:[
         {n:1,ts:'2026-02-01T10:00:00Z',autor:'Luís Tavares',marco:null,desc:'FPL criada'},
         {n:2,ts:'2026-02-01T11:00:00Z',autor:'Luís Tavares',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:11,ts:'2026-04-02T11:00:00Z',autor:'Luís Tavares',marco:'M3',desc:'M3 validado · comprovativo emitido'},
-        {n:14,ts:'2026-04-18T15:00:00Z',autor:'Luís Tavares',marco:'M4',desc:'M4 validado · estado → Em CM'},
-        {n:15,ts:'2026-04-30T16:00:00Z',autor:'Luís Tavares',marco:null,desc:'Aprovado em Conselho de Ministros'},
+        {n:7,ts:'2026-02-24T09:00:00Z',autor:'Luís Tavares',marco:'M1',desc:'M1 validado · declaração assinada · comprovativo emitido · estado → Em RSE'},
+        {n:9,ts:'2026-03-01T17:00:00Z',autor:'Luís Tavares',marco:'M2',desc:'M2 registado · abertura de consulta pública'},
+        {n:12,ts:'2026-04-09T11:00:00Z',autor:'Luís Tavares',marco:'M3',desc:'M3 registado · encerramento da consulta pública'},
+        {n:14,ts:'2026-04-25T15:00:00Z',autor:'Luís Tavares',marco:'M4',desc:'M4 validado · comprovativo emitido · estado → Em CM'},
+        {n:15,ts:'2026-05-08T16:00:00Z',autor:'Luís Tavares',marco:null,desc:'Aprovado em Conselho de Ministros · referência DR registada'},
       ],
     }),
     mk({
@@ -306,8 +328,9 @@ function seed() {
       estado:'EM_REVISAO_QA', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo, Eixo V',
       sintese:'O presente despacho normativo define os critérios, painéis e procedimentos para a avaliação de centros de investigação científica e de unidades de I&D para o período 2026-2028, em articulação com a FCT e os painéis científicos internacionais.',
       avaliacao_previa:1, criado_por:'u-sofia', criado_em:'2026-01-25T11:00:00Z',
-      m0:'2026-01-25T12:00:00Z',m0_por:'u-sofia',m1:'2026-02-28T10:00:00Z',
-      cl_ref:'CL-2026-022', cl_inicio:'2026-03-10', cl_fim:'2026-04-10', cl_n:208,
+      m0:'2026-01-25T12:00:00Z',m0_por:'u-sofia',
+      m1:null,m2:null,m3:null,m4:null,m5:null,
+      cl_ref:null, cl_inicio:null, cl_fim:null, cl_n:null,
       bloco_d:[
         {id:'d1',data:'2026-02-05',forma:'REUNIAO',entidade:'Conselho de Reitores das Universidades Portuguesas (CRUP)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'Ministra; SE Ciência',interlocutor:'Presidente; Vice-presidente',objeto:'Discussão dos critérios de avaliação dos centros e unidades de I&D.',sintese:'O CRUP solicitou maior peso da componente colaborativa e da participação em redes europeias na avaliação. Propôs também painéis com avaliadores estrangeiros maioritários.',decisao:null,justificacao:''},
         {id:'d2',data:'2026-02-18',forma:'AUDIENCIA',entidade:'Conselho Coordenador dos Institutos Superiores Politécnicos (CCISP)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'SE Ciência',interlocutor:'Presidente',objeto:'Posição sobre critérios diferenciados para o ensino politécnico.',sintese:'O CCISP defendeu critérios de avaliação que valorizem a investigação aplicada e a transferência tecnológica, em distinção da investigação fundamental, para centros associados ao ensino politécnico.',decisao:null,justificacao:''},
@@ -316,26 +339,24 @@ function seed() {
       versoes:[
         {n:1,ts:'2026-01-25T11:00:00Z',autor:'Sofia Mendes',marco:null,desc:'FPL criada'},
         {n:2,ts:'2026-01-25T12:00:00Z',autor:'Sofia Mendes',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:8,ts:'2026-05-04T11:00:00Z',autor:'Rui Ferreira',marco:null,desc:'SGGOV pediu correção do Bloco D · decisões em falta'},
+        {n:6,ts:'2026-05-04T11:00:00Z',autor:'Rui Ferreira',marco:null,desc:'SGGOV pediu correção do Bloco D · decisões em falta · bloqueia validação de M1'},
       ],
     }),
   ];
   const auditorias = [
     {id:'a1',fpl_id:'fpl-001',auditor:'Rui Ferreira',data:'2026-05-02T10:00:00Z',pontuacao:94,observacoes:'FPL com cobertura adequada das interações relevantes. Decisões de incorporação bem fundamentadas. Sugestão menor: explicitar no objeto da entrada D-2 (EDP) se a reunião abrangeu também aspetos tarifários.',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
-    {id:'a2',fpl_id:'fpl-003',auditor:'Ana Costa',data:'2026-04-28T10:00:00Z',pontuacao:76,observacoes:'Bloco D com decisões de incorporação por preencher em ambas as entradas. Necessário completar antes de M3.',pedido_correcao:1,estado_correcao:'PENDENTE'},
     {id:'a3',fpl_id:'fpl-007',auditor:'Rui Ferreira',data:'2026-04-20T11:00:00Z',pontuacao:88,observacoes:'Cobertura adequada das interações relevantes. Decisões de incorporação fundamentadas. Sem pedidos de correção.',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
-    {id:'a4',fpl_id:'fpl-009',auditor:'Rui Ferreira',data:'2026-05-04T11:00:00Z',pontuacao:62,observacoes:'Bloco D incompleto: ambas as entradas (CRUP e CCISP) sem decisão de incorporação preenchida. A consulta pública recebeu 208 contributos mas a síntese e a decisão sobre incorporação no Bloco E também estão por preencher. Bloqueia M3.',pedido_correcao:1,estado_correcao:'EM_CURSO'},
+    {id:'a4',fpl_id:'fpl-009',auditor:'Rui Ferreira',data:'2026-05-04T11:00:00Z',pontuacao:62,observacoes:'Bloco D incompleto: ambas as entradas (CRUP e CCISP) sem decisão de incorporação preenchida. Bloqueia validação de M1 (pré-RSE).',pedido_correcao:1,estado_correcao:'EM_CURSO'},
   ];
   const notificacoes = [
-    {id:'n1',user:'u-maria',tipo:'M3',titulo:'FPL 2026/MAEN/0042 — M3 validado',msg:'O comprovativo de M3 foi emitido. Aguarda agendamento em RSE.',ts:'2026-04-30T16:05:00Z',lida:false,fpl_id:'fpl-001'},
-    {id:'n2',user:'u-maria',tipo:'CONSULTA',titulo:'Consulta pública encerrada — 2026/MAEN/0042',msg:'67 contributos importados para o Bloco E.',ts:'2026-04-14T18:00:00Z',lida:false,fpl_id:'fpl-001'},
+    {id:'n1',user:'u-maria',tipo:'M1',titulo:'FPL 2026/MAEN/0042 — M1 validado',msg:'O comprovativo de M1 foi emitido. Aguarda agendamento em RSE.',ts:'2026-04-30T16:05:00Z',lida:false,fpl_id:'fpl-001'},
     {id:'n3',user:'u-maria',tipo:'QA',titulo:'Auditoria QA recebida — 2026/MAEN/0042',msg:'Pontuação 94/100. Sem pedidos de correção.',ts:'2026-05-02T10:30:00Z',lida:true,fpl_id:'fpl-001'},
-    {id:'n4',user:'u-ana',tipo:'QA',titulo:'Pedido de correção — 2026/MS/0011',msg:'A SGGOV pediu a correção do Bloco D antes de M3.',ts:'2026-04-28T11:00:00Z',lida:false,fpl_id:'fpl-003'},
-    {id:'n5',user:'u-rui',tipo:'M4',titulo:'FPL 2026/MTSSS/0007 submetida para CM',msg:'Comprovativo de M4 verificado pelo SmartLegis.',ts:'2026-04-25T10:05:00Z',lida:false,fpl_id:'fpl-004'},
-    {id:'n6',user:'u-joao',tipo:'CONSULTA',titulo:'Consulta interna em curso — 2026/ME/0023',msg:'Aguarda parecer da CMVM e do BdP antes de submissão a consulta pública.',ts:'2026-04-12T14:00:00Z',lida:false,fpl_id:'fpl-006'},
-    {id:'n7',user:'u-sofia',tipo:'QA',titulo:'Pedido de correção — 2026/MECIC/0017',msg:'Bloco D e Bloco E incompletos. M3 bloqueado até resolução.',ts:'2026-05-04T11:30:00Z',lida:false,fpl_id:'fpl-009'},
-    {id:'n8',user:'u-luis',tipo:'M5',titulo:'Aguarda publicação em DR — 2026/MF/0014',msg:'Aprovado em CM em 30/04. Publicação prevista para 25/05.',ts:'2026-05-01T09:00:00Z',lida:true,fpl_id:'fpl-007'},
-    {id:'n9',user:'u-pedro',tipo:'M4',titulo:'Aguarda Conselho de Ministros — 2026/MTSSS/0007',msg:'Comprovativo de M4 verificado. Diploma agendado para CM de 22/05.',ts:'2026-04-25T11:00:00Z',lida:false,fpl_id:'fpl-004'},
+    {id:'n5',user:'u-rui',tipo:'M4',titulo:'FPL 2026/MTSSS/0007 submetida para CM',msg:'Comprovativo de M4 verificado pelo SmartLegis.',ts:'2026-04-15T10:05:00Z',lida:false,fpl_id:'fpl-004'},
+    {id:'n6',user:'u-joao',tipo:'CONSULTA',titulo:'Consulta interna em curso — 2026/MECT/0023',msg:'Aguarda parecer da CMVM e do BdP antes de submissão a RSE.',ts:'2026-04-12T14:00:00Z',lida:false,fpl_id:'fpl-006'},
+    {id:'n7',user:'u-sofia',tipo:'QA',titulo:'Pedido de correção — 2026/MECI/0017',msg:'Bloco D incompleto. M1 (pré-RSE) bloqueado até resolução.',ts:'2026-05-04T11:30:00Z',lida:false,fpl_id:'fpl-009'},
+    {id:'n8',user:'u-luis',tipo:'M5',titulo:'Aguarda publicação em DR — 2026/MEF/0014',msg:'Aprovado em CM em 08/05. Publicação prevista para 25/05.',ts:'2026-05-10T09:00:00Z',lida:true,fpl_id:'fpl-007'},
+    {id:'n9',user:'u-pedro',tipo:'M4',titulo:'Aguarda Conselho de Ministros — 2026/MTSSS/0007',msg:'Comprovativo de M4 verificado. Diploma agendado para CM de 22/05.',ts:'2026-04-15T11:00:00Z',lida:false,fpl_id:'fpl-004'},
+    {id:'n10',user:'u-ana',tipo:'CONSULTA',titulo:'Consulta pública em curso — 2026/MS/0011',msg:'CP iniciada a 12/05 (CL-2026-024). Aguarda contributos.',ts:'2026-05-12T10:00:00Z',lida:false,fpl_id:'fpl-003'},
   ];
   return {fpls,auditorias,notificacoes,seq:80};
 }
@@ -351,13 +372,18 @@ function load() {
 function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch {} }
 function resetDB() { DB = seed(); save(); }
 
-/* ============ WORKFLOW (validação client-side real) ============ */
+/* ============ WORKFLOW (validação client-side real) ============
+   Novo desenho: CP depois da RSE.
+     CRIADO → (M0) EM_ELABORACAO → (M1 pré-RSE, bloq) EM_RSE
+     → (M2 abre CP) EM_CONSULTA_PUBLICA → (M3 encerra CP, informativo)
+     → (M4 pré-CM, bloq) EM_CM → APROVADO → (M5) PUBLICADO       */
 const TRANS = {
   M0:{from:['CRIADO'],to:'EM_ELABORACAO'},
-  M1:{from:['EM_ELABORACAO','EM_CONSULTA_INTERNA'],to:'EM_CONSULTA_PUBLICA'},
-  M2:{from:['EM_CONSULTA_PUBLICA'],to:'EM_CONSULTA_PUBLICA'},
-  M3:{from:['EM_ELABORACAO','EM_CONSULTA_INTERNA','EM_CONSULTA_PUBLICA'],to:'EM_RSE'},
-  M4:{from:['EM_RSE'],to:'EM_CM'},
+  M1:{from:['EM_ELABORACAO','EM_CONSULTA_INTERNA'],to:'EM_RSE'},
+  M2:{from:['EM_RSE'],to:'EM_CONSULTA_PUBLICA'},
+  // M3 (encerramento da CP) é informativo — mantém estado EM_CONSULTA_PUBLICA.
+  M3:{from:['EM_CONSULTA_PUBLICA'],to:'EM_CONSULTA_PUBLICA'},
+  M4:{from:['EM_CONSULTA_PUBLICA'],to:'EM_CM'},
   M5:{from:['APROVADO'],to:'PUBLICADO'},
 };
 function validarMarco(f, marco) {
@@ -370,25 +396,32 @@ function validarMarco(f, marco) {
     if (!f.origem) p.push({d:'Bloco B: tipo de origem por definir'});
     if (!f.sintese || f.sintese.length<LIM.SINTESE_B) p.push({d:`Bloco B: síntese do problema (mínimo ${LIM.SINTESE_B} caracteres; atual ${f.sintese?f.sintese.length:0})`});
   }
-  if (marco==='M2') {
-    if (!f.m0) p.push({d:'M0 não validado'});
-    if (!f.cl_ref) p.push({d:'Bloco E: referência da consulta pública por preencher'});
-    if (!f.cl_sintese || f.cl_sintese.length<LIM.SINTESE_E) p.push({d:`Bloco E: síntese das posições (mínimo ${LIM.SINTESE_E} caracteres)`});
-    if (!f.cl_decisao || f.cl_decisao.length<LIM.DECISAO_E) p.push({d:`Bloco E: decisão sobre incorporação (mínimo ${LIM.DECISAO_E} caracteres)`});
-  }
-  if (marco==='M3') {
+  // M1 · Pré-RSE (bloqueante) — exige decisão + justificação em todas as
+  // entradas do Bloco D (lógica que antes vivia em M3, antes da reordenação).
+  if (marco==='M1') {
     if (!f.m0) p.push({d:'M0 não validado'});
     (f.bloco_d||[]).forEach((d,i)=>{
       if (!d.decisao) p.push({d:`Bloco D · entrada ${i+1} (${d.entidade}): decisão de incorporação por preencher`});
       else if (!d.justificacao || d.justificacao.length<LIM.JUSTIF_D) p.push({d:`Bloco D · entrada ${i+1} (${d.entidade}): justificação (mínimo ${LIM.JUSTIF_D} caracteres)`});
     });
-    if (f.cl_ref && f.cl_fim) {
-      if (!f.cl_sintese || f.cl_sintese.length<LIM.SINTESE_E) p.push({d:`Bloco E: síntese das posições (mínimo ${LIM.SINTESE_E} caracteres)`});
-      if (!f.cl_decisao || f.cl_decisao.length<LIM.DECISAO_E) p.push({d:`Bloco E: decisão sobre incorporação (mínimo ${LIM.DECISAO_E} caracteres)`});
-    }
   }
+  // M2 · Pós-RSE / Abertura da CP (informativo)
+  if (marco==='M2') {
+    if (!f.m1) p.push({d:'M1 (pré-RSE) não validado'});
+    if (!f.cl_ref) p.push({d:'Bloco E: referência da consulta pública por preencher'});
+    if (!f.cl_inicio) p.push({d:'Bloco E: data de início da CP por preencher'});
+  }
+  // M3 · Encerramento da CP (informativo)
+  if (marco==='M3') {
+    if (!f.m2) p.push({d:'M2 (abertura da CP) não validado'});
+    if (!f.cl_fim) p.push({d:'Bloco E: data de fim da CP por preencher'});
+    if (!f.cl_sintese || f.cl_sintese.length<LIM.SINTESE_E) p.push({d:`Bloco E: síntese das posições (mínimo ${LIM.SINTESE_E} caracteres)`});
+    if (!f.cl_decisao || f.cl_decisao.length<LIM.DECISAO_E) p.push({d:`Bloco E: decisão sobre incorporação (mínimo ${LIM.DECISAO_E} caracteres)`});
+  }
+  // M4 · Pré-CM (bloqueante) — depende de M1 + M3 e auditoria QA sem pedidos.
   if (marco==='M4') {
-    if (!f.m3) p.push({d:'M3 não validado'});
+    if (!f.m1) p.push({d:'M1 (pré-RSE) não validado'});
+    if (!f.m3) p.push({d:'M3 (encerramento da CP) não validado'});
     const pend = DB.auditorias.filter(a=>a.fpl_id===f.id && a.pedido_correcao && a.estado_correcao!=='CONCLUIDA');
     if (pend.length) p.push({d:`${pend.length} pedido(s) de correção pendente(s) da auditoria SGGOV`});
   }
@@ -401,8 +434,10 @@ function validarMarco(f, marco) {
 }
 function proxMarco(f) {
   if (!f.m0) return 'M0';
-  if (!f.m3 && ['EM_ELABORACAO','EM_CONSULTA_INTERNA','EM_CONSULTA_PUBLICA'].includes(f.estado)) return 'M3';
-  if (!f.m4 && f.estado==='EM_RSE') return 'M4';
+  if (!f.m1 && ['EM_ELABORACAO','EM_CONSULTA_INTERNA'].includes(f.estado)) return 'M1';
+  if (!f.m2 && f.estado==='EM_RSE') return 'M2';
+  if (!f.m3 && f.estado==='EM_CONSULTA_PUBLICA' && f.cl_fim) return 'M3';
+  if (!f.m4 && f.estado==='EM_CONSULTA_PUBLICA' && f.m3) return 'M4';
   if (!f.m5 && f.estado==='APROVADO') return 'M5';
   if (f.estado==='EM_CM') return 'APROVAR';
   return null;
@@ -600,7 +635,7 @@ function renderLogin() {
         <h2>Documentar quem influencia a lei.</h2>
         <p>Em execução do art.º 4.º da Lei n.º 5-A/2026 e da RCM da Pegada Legislativa, todos os diplomas do Governo passam a registar — bloco a bloco — quem foi ouvido, o que foi dito, e o que foi acolhido.</p>
         <ul class="entrada-feat">
-          <li><span class="ico">⚿</span><span><strong>Comprovativos criptográficos</strong> em cada marco bloqueante (M0, M3, M4, M5)</span></li>
+          <li><span class="ico">⚿</span><span><strong>Comprovativos criptográficos</strong> em cada marco bloqueante (M0, M1, M4, M5)</span></li>
           <li><span class="ico">▤</span><span><strong>Painel + cronograma</strong> da tramitação de cada FPL</span></li>
           <li><span class="ico">↗</span><span><strong>Exportação automática</strong> para o Portal do Governo após M5</span></li>
         </ul>
@@ -712,7 +747,7 @@ function renderSidebar(nUnread) {
   const ativos = myFpls.filter(f=>!['PUBLICADO','ARQUIVADO'].includes(f.estado)).length;
   const emCm = myFpls.filter(f=>f.estado==='EM_CM').length;
   const publicadas = myFpls.filter(f=>f.estado==='PUBLICADO').length;
-  const validar = myFpls.filter(f=>f.estado==='EM_ELABORACAO' && !f.m3).length;
+  const validar = myFpls.filter(f=>f.estado==='EM_ELABORACAO' && !f.m1).length;
   const link = (v,ic,l,extra='') => `<button class="link ${S.view===v?'active':''}" onclick="go('${v}')">${svg(ic)}<span>${l}</span>${extra}</button>`;
   const pill = (n,gold=true) => n>0 ? `<span class="${gold?'pill':'dot-unread'}">${gold?n:''}</span>` : '';
 
@@ -775,7 +810,7 @@ function renderUserMenu() {
 }
 function renderNotifPanel() {
   const list = DB.notificacoes.filter(n=>n.user===S.user.id).slice(0,12);
-  const icoFor = t => ({M3:I.check,M4:I.check,QA:I.shield,CONSULTA:I.globe}[t]||I.bell);
+  const icoFor = t => ({M1:I.check,M3:I.check,M4:I.check,QA:I.shield,CONSULTA:I.globe}[t]||I.bell);
   return `<div class="notif-panel">
     <div class="nh"><span>Notificações</span><button class="btn sm ghost" onclick="marcarTodasLidas()">Marcar todas lidas</button></div>
     <div class="notif-list">
@@ -910,7 +945,7 @@ const LISTA_COLS_DEMO = {
   gabinete: 'Gabinete',
   estado:   'Estado',
   m0:       'M0',
-  m3:       'M3',
+  m1:       'M1',
   m5:       'M5',
 };
 function viewLista() {
@@ -948,7 +983,7 @@ function viewLista() {
         <td>${gab(f.gabinete).sigla}</td>
         <td>${badge(f.estado)}</td>
         <td class="cel-num">${fmtD(f.m0)}</td>
-        <td class="cel-num">${fmtD(f.m3)}</td>
+        <td class="cel-num">${fmtD(f.m1)}</td>
         <td class="cel-num">${fmtD(f.m5)}</td>
       </tr>`).join(''):'<tr><td colspan="8" class="card-empty">Sem FPL. Crie a primeira.</td></tr>'}
     </tbody></table>
@@ -965,7 +1000,7 @@ function viewComprovativos() {
     <div><div class="pt">Comprovativos criptográficos</div><div class="ps">JWS Ed25519 emitidos a cada marco bloqueante · verificáveis offline pelo SmartLegis</div></div>
     <button class="btn" onclick="modalFluxoComprovativo()">${svg(I.key)} Como funciona</button>
   </div>
-  <div class="alert info"><span class="at">Acoplamento por comprovativo</span>Em cada marco bloqueante (M0, M3, M4, M5) a aplicação emite um comprovativo assinado. O ponto focal cola-o no SmartLegis, que o verifica com a chave pública partilhada e bloqueia a tramitação se a verificação falhar — sem integração síncrona entre os sistemas.</div>
+  <div class="alert info"><span class="at">Acoplamento por comprovativo</span>Em cada marco bloqueante (M0, M1, M4, M5) a aplicação emite um comprovativo assinado. O ponto focal cola-o no SmartLegis, que o verifica com a chave pública partilhada e bloqueia a tramitação se a verificação falhar — sem integração síncrona entre os sistemas.</div>
   <div class="card">
     <div class="card-h"><h3>${rows.length} comprovativos emitidos</h3></div>
     <table class="tbl"><thead><tr><th>FPL</th><th>Marco</th><th>Identificador (jti)</th><th>Emitido</th><th>Estado</th></tr></thead><tbody>
@@ -1008,7 +1043,7 @@ function viewAuditoria() {
     <div class="kpi"><div class="l">Auditorias</div><div class="v">${auds.length}</div></div>
     <div class="kpi"><div class="l">Pontuação média</div><div class="v" style="color:${media>=80?'var(--green)':'var(--warning)'}">${media}</div><div class="d">meta ≥ 80</div></div>
     <div class="kpi"><div class="l">Correções pendentes</div><div class="v" style="color:var(--warning)">${auds.filter(a=>a.pedido_correcao&&a.estado_correcao!=='CONCLUIDA').length}</div></div>
-    <div class="kpi"><div class="l">FPL auditáveis</div><div class="v">${DB.fpls.filter(f=>f.m3).length}</div><div class="d">com M3 validado</div></div>
+    <div class="kpi"><div class="l">FPL auditáveis</div><div class="v">${DB.fpls.filter(f=>f.m1).length}</div><div class="d">com M1 validado</div></div>
   </div>
   <div class="card">
     <div class="card-h"><div><h3>Auditorias realizadas</h3></div><button class="btn primary sm" onclick="modalNovaAuditoria()">${svg(I.plus)} Nova auditoria</button></div>
@@ -1024,7 +1059,7 @@ function viewAuditoria() {
   </div>`;
 }
 window.modalNovaAuditoria = () => {
-  const auditaveis = DB.fpls.filter(f=>f.m3);
+  const auditaveis = DB.fpls.filter(f=>f.m1);
   openModal(`<div class="modal-h"><h3>Nova auditoria de qualidade</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
   <div class="modal-b">
     <div class="field"><label>FPL a auditar</label><select id="au-fpl">${auditaveis.map(f=>`<option value="${f.id}">${esc(f.numero)} — ${esc(f.titulo_curto||'')}</option>`).join('')}</select></div>
@@ -1120,11 +1155,13 @@ function bindNova() {
    body em grelha de cards ou calendário mensal. */
 
 // Mapeamento marco → card de destino para o stepper navegável.
+// Novo desenho: M1 (pré-RSE) fecha o Bloco D antes da RSE; M2/M3 lidam com
+// a consulta pública (Bloco E); M4/M5 emitem comprovativo.
 const CARD_DO_MARCO_DEMO = {
   M0: 'card-a',
-  M1: 'card-e',
+  M1: 'card-d',
   M2: 'card-e',
-  M3: 'card-d',
+  M3: 'card-e',
   M4: 'card-cmp',
   M5: 'card-cmp',
 };
@@ -1206,12 +1243,12 @@ document.addEventListener('keydown', (e) => {
 
 function painelHeader(f, vista) {
   const marcos = [
-    {id:'M0',lbl:'Abertura',  data:f.m0, bloq:true},
-    {id:'M1',lbl:'Pré-CP',    data:f.m1, bloq:false},
-    {id:'M2',lbl:'Pós-CP',    data:f.m2, bloq:false},
-    {id:'M3',lbl:'Pré-RSE',   data:f.m3, bloq:true},
-    {id:'M4',lbl:'Pré-CM',    data:f.m4, bloq:true},
-    {id:'M5',lbl:'Publicação',data:f.m5, bloq:true},
+    {id:'M0',lbl:'Abertura',          data:f.m0, bloq:true },
+    {id:'M1',lbl:'Pré-RSE',           data:f.m1, bloq:true },
+    {id:'M2',lbl:'Pós-RSE · Abre CP', data:f.m2, bloq:false},
+    {id:'M3',lbl:'Encerramento CP',   data:f.m3, bloq:false},
+    {id:'M4',lbl:'Pré-CM',            data:f.m4, bloq:true },
+    {id:'M5',lbl:'Publicação',        data:f.m5, bloq:true },
   ];
   let curIdx = marcos.findIndex(m=>!m.data);
   marcos.forEach((m,i)=>{ m.estado = m.data ? 'done' : (i===curIdx?'current':'todo'); });
@@ -1429,7 +1466,7 @@ function pcE(f) {
 
 function pcCMP(f) {
   const cmps = f.comprovativos || [];
-  const marcos = ['M0','M3','M4','M5'];
+  const marcos = ['M0','M1','M4','M5'];
   const pendentes = marcos.filter(m=>!cmps.find(c=>c.marco===m));
   return `<div class="pc-card" id="card-cmp">
     <div class="pc-card-head">
@@ -1455,18 +1492,18 @@ function pcCMP(f) {
 }
 
 function pcF(f) {
-  const m3 = f.m3 ? '✓ M3 assinada' : 'M3 pendente';
+  const m1 = f.m1 ? '✓ M1 assinada' : 'M1 pendente';
   const m4 = f.m4 ? '✓ M4 assinada' : 'M4 pendente';
-  const ok = f.m3 && f.m4;
+  const ok = f.m1 && f.m4;
   return `<div class="pc-card" id="card-f">
     <div class="pc-card-head">
       <div class="pc-letter f">F</div>
       <div><div class="ttl">Declaração</div><div class="sub">Bloco F · ponto focal</div></div>
-      ${ok?'<span class="ok">✓ completas</span>':`<span class="warn">${esc(!f.m3?m3:m4)}</span>`}
+      ${ok?'<span class="ok">✓ completas</span>':`<span class="warn">${esc(!f.m1?m1:m4)}</span>`}
     </div>
     <div class="pc-card-body">
       <div class="pc-quote">"Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
-      <div style="font-size:11px;color:var(--p-text-mute);margin-top:10px">${m3} · ${m4}</div>
+      <div style="font-size:11px;color:var(--p-text-mute);margin-top:10px">${m1} · ${m4}</div>
     </div>
   </div>`;
 }
@@ -1583,8 +1620,8 @@ function painelCronograma(f) {
         `).join('')}
       <div class="crono-side-hdr" style="margin-top:24px">SLA · médias 2026</div>
       <div style="font-size:12px;color:var(--p-text-mute);line-height:1.6">
-        M0→M3 mediano: <strong style="color:var(--p-text)">72 dias</strong><br>
-        M3→M5 mediano: <strong style="color:var(--p-text)">34 dias</strong><br>
+        M0→M1 mediano: <strong style="color:var(--p-text)">42 dias</strong><br>
+        M1→M5 mediano: <strong style="color:var(--p-text)">64 dias</strong><br>
         Esta FPL · M0→hoje: <strong style="color:var(--p-text)">${f.m0?pcDiasDesde(f.m0):'—'} dias</strong>
       </div>
     </aside>
@@ -1644,7 +1681,7 @@ function pcListarProximos(eventos) {
     const d = new Date(iso);
     const dias = Math.round((d - new Date(hoje))/86400000);
     for (const e of eventos.get(iso)) {
-      const cor = e.k==='M3'||e.k==='M4' ? 'gold'
+      const cor = e.k==='M1'||e.k==='M4' ? 'gold'
                 : e.k==='M5'||e.k==='DR' ? 'green'
                 : e.k==='RSE'||e.k==='CM' ? 'red' : 'blue';
       out.push({
@@ -1663,7 +1700,10 @@ function pcListarProximos(eventos) {
 }
 function pcDescEvento(e) {
   switch (e.k) {
-    case 'M3': return 'Validação bloqueante · pré-RSE';
+    case 'M0': return 'Validação bloqueante · abertura';
+    case 'M1': return 'Validação bloqueante · pré-RSE';
+    case 'M2': return 'Marco informativo · abertura da CP';
+    case 'M3': return 'Marco informativo · encerramento da CP';
     case 'M4': return 'Validação bloqueante · pré-CM';
     case 'M5': return 'Validação bloqueante · publicação';
     case 'RSE': return 'Reunião de Secretários de Estado';
@@ -1746,7 +1786,7 @@ function blocoD(f) {
         ${e.decisao?`<div class="divider"></div>
           <div class="row"><span class="l">Decisão de incorporação</span><span><strong>${DECISOES[e.decisao]}</strong></span></div>
           <div class="row"><span class="l">Justificação</span><span>${esc(e.justificacao)}</span></div>`
-        :`<div class="alert warning mt-8" style="margin-bottom:0"><span class="at">Decisão pendente</span>Necessário preencher a decisão de incorporação e a justificação antes de validar M3.${ed?` <button class="btn sm" style="margin-top:6px" onclick="modalDecisaoD('${f.id}','${e.id}')">Preencher decisão</button>`:''}</div>`}
+        :`<div class="alert warning mt-8" style="margin-bottom:0"><span class="at">Decisão pendente</span>Necessário preencher a decisão de incorporação e a justificação antes de validar M1.${ed?` <button class="btn sm" style="margin-top:6px" onclick="modalDecisaoD('${f.id}','${e.id}')">Preencher decisão</button>`:''}</div>`}
       </div>
     </div>`).join(''):'<div class="card-empty">Sem interações externas registadas</div>';
   return blocoWrap('D','Interações externas — núcleo da pegada','Interações com representantes de interesses (Lei n.º 5-A/2026)',corpo,
@@ -1764,17 +1804,17 @@ function blocoE(f) {
     </div>`, ed?`<button class="btn sm" onclick="modalEditarE('${f.id}')">Editar</button>`:'');
 }
 function blocoF(f) {
-  return blocoWrap('F','Declaração do ponto focal','Validação obrigatória nos marcos M3 e M4',`
+  return blocoWrap('F','Declaração do ponto focal','Validação obrigatória nos marcos M1 e M4',`
     <div class="declaracao">"Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
     <div class="field-grid">
-      <div class="field"><label>Declaração M3 (Pré-RSE)</label><div class="v">${f.m3?`✓ Assinada em ${fmtDH(f.m3)}`:'<span class="empty">Pendente</span>'}</div></div>
+      <div class="field"><label>Declaração M1 (Pré-RSE)</label><div class="v">${f.m1?`✓ Assinada em ${fmtDH(f.m1)}`:'<span class="empty">Pendente</span>'}</div></div>
       <div class="field"><label>Declaração M4 (Pré-CM)</label><div class="v">${f.m4?`✓ Assinada em ${fmtDH(f.m4)}`:'<span class="empty">Pendente</span>'}</div></div>
     </div>
     <div class="alert info mt-16" style="margin-bottom:0"><span class="at">Lembrete legal</span>A submissão de declaração comprovadamente falsa é sujeita ao regime previsto na RCM.</div>`);
 }
 function blocoCMP(f) {
   const cmps = f.comprovativos||[];
-  const marcos = ['M0','M3','M4','M5'];
+  const marcos = ['M0','M1','M4','M5'];
   const corpo = `
     <div class="alert info"><span class="at">Acoplamento ao SmartLegis</span>Cada marco bloqueante emite um JWS Ed25519 assinado. O ponto focal copia-o para o SmartLegis, que o verifica offline com a chave pública partilhada e bloqueia a tramitação se a verificação falhar.</div>
     ${marcos.map(m=>{
@@ -1782,7 +1822,7 @@ function blocoCMP(f) {
       return `<div class="cmp-row">
         <span class="cmp-mark ${c?'':'pend'}">${m}</span>
         <div style="flex:1">
-          <strong>${({M0:'Abertura',M3:'Pré-RSE',M4:'Pré-CM',M5:'Publicação'})[m]}</strong>
+          <strong>${({M0:'Abertura',M1:'Pré-RSE',M4:'Pré-CM',M5:'Publicação'})[m]}</strong>
           <div class="cmp-jti">${c?esc(c.jti)+' · emitido '+fmtD(c.emitido_em):'Será emitido ao validar '+m}</div>
         </div>
         ${c?`<button class="btn sm" onclick="modalVerComprovativo('${f.id}','${c.jti}')">Ver</button><span class="cmp-badge ${c.estado==='VERIFICADO'?'verif':'valido'}">${c.estado==='VERIFICADO'?'Verificado':'Válido'}</span>`:'<span class="cmp-badge pend">Pendente</span>'}
@@ -1822,18 +1862,21 @@ function novaVersao(f, marco, desc) {
 function aplicarMarco(f, marco) {
   const t = TRANS[marco];
   f[marco.toLowerCase()] = nowISO();
-  if (['M0','M3','M4'].includes(marco)) f[marco.toLowerCase()+'_por'] = S.user.id;
-  if (['M3','M4'].includes(marco)) f[marco.toLowerCase()+'_decl'] = 1;
-  if (marco!=='M2') f.estado = t.to;
+  if (['M0','M1','M4'].includes(marco)) f[marco.toLowerCase()+'_por'] = S.user.id;
+  if (['M1','M4'].includes(marco)) f[marco.toLowerCase()+'_decl'] = 1;
+  // M2 e M3 são informativos: M2 muda EM_RSE → EM_CONSULTA_PUBLICA;
+  // M3 mantém o estado EM_CONSULTA_PUBLICA até validação de M4.
+  const transicionaEstado = marco !== 'M3';
+  if (transicionaEstado) f.estado = t.to;
   if (marco==='M5') { f.data_publicacao = nowISO(); }
   let cmp = null;
   if (MARCOS_BLOQ.includes(marco)) {
     cmp = emitirComprovativo(f, marco, S.user);
     f.comprovativos.push({jti:cmp.jti,marco,emitido_em:cmp.emitido_em,estado:'VALIDO',jws:cmp.jws});
   }
-  novaVersao(f, marco, `${marco} validado${cmp?' · comprovativo emitido':''}${marco!=='M2'?' · estado → '+ESTADOS[t.to].l:''}`);
+  novaVersao(f, marco, `${marco} validado${cmp?' · comprovativo emitido':''}${transicionaEstado?' · estado → '+ESTADOS[t.to].l:''}`);
   // notificações
-  if (marco==='M3') notificar(f.criado_por,'M3',`FPL ${f.numero} — M3 validado`,'Comprovativo emitido. Aguarda agendamento em RSE.',f.id);
+  if (marco==='M1') notificar(f.criado_por,'M1',`FPL ${f.numero} — M1 validado`,'Comprovativo emitido. Aguarda agendamento em RSE.',f.id);
   if (marco==='M4') notificar(f.criado_por,'M4',`FPL ${f.numero} — M4 validado`,'Comprovativo de M4 emitido. Submetida para Conselho de Ministros.',f.id);
   save();
   return cmp;
@@ -1860,8 +1903,8 @@ window.modalValidarMarco = (id, marco) => {
   const f = getFpl(id);
   const v = validarMarco(f, marco);
   const bloq = MARCOS_BLOQ.includes(marco);
-  const precisaDecl = ['M3','M4'].includes(marco);
-  const lbl = {M0:'Abertura',M1:'Pré-consulta pública',M2:'Pós-consulta pública',M3:'submissão para Reunião de Secretários de Estado',M4:'submissão para Conselho de Ministros',M5:'publicação'}[marco];
+  const precisaDecl = ['M1','M4'].includes(marco);
+  const lbl = {M0:'Abertura',M1:'submissão para Reunião de Secretários de Estado',M2:'pós-RSE · abertura da consulta pública',M3:'encerramento da consulta pública',M4:'submissão para Conselho de Ministros',M5:'publicação'}[marco];
   openModal(`
     <div class="modal-h"><h3>Validar Marco ${marco} — ${lbl}</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
     <div class="modal-b">
@@ -1919,7 +1962,7 @@ window.modalVerComprovativo = (id, jti) => {
   if (cmp) modalVerComprovativoObj(f, cmp, false);
 };
 window.modalFluxoComprovativo = () => {
-  modalVerComprovativoObj({numero:'2026/MAEN/0042'}, {marco:'M3',jti:'cmp_M3-9fK2bL7xQw4p'}, false);
+  modalVerComprovativoObj({numero:'2026/MAEN/0042'}, {marco:'M1',jti:'cmp_M1-9fK2bL7xQw4p'}, false);
 };
 window.copiarTexto = (t) => {
   try { navigator.clipboard.writeText(t); toast('Comprovativo copiado para a área de transferência.','success'); } catch { toast('Selecione e copie manualmente.','warning'); }
@@ -2012,7 +2055,7 @@ window.modalNovaD = (id) => {
       <div class="field full"><label>Objeto / matéria * <span class="help">(mín. ${LIM.OBJETO_D} caracteres)</span></label><textarea id="d-obj" rows="2"></textarea></div>
       <div class="field full"><label>Síntese da posição * <span class="help">(mín. ${LIM.SINTESE_D} caracteres)</span></label><textarea id="d-sin" rows="4"></textarea></div>
     </div>
-    <div class="alert warning mt-16" style="margin-bottom:0"><span class="at">Decisão de incorporação</span>Pode preencher mais tarde, mas é obrigatória antes de validar M3.</div>
+    <div class="alert warning mt-16" style="margin-bottom:0"><span class="at">Decisão de incorporação</span>Pode preencher mais tarde, mas é obrigatória antes de validar M1.</div>
   </div>
   <div class="modal-f"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="salvarD('${id}')">Adicionar interação</button></div>`);
   const q = document.getElementById('d-rtri-q'), res = document.getElementById('d-rtri-res');
