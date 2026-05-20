@@ -121,10 +121,12 @@ export const config = {
   },
 
   // --- Comprovativo criptográfico ---
-  // Em cada marco bloqueante (M0, M3, M4, M5) a aplicação emite um JWS
+  // Em cada marco bloqueante (M0, M1, M4, M5) a aplicação emite um JWS
   // assinado (Ed25519). O SmartLegis verifica-o offline com a chave pública
   // e bloqueia a tramitação se a verificação falhar.
   // Decisão: Memorando Executivo, Princípio 2 · RCM v2, n.º 4.
+  // Nota: o desenho de marcos foi atualizado (CP depois da RSE) — M1
+  // substitui o antigo M3 como marco bloqueante de pré-RSE.
   comprovativo: {
     algoritmo: 'EdDSA', // Ed25519
     issuer: env.COMPROVATIVO_ISSUER || 'fpl.sggov.ring',
@@ -142,7 +144,7 @@ export const config = {
     // o exp é uma salvaguarda adicional.
     ttlDias: int(env.COMPROVATIVO_TTL_DIAS, 365),
     // Marcos que emitem comprovativo
-    marcosBloqueantes: ['M0', 'M3', 'M4', 'M5'],
+    marcosBloqueantes: ['M0', 'M1', 'M4', 'M5'],
   },
 
   // --- Email transacional (SMTP do Estado / CEGER) ---

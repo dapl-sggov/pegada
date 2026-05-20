@@ -26,6 +26,7 @@ import config from './config.js';
 import { uuid, jsonStringify } from './util.js';
 import { notificar, destinatariosGabinete } from './notificacoes.js';
 import { incCounter } from './metrics.js';
+import { validarMarcoFpl } from './fpl.js';
 
 const CL_WEBHOOK_KEY = config.consultaLex.webhookKey;
 const CL_MAX_SKEW_MS = 5 * 60 * 1000;
@@ -112,10 +113,30 @@ export async function processarWebhook(req, res) {
     `INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload) VALUES (?, ?, 'WEBHOOK_CONSULTA_LEX', NULL, ?)`,
     [uuid(), fpl.id, jsonStringify({ cl_ref, n: contributos.length })]
   );
+  // Quando o webhook traz a data de fim da CP, tentamos auto-validar M3
+  // (Encerramento CP — não-bloqueante). Só passa se a síntese e a decisão
+  // sobre os contributos já estiverem preenchidas; caso contrário falha
+  // silenciosamente e o Ponto Focal continua a ter de validar manualmente
+  // após preencher esses campos. Como M3 é não-bloqueante, este auto-disparo
+  // não emite comprovativo nem altera o estado (mantém EM_CONSULTA_PUBLICA).
+  let m3AutoValidado = false;
+  if (periodo?.fim) {
+    try {
+      const sysUser = { id: fpl.criado_por, papeis: [{ papel: 'PONTO_FOCAL', gabinete_id: fpl.gabinete_id }] };
+      const r = await validarMarcoFpl(fpl.id, 'M3', sysUser, {}, {});
+      m3AutoValidado = !!r?.ok;
+    } catch { /* silencioso — fica para o PF validar manualmente */ }
+  }
+
   const dest = await destinatariosGabinete(fpl.gabinete_id);
-  await notificar({ tipo: 'CONSULTA_LEX_RECEBIDA', destinatarios: dest, fpl, ctx: { cl_ref, n_contributos: contributos.length } });
+  await notificar({
+    tipo: 'CONSULTA_LEX_RECEBIDA',
+    destinatarios: dest,
+    fpl,
+    ctx: { cl_ref, n_contributos: contributos.length, m3_auto_validado: m3AutoValidado },
+  });
   incCounter('cl_webhook_total', { resultado: 'aceite', motivo: 'ok' });
-  res.json({ ok: true, importados: contributos.length, fpl_id: fpl.id });
+  res.json({ ok: true, importados: contributos.length, fpl_id: fpl.id, m3_auto_validado: m3AutoValidado });
 }
 
 // Import CSV manual (fallback). Formato: data,entidade,tipo_entidade,tema,sintese

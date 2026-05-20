@@ -14,7 +14,7 @@ const COLS_SORTABLE = {
   gabinete_id:     'Gabinete',
   estado_workflow: 'Estado',
   m0_validado_em:  'M0',
-  m3_validado_em:  'M3',
+  m1_validado_em:  'M1',
   m5_validado_em:  'M5',
 };
 
@@ -91,7 +91,7 @@ export async function viewLista() {
               <td>${gabSigla(f.gabinete_id)}</td>
               <td>${badge(f.estado_workflow)}</td>
               <td class="muted small">${fmtData(f.m0_validado_em) || '—'}</td>
-              <td class="muted small">${fmtData(f.m3_validado_em) || '—'}</td>
+              <td class="muted small">${fmtData(f.m1_validado_em) || '—'}</td>
               <td class="muted small">${fmtData(f.m5_validado_em) || '—'}</td>
             </tr>
           `).join('')}

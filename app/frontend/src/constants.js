@@ -56,6 +56,6 @@ export const DECISAO_LBL = {
   SEM_OBJETO: 'Sem objeto',
 };
 
-export const MARCO_PRECISA_DECLARACAO = m => ['M3', 'M4'].includes(m);
-export const MARCO_BLOQUEANTE = m => ['M0', 'M3', 'M4', 'M5'].includes(m);
-export const MARCOS_BLOQUEANTES = ['M0', 'M3', 'M4', 'M5'];
+export const MARCO_PRECISA_DECLARACAO = m => ['M1', 'M4'].includes(m);
+export const MARCO_BLOQUEANTE = m => ['M0', 'M1', 'M4', 'M5'].includes(m);
+export const MARCOS_BLOQUEANTES = ['M0', 'M1', 'M4', 'M5'];

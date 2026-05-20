@@ -7,8 +7,8 @@
 //   3. Conteúdo   — objeto, síntese da posição
 //
 // A decisão de incorporação fica para um passo posterior (modal próprio,
-// pode ser preenchida mais tarde — obrigatória antes de M3). O wizard
-// faz autosave entre passos para não perder trabalho ao trocar de aba.
+// pode ser preenchida mais tarde — obrigatória antes de M1, Pré-RSE). O
+// wizard faz autosave entre passos para não perder trabalho ao trocar de aba.
 
 import { api } from './api.js';
 import { state } from './state.js';
@@ -141,7 +141,7 @@ function renderPasso(n, d) {
     </div>
     <div class="alert warning mt-12"><div>
       <span class="ttl">Decisão de incorporação</span>
-      Pode preencher mais tarde, mas é <strong>obrigatória antes de validar M3</strong>. Após adicionar a interação, abra-a no Bloco D e clique em "Preencher decisão".
+      Pode preencher mais tarde, mas é <strong>obrigatória antes de validar M1</strong> (Pré-RSE). Após adicionar a interação, abra-a no Bloco D e clique em "Preencher decisão".
     </div></div>
     <script>
       document.querySelector('[name=objeto]')?.addEventListener('input', e => {

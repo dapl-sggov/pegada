@@ -17,7 +17,7 @@ export function renderShell() {
   const ativos = state.fpls?.filter?.(f => !['PUBLICADO', 'ARQUIVADO'].includes(f.estado_workflow)).length;
   const emCm = state.fpls?.filter?.(f => f.estado_workflow === 'EM_CM').length;
   const publicadas = state.fpls?.filter?.(f => f.estado_workflow === 'PUBLICADO').length;
-  const validar = state.fpls?.filter?.(f => f.estado_workflow === 'EM_ELABORACAO' && !f.m3_validado_em).length;
+  const validar = state.fpls?.filter?.(f => f.estado_workflow === 'EM_ELABORACAO' && !f.m1_validado_em).length;
   const bellCount = state.notificacoes?.nao_lidas || 0;
   const canal = getEstadoCanal(); // 'sse' | 'polling' | 'desconectado'
   const sseDotClass = canal === 'sse' ? 'live' : canal === 'polling' ? 'polling' : '';

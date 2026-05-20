@@ -228,6 +228,59 @@ test('fluxo HTTP: criar FPL → patch Bloco B → validar M0 → comprovativo em
 });
 
 // ---------------------------------------------------------------------------
+// Fluxo HTTP M1 (Pré-RSE — novo marco bloqueante que substitui o antigo M3)
+// ---------------------------------------------------------------------------
+test('fluxo HTTP: M1 (Pré-RSE) bloqueia sem declaracao_assinada e abre EM_RSE com ela', async () => {
+  // Antes do novo desenho, a transição para EM_RSE era despoletada por
+  // POST /api/fpl/:id/marcos/M3/validar. Passou a ser M1 — este teste cobre
+  // a nova semântica do endpoint.
+  const c = novoCliente();
+  await login(c, 'maria@maen.gov.pt');
+
+  const cria = await c.POST('/api/fpl', { tipo_diploma: 'DL', titulo: 'Diploma HTTP M1', gabinete_id: 'maen' });
+  assert.equal(cria.status, 201);
+  const fplId = cria.body.id;
+
+  // M0 — pré-condição
+  await c.PATCH(`/api/fpl/${fplId}/bloco-b`, {
+    tipo_origem: 'INICIATIVA_MINISTERIO',
+    sintese_problema: ('Lacuna regulatória relevante no setor X que carece de intervenção do legislador. '.repeat(4)),
+  });
+  let v = await c.POST(`/api/fpl/${fplId}/marcos/M0/validar`, {});
+  assert.equal(v.status, 200, `M0 deveria validar: ${JSON.stringify(v.body)}`);
+  assert.equal(v.body.fpl.estado_workflow, 'EM_ELABORACAO');
+
+  // Adiciona entrada D com decisão preenchida (gate de M1)
+  const add = await c.POST(`/api/fpl/${fplId}/bloco-d`, {
+    data: '2026-02-10', forma: 'REUNIAO', entidade_designacao: 'Entidade HTTP',
+    natureza_juridica: 'ACADEMIA_PERITO',
+    objeto: 'o'.repeat(60), sintese_posicao: 's'.repeat(120),
+    decisao_incorporacao: 'INCORPORADA', justificacao_decisao: 'j'.repeat(120),
+  });
+  // Aceita 200 (já criada) ou 201 — depende do contrato da rota; o que importa
+  // para o teste é que a entrada existe e tem decisão.
+  assert.ok([200, 201].includes(add.status), `bloco-d add status: ${add.status} ${JSON.stringify(add.body)}`);
+
+  // M1 sem declaração — bloqueia
+  v = await c.POST(`/api/fpl/${fplId}/marcos/M1/validar`, {});
+  assert.equal(v.status, 422, `M1 sem declaração deveria bloquear: ${JSON.stringify(v.body)}`);
+  assert.ok(Array.isArray(v.body.pendencias) && v.body.pendencias.length >= 1);
+
+  // M1 com declaração — passa, abre EM_RSE, emite comprovativo
+  v = await c.POST(`/api/fpl/${fplId}/marcos/M1/validar`, { declaracao_assinada: true });
+  assert.equal(v.status, 200, `M1 com declaração deveria validar: ${JSON.stringify(v.body)}`);
+  assert.equal(v.body.ok, true);
+  assert.equal(v.body.fpl.estado_workflow, 'EM_RSE', 'M1 abre EM_RSE');
+  assert.ok(v.body.comprovativo, 'M1 é bloqueante e deve emitir comprovativo');
+  assert.equal(v.body.comprovativo.jws.split('.').length, 3);
+
+  // O comprovativo aparece na listagem
+  const lst = await c.GET(`/api/fpl/${fplId}/comprovativos`);
+  assert.equal(lst.status, 200);
+  assert.ok(lst.body.some(c => c.marco === 'M1'), 'comprovativo M1 deve existir');
+});
+
+// ---------------------------------------------------------------------------
 // JWKS público
 // ---------------------------------------------------------------------------
 test('JWKS: /api/.well-known/fpl-jwks.json expõe a chave pública Ed25519', async () => {
@@ -380,9 +433,13 @@ test('SSE: GET /api/notificacoes/stream estabelece event-stream e empurra evento
   await lerAlgumaCoisa();
   assert.ok(recebido.length > 0, 'deve receber pelo menos algum chunk');
 
-  // Dispara uma notificação para o utilizador
+  // Dispara uma notificação para o utilizador.
+  // No novo desenho, o marco bloqueante pré-RSE é M1 (substitui o antigo M3),
+  // por isso o evento de notificação relevante para abertura de RSE passou a
+  // ser M1_VALIDADO. Tolera-se que o tipo legado M3_VALIDADO continue a
+  // existir, mas o teste passa a usar a nova nomenclatura.
   await notificar({
-    tipo: 'M3_VALIDADO',
+    tipo: 'M1_VALIDADO',
     destinatarios: [u.id],
     fpl: { id: 'x', numero_processo: '2026/MAEN/SSE', titulo: 'Teste SSE', titulo_curto: 'SSE' },
   });

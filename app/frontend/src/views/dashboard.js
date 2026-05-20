@@ -51,7 +51,7 @@ export async function viewDashboard() {
     <div class="card">
       <div class="card-head"><h3>FPL recentes</h3><a onclick="setView('lista')">Ver todas →</a></div>
       <table class="tbl">
-        <thead><tr><th>Diploma</th><th>Tipo</th><th>Estado</th><th>M0</th><th>M3</th></tr></thead>
+        <thead><tr><th>Diploma</th><th>Tipo</th><th>Estado</th><th>M0</th><th>M1</th></tr></thead>
         <tbody>
         ${recentes.length === 0 ? '<tr><td colspan="5" class="card-empty">Sem FPL ainda. Crie a primeira.</td></tr>' :
         recentes.map(f => `
@@ -60,7 +60,7 @@ export async function viewDashboard() {
             <td>${tag(f.tipo_diploma)}</td>
             <td>${badge(f.estado_workflow)}</td>
             <td class="muted small">${fmtData(f.m0_validado_em) || '—'}</td>
-            <td class="muted small">${fmtData(f.m3_validado_em) || '—'}</td>
+            <td class="muted small">${fmtData(f.m1_validado_em) || '—'}</td>
           </tr>
         `).join('')}
         </tbody>
@@ -137,25 +137,25 @@ export function viewDashboardSggov() {
   `;
 }
 
-// Timeline mensal (12 meses) com barras empilhadas por marco.
-// Cada item: { mes: '2026-01', M0: n, M3: n, M4: n, M5: n }
+// Timeline mensal (12 meses) com barras empilhadas por marco bloqueante.
+// Cada item: { mes: '2026-01', M0: n, M1: n, M4: n, M5: n }
 function renderTimelineMarcos(timeline) {
   if (!timeline?.length) return '<div class="card-empty">Sem dados de marcos.</div>';
-  const max = Math.max(1, ...timeline.map(t => (t.M0||0)+(t.M3||0)+(t.M4||0)+(t.M5||0)));
-  const cores = { M0: '#0a3161', M3: '#3b66c4', M4: '#86610a', M5: '#1a7f3c' };
+  const max = Math.max(1, ...timeline.map(t => (t.M0||0)+(t.M1||0)+(t.M4||0)+(t.M5||0)));
+  const cores = { M0: '#0a3161', M1: '#3b66c4', M4: '#86610a', M5: '#1a7f3c' };
   return `<div class="timeline-marcos">
     <div class="tm-bars">
       ${timeline.map(t => {
-        const total = (t.M0||0)+(t.M3||0)+(t.M4||0)+(t.M5||0);
+        const total = (t.M0||0)+(t.M1||0)+(t.M4||0)+(t.M5||0);
         return `<div class="tm-col" title="${t.mes} · ${total} marcos">
           <div class="tm-bar" style="height:${total/max*100}%;display:flex;flex-direction:column-reverse">
-            ${['M0','M3','M4','M5'].map(m => t[m] ? `<div style="background:${cores[m]};height:${(t[m]/total)*100}%" title="${m}: ${t[m]}"></div>` : '').join('')}
+            ${['M0','M1','M4','M5'].map(m => t[m] ? `<div style="background:${cores[m]};height:${(t[m]/total)*100}%" title="${m}: ${t[m]}"></div>` : '').join('')}
           </div>
           <div class="tm-lbl">${t.mes.slice(5)}</div>
         </div>`;
       }).join('')}
     </div>
-    <div class="tm-legend">${['M0','M3','M4','M5'].map(m => `<span><i style="background:${cores[m]}"></i>${m}</span>`).join('')}</div>
+    <div class="tm-legend">${['M0','M1','M4','M5'].map(m => `<span><i style="background:${cores[m]}"></i>${m}</span>`).join('')}</div>
   </div>`;
 }
 

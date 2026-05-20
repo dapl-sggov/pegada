@@ -105,48 +105,158 @@ async function seed() {
 
   console.log('→ FPL de exemplo...');
   const maria = userIdByEmail['maria.silva@maen.gov.pt'];
-  // FPL 1 — em elaboração, com Bloco B preenchido e uma interação no Bloco D
+  const ana = userIdByEmail['ana.santos@ms.gov.pt'];
+  const pedro = userIdByEmail['pedro.lopes@mtsss.gov.pt'];
+
+  // Datas ancoradas a "agora" para ilustrar a progressão temporal dos marcos.
+  // A ordem do novo workflow é: M0 → M1 (pré-RSE) → M2 (abertura CP) →
+  // M3 (encerramento CP) → M4 (pré-CM) → APROVADO → M5 (publicação).
+  const now = Date.now();
+  const dia = (n) => new Date(now - n * 86400000).toISOString();
+
+  // -----------------------------------------------------------------------
+  // FPL 1 — Em RSE (M0 + M1 validados). PF "fechou" as interações prévias do
+  // Bloco D em M1 e assinou a declaração de completude.
+  // -----------------------------------------------------------------------
   const f1 = uuid();
   await db.run(
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, titulo_curto, gabinete_id,
                       estado_workflow, tipo_origem, referencia_origem, sintese_problema, avaliacao_previa,
-                      m0_validado_em, m0_validado_por, criado_por, versao_atual)
-     VALUES (?, '2026/MAEN/0042', 'DL', ?, ?, 'maen', 'EM_ELABORACAO', 'PROGRAMA_GOVERNO', 'Eixo III, medida 4.2',
-             ?, 1, ?, ?, ?, 2)`,
+                      m0_validado_em, m0_validado_por,
+                      m1_validado_em, m1_validado_por, m1_declaracao,
+                      criado_por, versao_atual)
+     VALUES (?, '2026/MAEN/0042', 'DL', ?, ?, 'maen', 'EM_RSE', 'PROGRAMA_GOVERNO', 'Eixo III, medida 4.2',
+             ?, 1, ?, ?, ?, ?, ?, ?, 3)`,
     [f1,
      'Decreto-Lei que aprova o regime jurídico da produção descentralizada de energia a partir de fontes renováveis em comunidades de energia',
      'Comunidades de energia renovável',
      'O presente diploma estabelece o quadro jurídico para a constituição e funcionamento de comunidades de energia renovável (CER), em conformidade com a Diretiva (UE) 2018/2001 (RED II), criando condições para a participação ativa de cidadãos, autarquias e PME na transição energética e eliminando barreiras administrativas e tarifárias.',
-     new Date().toISOString(), maria, maria]
+     dia(40), maria,
+     dia(5), maria,
+     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.',
+     maria]
   );
   await db.run(
-    `INSERT INTO versao_fpl (id, fpl_id, numero, autor_id, snapshot, marco_validado, descricao)
-     VALUES (?, ?, 1, ?, '{}', NULL, 'FPL criada'), (?, ?, 2, ?, '{}', 'M0', 'M0 validado · comprovativo emitido')`,
-    [uuid(), f1, maria, uuid(), f1, maria]
+    `INSERT INTO versao_fpl (id, fpl_id, numero, autor_id, snapshot, marco_validado, descricao) VALUES
+     (?, ?, 1, ?, '{}', NULL, 'FPL criada'),
+     (?, ?, 2, ?, '{}', 'M0',  'M0 validado · comprovativo emitido'),
+     (?, ?, 3, ?, '{}', 'M1',  'M1 validado · pré-RSE · comprovativo emitido')`,
+    [uuid(), f1, maria,
+     uuid(), f1, maria,
+     uuid(), f1, maria]
   );
   await db.run(
     `INSERT INTO entrada_bloco_d (id, fpl_id, data, forma, entidade_designacao, rtri_id, rtri_status,
-                                  natureza_juridica, pessoas_governo, pessoas_interlocutor, objeto, sintese_posicao)
+                                  natureza_juridica, pessoas_governo, pessoas_interlocutor, objeto, sintese_posicao,
+                                  decisao_incorporacao, justificacao_decisao)
      VALUES (?, ?, '2026-02-12', 'REUNIAO', 'APREN — Associação Portuguesa de Energias Renováveis',
-             'RTRI/2025/00142', 'VALIDADO', 'RTRI_INSCRITO', ?, ?, ?, ?)`,
+             'RTRI/2025/00142', 'VALIDADO', 'RTRI_INSCRITO', ?, ?, ?, ?, ?, ?)`,
     [uuid(), f1,
      jsonStringify(['Secretária de Estado do Ambiente', 'Adjunta SE']),
      jsonStringify(['Presidente APREN']),
      'Apresentação de proposta de regime para comunidades de energia renovável e simplificação do licenciamento.',
-     'A APREN propôs um regime único para CER que abranja autoconsumo coletivo, partilha de energia entre membros e venda de excedentes em mercado, e a simplificação do licenciamento até 1 MW de potência instalada.']
+     'A APREN propôs um regime único para CER que abranja autoconsumo coletivo, partilha de energia entre membros e venda de excedentes em mercado, e a simplificação do licenciamento até 1 MW de potência instalada.',
+     'PARCIAL',
+     'Acolhe-se o regime único para CER (autoconsumo coletivo + partilha de energia) por ser convergente com a Diretiva (UE) 2018/2001. Não se acolhe a simplificação de licenciamento até 1 MW por exceder o limiar de proporcionalidade ambiental — mantém-se 250 kW conforme parecer DGEG.']
   );
 
-  // FPL 2 — só criada (CRIADO), para demonstrar o fluxo desde o início
+  // -----------------------------------------------------------------------
+  // FPL 2 — Em CP (M0+M1+M2). CP aberta no Consulta.Lex; aguarda contributos.
+  // -----------------------------------------------------------------------
   const f2 = uuid();
+  await db.run(
+    `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, titulo_curto, gabinete_id,
+                      estado_workflow, tipo_origem, referencia_origem, sintese_problema, avaliacao_previa,
+                      consulta_lex_ref, consulta_lex_inicio,
+                      m0_validado_em, m0_validado_por,
+                      m1_validado_em, m1_validado_por, m1_declaracao,
+                      m2_validado_em,
+                      criado_por, versao_atual)
+     VALUES (?, '2026/MS/0008', 'DL', ?, ?, 'ms', 'EM_CONSULTA_PUBLICA', 'INICIATIVA_PROPRIA', NULL,
+             ?, 1, 'CL/2026/0118', ?, ?, ?, ?, ?, ?, ?, ?, 4)`,
+    [f2,
+     'Decreto-Lei que aprova o regime de partilha de dados de saúde para fins de investigação científica',
+     'Partilha de dados de saúde para investigação',
+     'Os investigadores em saúde enfrentam barreiras administrativas que comprometem a investigação clínica em Portugal. O presente diploma estabelece um regime equilibrado de partilha de dados pseudonimizados para fins de investigação científica, garantindo a proteção da privacidade dos titulares dos dados nos termos do RGPD e da Lei n.º 58/2019.',
+     dia(60), ana,
+     dia(20), ana,
+     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.',
+     dia(15),
+     ana]
+  );
+  await db.run(
+    `INSERT INTO versao_fpl (id, fpl_id, numero, autor_id, snapshot, marco_validado, descricao) VALUES
+     (?, ?, 1, ?, '{}', NULL, 'FPL criada'),
+     (?, ?, 2, ?, '{}', 'M0',  'M0 validado · comprovativo emitido'),
+     (?, ?, 3, ?, '{}', 'M1',  'M1 validado · pré-RSE · comprovativo emitido'),
+     (?, ?, 4, ?, '{}', 'M2',  'M2 registado · abertura de consulta pública (CL/2026/0118)')`,
+    [uuid(), f2, ana,
+     uuid(), f2, ana,
+     uuid(), f2, ana,
+     uuid(), f2, ana]
+  );
+
+  // -----------------------------------------------------------------------
+  // FPL 3 — Em CM (M0+M1+M2+M3+M4). CP encerrada com síntese e decisão;
+  // pré-CM (M4) validado pelo PF; aguarda agendamento em Conselho de
+  // Ministros (GSEPCM).
+  // -----------------------------------------------------------------------
+  const f3 = uuid();
+  await db.run(
+    `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, titulo_curto, gabinete_id,
+                      estado_workflow, tipo_origem, referencia_origem, sintese_problema, avaliacao_previa,
+                      consulta_lex_ref, consulta_lex_inicio, consulta_lex_fim, consulta_lex_n_contributos,
+                      consulta_lex_sintese, consulta_lex_decisao,
+                      m0_validado_em, m0_validado_por,
+                      m1_validado_em, m1_validado_por, m1_declaracao,
+                      m2_validado_em, m3_validado_em,
+                      m4_validado_em, m4_validado_por, m4_declaracao,
+                      criado_por, versao_atual)
+     VALUES (?, '2026/MTSSS/0003', 'DL', ?, ?, 'mtsss', 'EM_CM', 'PROGRAMA_GOVERNO', 'Eixo II, medida 2.7',
+             ?, 1, 'CL/2026/0067', ?, ?, 23, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 6)`,
+    [f3,
+     'Decreto-Lei que aprova o regime extraordinário de apoio à inserção profissional de jovens NEET',
+     'Apoio à inserção de jovens NEET',
+     'A persistência de uma taxa significativa de jovens NEET (não em emprego, educação ou formação) requer uma resposta integrada de apoio à inserção profissional. O presente diploma estabelece um regime extraordinário de incentivos à contratação, com majoração nas regiões com taxas de desemprego jovem acima da média nacional, e articulação com o IEFP para acompanhamento personalizado durante os primeiros 12 meses.',
+     dia(120), dia(90), dia(45),
+     'Os 23 contributos recebidos repartem-se entre três blocos: (a) parceiros sociais (CIP, CGTP, UGT, CCP) com posições convergentes na necessidade de majoração regional mas divergentes sobre o cálculo das majorações; (b) entidades académicas e de investigação (CES da Universidade de Coimbra, ISEG) pedindo maior densidade na avaliação de impacto regional; (c) entidades do terceiro setor (ANIMAR, EAPN) sublinhando a importância do acompanhamento pós-colocação.',
+     'Acolhe-se a sugestão de cálculo de majorações por NUTS III com pesos baseados na taxa de desemprego jovem dos últimos 12 meses (CGTP/UGT) e o reforço do acompanhamento personalizado pelos 12 meses subsequentes à colocação (ANIMAR/EAPN). Não se acolhe a proposta de extensão automática a estágios profissionais por sobreposição com o programa Estágios ATIVAR.PT.',
+     dia(150), pedro,
+     dia(80), pedro,
+     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.',
+     dia(75), dia(40),
+     dia(10), pedro,
+     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.',
+     pedro]
+  );
+  await db.run(
+    `INSERT INTO versao_fpl (id, fpl_id, numero, autor_id, snapshot, marco_validado, descricao) VALUES
+     (?, ?, 1, ?, '{}', NULL, 'FPL criada'),
+     (?, ?, 2, ?, '{}', 'M0',  'M0 validado · comprovativo emitido'),
+     (?, ?, 3, ?, '{}', 'M1',  'M1 validado · pré-RSE · comprovativo emitido'),
+     (?, ?, 4, ?, '{}', 'M2',  'M2 registado · abertura de CP'),
+     (?, ?, 5, ?, '{}', 'M3',  'M3 registado · encerramento de CP'),
+     (?, ?, 6, ?, '{}', 'M4',  'M4 validado · pré-CM · comprovativo emitido')`,
+    [uuid(), f3, pedro,
+     uuid(), f3, pedro,
+     uuid(), f3, pedro,
+     uuid(), f3, pedro,
+     uuid(), f3, pedro,
+     uuid(), f3, pedro]
+  );
+
+  // -----------------------------------------------------------------------
+  // FPL 4 — Apenas criada (CRIADO), para demonstrar o fluxo desde o início.
+  // -----------------------------------------------------------------------
+  const f4 = uuid();
   await db.run(
     `INSERT INTO fpl (id, numero_processo, tipo_diploma, titulo, gabinete_id, estado_workflow, criado_por)
      VALUES (?, '2026/MS/0011', 'DL', ?, 'ms', 'CRIADO', ?)`,
-    [f2, 'Decreto-Lei que aprova o regime de partilha de dados de saúde para fins de investigação científica',
-     userIdByEmail['ana.santos@ms.gov.pt']]
+    [f4, 'Decreto-Lei que aprova o regime de receita eletrónica para medicamentos sujeitos a receita médica restrita', ana]
   );
   await db.run(
     `INSERT INTO versao_fpl (id, fpl_id, numero, autor_id, snapshot, descricao) VALUES (?, ?, 1, ?, '{}', 'FPL criada')`,
-    [uuid(), f2, userIdByEmail['ana.santos@ms.gov.pt']]
+    [uuid(), f4, ana]
   );
 
   console.log('✓ Seed concluído.\n');

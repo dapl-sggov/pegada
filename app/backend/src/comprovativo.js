@@ -1,6 +1,6 @@
 // comprovativo.js — Comprovativo criptográfico de validação de marco.
 //
-// Em cada marco bloqueante (M0, M3, M4, M5) a aplicação emite um JWS compacto
+// Em cada marco bloqueante (M0, M1, M4, M5) a aplicação emite um JWS compacto
 // assinado com Ed25519. O SmartLegis verifica-o offline com a chave pública
 // partilhada e bloqueia a tramitação se a verificação falhar — sem integração
 // síncrona entre os sistemas (Memorando Executivo, Princípio 2 · RCM v2, n.º 4).

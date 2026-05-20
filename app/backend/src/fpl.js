@@ -4,7 +4,7 @@
 
 import { db } from './db.js';
 import { uuid, nowISO, jsonStringify } from './util.js';
-import { validarMarco, transicaoEstadoApos, validarEntradaBlocoD, MARCOS_BLOQUEANTES } from './workflow.js';
+import { validarMarco, transicaoEstadoApos, validarEntradaBlocoD, MARCOS_BLOQUEANTES, MARCOS_COM_DECLARACAO } from './workflow.js';
 import { validarIdentificador } from './rtri.js';
 import { emitirComprovativo } from './comprovativo.js';
 import { incCounter } from './metrics.js';
@@ -193,8 +193,8 @@ export async function validarMarcoFpl(fplId, marco, user, req, opts = {}) {
     return { ok: false, pendencias: result.pendencias };
   }
 
-  // M3 e M4 exigem declaração de completude assinada (Bloco F)
-  if (['M3', 'M4'].includes(marco) && !opts.declaracao_assinada) {
+  // M1 e M4 exigem declaração de completude assinada (Bloco F)
+  if (MARCOS_COM_DECLARACAO.includes(marco) && !opts.declaracao_assinada) {
     return { ok: false, pendencias: [{ campo: 'declaracao', regra: 'declaracao_obrigatoria', detalhe: 'Necessário assinar a declaração de completude (Bloco F)' }] };
   }
 
@@ -203,8 +203,11 @@ export async function validarMarcoFpl(fplId, marco, user, req, opts = {}) {
   const colTs = `${marco.toLowerCase()}_validado_em`;
   const sets = [`${colTs} = ?`, 'estado_workflow = ?'];
   const params = [ts, novoEstado];
-  if (['M0', 'M3', 'M4'].includes(marco)) { sets.push(`${marco.toLowerCase()}_validado_por = ?`); params.push(user.id); }
-  if (['M3', 'M4'].includes(marco)) {
+  // M0, M1 e M4 registam quem validou; M1 e M4 gravam ainda o texto da
+  // declaração assinada (colunas mX_validado_por / mX_declaracao geridas
+  // pela migração de schema deste ciclo).
+  if (['M0', 'M1', 'M4'].includes(marco)) { sets.push(`${marco.toLowerCase()}_validado_por = ?`); params.push(user.id); }
+  if (MARCOS_COM_DECLARACAO.includes(marco)) {
     sets.push(`${marco.toLowerCase()}_declaracao = ?`);
     params.push(opts.declaracao_texto || 'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.');
   }
@@ -227,10 +230,14 @@ export async function validarMarcoFpl(fplId, marco, user, req, opts = {}) {
     payload: { marco, novo_estado: novoEstado, comprovativo_jti: comprovativo?.jti || null }, req,
   });
 
-  // Notificações
+  // Notificações — alinhadas com o novo workflow (RSE → CP → CM).
   try {
-    if (marco === 'M3') {
-      await notificar({ tipo: 'M3_VALIDADO', destinatarios: await destinatariosPorPapel('GSEPCM'), fpl });
+    if (marco === 'M1') {
+      await notificar({ tipo: 'M1_VALIDADO', destinatarios: await destinatariosPorPapel('GSEPCM'), fpl });
+    } else if (marco === 'M2') {
+      await notificar({ tipo: 'M2_VALIDADO', destinatarios: [fpl.criado_por], fpl });
+    } else if (marco === 'M3') {
+      await notificar({ tipo: 'M3_VALIDADO', destinatarios: [fpl.criado_por], fpl });
     } else if (marco === 'M4') {
       await notificar({ tipo: 'M4_VALIDADO', destinatarios: await destinatariosPorPapel('GSEPCM'), fpl });
     } else if (marco === 'M5') {

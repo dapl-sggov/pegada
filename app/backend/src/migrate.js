@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS fpl (
   consulta_lex_sintese TEXT,
   consulta_lex_decisao TEXT,
   m0_validado_em TEXT, m0_validado_por TEXT,
-  m1_validado_em TEXT,
+  m1_validado_em TEXT, m1_validado_por TEXT, m1_declaracao TEXT,
   m2_validado_em TEXT,
   m3_validado_em TEXT, m3_validado_por TEXT, m3_declaracao TEXT,
   m4_validado_em TEXT, m4_validado_por TEXT, m4_declaracao TEXT,
@@ -159,7 +159,8 @@ CREATE TABLE IF NOT EXISTS auditoria_qa (
   observacoes TEXT,
   pedido_correcao INTEGER NOT NULL DEFAULT 0,
   descricao_correcao TEXT,
-  estado_correcao TEXT DEFAULT 'PENDENTE'
+  estado_correcao TEXT DEFAULT 'PENDENTE',
+  estado_workflow_anterior TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_qa_fpl ON auditoria_qa(fpl_id);
 
@@ -282,6 +283,64 @@ const MIGRATIONS = [
   // 2026-05 — coluna `dre_url` em fpl, populada pelo adapter DRE.
   async () => {
     try { await db.exec(`ALTER TABLE fpl ADD COLUMN dre_url TEXT`); }
+    catch (e) {
+      if (!/duplicate column|already exists/i.test(e.message)) throw e;
+    }
+  },
+  // 2026-05 — refactor de marcos: M1 passa a ser "Pré-RSE" (antigo M3) e
+  // M3 passa a ser "Encerramento CP" (não-bloqueante, sem declaração).
+  // Acrescenta colunas m1_validado_por / m1_declaracao ao fpl. As colunas
+  // m3_* antigas são preservadas (ver migração de dados abaixo).
+  async () => {
+    try { await db.exec(`ALTER TABLE fpl ADD COLUMN m1_validado_por TEXT`); }
+    catch (e) {
+      if (!/duplicate column|already exists/i.test(e.message)) throw e;
+    }
+  },
+  async () => {
+    try { await db.exec(`ALTER TABLE fpl ADD COLUMN m1_declaracao TEXT`); }
+    catch (e) {
+      if (!/duplicate column|already exists/i.test(e.message)) throw e;
+    }
+  },
+  // 2026-05 — migração de dados: nas instalações que já tinham FPLs
+  // validadas no antigo M3 (Pré-RSE), copia esses dados para o novo M1
+  // (mesmo significado semântico no novo desenho). NÃO apaga os dados
+  // m3_* antigos — ficam disponíveis para auditoria e como fallback de
+  // rollback. Idempotente: o WHERE garante que só copia linhas onde
+  // m1_validado_em ainda está vazio.
+  async () => {
+    await db.exec(`
+      UPDATE fpl
+         SET m1_validado_em = m3_validado_em,
+             m1_validado_por = m3_validado_por,
+             m1_declaracao = m3_declaracao
+       WHERE m1_validado_em IS NULL
+         AND m3_validado_em IS NOT NULL
+    `);
+  },
+  // 2026-05 — marca comprovativos M3 antigos (Pré-RSE) como SUBSTITUIDO.
+  // No novo desenho, M3 é "Encerramento CP" — não-bloqueante, sem JWS.
+  // Qualquer comprovativo em BD com marco='M3' é necessariamente do
+  // desenho antigo. A assinatura criptográfica continua verificável
+  // (o JWS é imutável), só o estado interno muda para distinguir do
+  // significado actual. Idempotente.
+  async () => {
+    await db.exec(`
+      UPDATE comprovativo
+         SET estado = 'SUBSTITUIDO',
+             motivo_revogacao = COALESCE(motivo_revogacao,
+               'M3 (antigo Pré-RSE) substituído por M1 no novo desenho de marcos')
+       WHERE marco = 'M3' AND estado = 'VALIDO'
+    `);
+  },
+  // 2026-05 — coluna `estado_workflow_anterior` em auditoria_qa para
+  // que o retorno de uma correção restaure a FPL ao estado em que estava
+  // antes do pedido de correção (em vez de assumir EM_CONSULTA_PUBLICA).
+  // Permite auditorias pedidas com FPL em EM_RSE (antes da CP) voltarem
+  // ao estado correto.
+  async () => {
+    try { await db.exec(`ALTER TABLE auditoria_qa ADD COLUMN estado_workflow_anterior TEXT`); }
     catch (e) {
       if (!/duplicate column|already exists/i.test(e.message)) throw e;
     }

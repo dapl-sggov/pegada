@@ -16,9 +16,13 @@
 
 O Conselho de Ministros aprova diplomas que vêm acompanhados de uma FPL
 (Pegada Legislativa). A FPL atravessa um workflow com **quatro marcos
-bloqueantes** (M0, M3, M4, M5). Em cada marco bloqueante a FPL Ponte
+bloqueantes** (M0, M1, M4, M5). Em cada marco bloqueante a FPL Ponte
 emite um **comprovativo criptográfico** que prova que o marco foi
 validado por um agente autorizado, num momento determinado.
+
+A consulta pública ocorre **entre a RSE e o CM**; os marcos M2 (abertura
+da CP) e M3 (encerramento da CP) são informativos e **não emitem
+comprovativo** para o SmartLegis.
 
 O SmartLegis, ao receber uma minuta para circuito CM, deve:
 
@@ -74,11 +78,11 @@ QUUvMDA0MiIs...QbV3w8h5g.JKDqFf1z5x...kQ3wq-w
   "iss": "fpl.sggov.gov.pt",
   "sub": "2026/MAE/0042",
   "fpl_id": "0d6e0e3a-7c14-4f7b-8a76-aeec24c2a8b9",
-  "marco": "M3",
+  "marco": "M1",
   "validado_em": "2026-04-12T14:32:18.451Z",
   "validado_por": "PONTO_FOCAL:mae",
   "snapshot_hash": "sha256:1b3a...",
-  "jti": "cmp_M3-x7Vg9P_Lk2y8",
+  "jti": "cmp_M1-x7Vg9P_Lk2y8",
   "iat": 1744465938,
   "exp": 1902145938
 }
@@ -89,7 +93,7 @@ QUUvMDA0MiIs...QbV3w8h5g.JKDqFf1z5x...kQ3wq-w
 | `iss` | string | sim | Emitente. **Sempre `"fpl.sggov.gov.pt"`** em produção. |
 | `sub` | string | sim | Número de processo da FPL (formato `AAAA/SIGLA/NNNN`). É o ponto de ligação humano com o diploma. |
 | `fpl_id` | UUID v4 | sim | Identificador opaco da FPL para reconciliação técnica. |
-| `marco` | enum | sim | `"M0"` \| `"M3"` \| `"M4"` \| `"M5"`. **Só estes quatro emitem comprovativo.** |
+| `marco` | enum | sim | `"M0"` \| `"M1"` \| `"M4"` \| `"M5"`. **Só estes quatro emitem comprovativo.** |
 | `validado_em` | ISO 8601 | sim | Timestamp UTC com milissegundos. |
 | `validado_por` | string | sim | Formato `<PAPEL>:<gabinete>`. Identifica o **papel funcional** e a unidade orgânica do validador; **não inclui dados pessoais** (UUID/email do utilizador não vão no payload). |
 | `snapshot_hash` | string | sim | SHA-256 do snapshot canónico da FPL no momento da validação, prefixado `sha256:`. Prova a integridade do conteúdo. |
@@ -131,14 +135,16 @@ Resposta (RFC 7517):
 ### 3.2 Distribuição out-of-band
 
 Para evitar dependência de DNS e TLS no momento da verificação, a chave
-pública é **adicionalmente pinada** no SmartLegis:
+pública é **adicionalmente armazenada localmente como chave de
+confiança** no SmartLegis:
 
 - Entrega num envelope assinado pelo Secretário-Geral do Governo.
 - Hash SHA-256 da chave registado num documento oficial.
 - Renovação coordenada com 30 dias de antecedência (ver §5).
 
-O SmartLegis **deve preferir a chave pinada** sobre a obtida em runtime
-do JWKS — o JWKS serve como mecanismo de descoberta e de transição.
+O SmartLegis **deve preferir a chave registada localmente** sobre a
+obtida em runtime do JWKS — o JWKS serve como mecanismo de descoberta e
+de transição.
 
 ---
 
@@ -179,7 +185,7 @@ function verificarComprovativoFPL(jws, jwks) {
   if (payload.iss !== 'fpl.sggov.gov.pt') return { valido: false, erro: 'iss-recusado' };
 
   // 7. Verificar marco
-  if (!['M0','M3','M4','M5'].includes(payload.marco))
+  if (!['M0','M1','M4','M5'].includes(payload.marco))
     return { valido: false, erro: 'marco-recusado' };
 
   return { valido: true, payload };
@@ -193,12 +199,18 @@ os comprovativos previstos para o estado atual da FPL devem ser válidos:
 
 | Estado pretendido pela tramitação | Comprovativos exigidos |
 |---|---|
-| Submissão a RSE | M0 + M3 |
-| Submissão a Conselho de Ministros | M0 + M3 + M4 |
-| Publicação no DR | M0 + M3 + M4 + M5 |
+| Submissão a RSE | M0 + M1 |
+| Submissão a Conselho de Ministros | M0 + M1 + M4 |
+| Publicação no DR | M0 + M1 + M4 + M5 |
 
 Se qualquer um falhar, o SmartLegis **bloqueia** com a mensagem de erro
 reportada.
+
+Note-se que M2 (abertura da CP) e M3 (encerramento da CP) são marcos
+não-bloqueantes — informativos do ciclo da consulta pública, que
+acontece **entre a RSE e o CM**. O SmartLegis não os verifica; o backend
+da FPL Ponte exige internamente que M3 esteja completo antes de permitir
+M4.
 
 ---
 
@@ -227,7 +239,7 @@ Se a chave privada for comprometida:
    `/api/comprovativos/verificar` passa a devolver `valido: false`
    para esses `jti`.
 4. SGGOV notifica o SmartLegis em **24 horas** (ofício + email +
-   atualização da chave pinada).
+   atualização da chave registada localmente).
 5. O SmartLegis deve consultar `/api/comprovativos/verificar` em vez de
    verificar offline durante 90 dias após uma revogação.
 
@@ -283,7 +295,7 @@ Vetores:
 | ID | Resultado esperado | Descrição |
 |---|---|---|
 | TV1 | `valido: true` | JWS bem formado M0 |
-| TV2 | `valido: true` | JWS bem formado M3 |
+| TV2 | `valido: true` | JWS bem formado M1 |
 | TV3 | `valido: false, erro: assinatura-invalida` | JWS com 1 byte da assinatura adulterado |
 | TV4 | `valido: false, erro: alg-recusado` | header com `alg: none` |
 | TV5 | `valido: false, erro: kid-desconhecido` | header com `kid` inventado |

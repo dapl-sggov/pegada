@@ -290,15 +290,20 @@ router.post('/fpl/:id/auditoria', requireAuth, requireRole('SGGOV_QA', 'SGGOV_AD
     return res.status(400).json({ error: 'Pontuação 0-100 obrigatória' });
   }
   const id = uuid();
+  // Quando há pedido de correção, preservamos o estado em que a FPL estava
+  // para o restaurar quando a correção for concluída (em vez de assumir
+  // EM_CONSULTA_PUBLICA cegamente — a auditoria pode ter sido pedida com
+  // a FPL ainda em EM_RSE, antes da CP).
+  const estadoAnterior = pedido_correcao ? f.estado_workflow : null;
   await db.run(
-    `INSERT INTO auditoria_qa (id, fpl_id, auditor_id, pontuacao, observacoes, pedido_correcao, descricao_correcao)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [id, req.params.id, req.user.id, pontuacao, observacoes || null, pedido_correcao ? 1 : 0, descricao_correcao || null]
+    `INSERT INTO auditoria_qa (id, fpl_id, auditor_id, pontuacao, observacoes, pedido_correcao, descricao_correcao, estado_workflow_anterior)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, req.params.id, req.user.id, pontuacao, observacoes || null, pedido_correcao ? 1 : 0, descricao_correcao || null, estadoAnterior]
   );
   await db.run(
     `INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload, ip_origem, user_agent)
      VALUES (?, ?, 'AUDITORIA_QA_CRIADA', ?, ?, ?, ?)`,
-    [uuid(), req.params.id, req.user.id, jsonStringify({ pontuacao, pedido_correcao: !!pedido_correcao }),
+    [uuid(), req.params.id, req.user.id, jsonStringify({ pontuacao, pedido_correcao: !!pedido_correcao, estado_anterior: estadoAnterior }),
      req.ip || null, req.headers['user-agent'] || null]
   );
   const dest = await notif.destinatariosGabinete(f.gabinete_id);
@@ -327,13 +332,18 @@ router.patch('/fpl/:id/auditoria/:aid', requireAuth, ah(async (req, res) => {
       [uuid(), req.params.id, req.user.id, jsonStringify({ auditoria_id: req.params.aid })]);
   } else if (estado_correcao === 'SUBMETIDA' && isOwner) {
     await db.run("UPDATE auditoria_qa SET estado_correcao = 'SUBMETIDA' WHERE id = ?", [req.params.aid]);
-    await db.run("UPDATE fpl SET estado_workflow = 'EM_RSE' WHERE id = ? AND estado_workflow = 'EM_REVISAO_QA'", [req.params.id]);
+    // Restaura o estado que a FPL tinha quando a auditoria foi pedida.
+    // Fallback para EM_CONSULTA_PUBLICA se o campo estiver vazio (auditorias
+    // criadas antes da migração de schema).
+    const estadoRetorno = a.estado_workflow_anterior || 'EM_CONSULTA_PUBLICA';
+    await db.run("UPDATE fpl SET estado_workflow = ? WHERE id = ? AND estado_workflow = 'EM_REVISAO_QA'", [estadoRetorno, req.params.id]);
     await notif.notificar({ tipo: 'CORRECAO_SUBMETIDA', destinatarios: await notif.destinatariosPorPapel('SGGOV_QA'), fpl: f });
   } else if (estado_correcao === 'CONCLUIDA' && isQa) {
     await db.run("UPDATE auditoria_qa SET estado_correcao = 'CONCLUIDA' WHERE id = ?", [req.params.aid]);
-    await db.run("UPDATE fpl SET estado_workflow = 'EM_RSE' WHERE id = ? AND estado_workflow = 'EM_REVISAO_QA'", [req.params.id]);
+    const estadoRetorno = a.estado_workflow_anterior || 'EM_CONSULTA_PUBLICA';
+    await db.run("UPDATE fpl SET estado_workflow = ? WHERE id = ? AND estado_workflow = 'EM_REVISAO_QA'", [estadoRetorno, req.params.id]);
     await db.run(`INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload) VALUES (?, ?, 'CORRECAO_APROVADA', ?, ?)`,
-      [uuid(), req.params.id, req.user.id, jsonStringify({ auditoria_id: req.params.aid })]);
+      [uuid(), req.params.id, req.user.id, jsonStringify({ auditoria_id: req.params.aid, estado_restaurado: estadoRetorno })]);
   } else {
     return res.status(400).json({ error: 'Operação não permitida com o seu papel' });
   }
@@ -443,19 +453,20 @@ router.get('/admin/dashboard', requireAuth, requireRole('SGGOV_QA', 'SGGOV_ADMIN
   );
   const aud = await db.get('SELECT AVG(pontuacao) as m, COUNT(*) as n FROM auditoria_qa');
 
-  // Timeline mensal (últimos 12 meses) com marcos M0/M3/M4/M5 emitidos.
+  // Timeline mensal (últimos 12 meses) com marcos bloqueantes emitidos.
+  // Novo desenho: M0 · M1 · M4 · M5 (M2/M3 são informativos da CP).
   // Lê de `versao_fpl.marco_validado` que é populado a cada validação.
   const timelineRows = await db.all(`
     SELECT substr(timestamp, 1, 7) as mes, marco_validado as marco, COUNT(*) as n
     FROM versao_fpl
-    WHERE marco_validado IN ('M0','M3','M4','M5')
+    WHERE marco_validado IN ('M0','M1','M4','M5')
       AND timestamp >= ?
     GROUP BY mes, marco_validado
     ORDER BY mes
   `, [new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString().slice(0, 7) + '-01']);
   const mesesMap = new Map();
   for (const r of timelineRows) {
-    if (!mesesMap.has(r.mes)) mesesMap.set(r.mes, { mes: r.mes, M0: 0, M3: 0, M4: 0, M5: 0 });
+    if (!mesesMap.has(r.mes)) mesesMap.set(r.mes, { mes: r.mes, M0: 0, M1: 0, M4: 0, M5: 0 });
     mesesMap.get(r.mes)[r.marco] = r.n;
   }
   const timeline_marcos = [...mesesMap.values()];

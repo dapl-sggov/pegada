@@ -8,13 +8,27 @@ import config from './config.js';
 import { uuid, jsonStringify } from './util.js';
 
 const TEMPLATES = {
-  M3_VALIDADO: {
+  // M1 · Pré-RSE (bloqueante). Substitui o antigo M3 — a CP passou a ocorrer
+  // depois da RSE, pelo que é em M1 que se assina a declaração de
+  // completude das interações prévias do Bloco D.
+  M1_VALIDADO: {
     titulo: 'FPL submetida para Reunião de Secretários de Estado',
-    corpo: (c) => `A FPL ${c.numero} (${c.titulo_curto || c.titulo}) foi submetida para a próxima RSE. Comprovativo de M3 emitido. Estado: EM_RSE.`,
+    corpo: (c) => `A FPL ${c.numero} (${c.titulo_curto || c.titulo}) foi submetida para a próxima RSE. Comprovativo de M1 (pré-RSE) emitido. Estado: EM_RSE.`,
   },
+  // M2 · Pós-RSE / Abertura da CP (informativo).
+  M2_VALIDADO: {
+    titulo: 'Consulta pública aberta',
+    corpo: (c) => `A FPL ${c.numero} entrou em consulta pública após a RSE. Estado: EM_CONSULTA_PUBLICA.`,
+  },
+  // M3 · Encerramento da CP (informativo).
+  M3_VALIDADO: {
+    titulo: 'Consulta pública encerrada',
+    corpo: (c) => `A consulta pública da FPL ${c.numero} foi encerrada. Síntese e decisão sobre incorporação registadas no Bloco E.`,
+  },
+  // M4 · Pré-CM (bloqueante).
   M4_VALIDADO: {
     titulo: 'FPL submetida para Conselho de Ministros',
-    corpo: (c) => `A FPL ${c.numero} foi submetida para CM. Comprovativo de M4 emitido. Estado: EM_CM.`,
+    corpo: (c) => `A FPL ${c.numero} foi submetida para CM. Comprovativo de M4 (pré-CM) emitido. Estado: EM_CM.`,
   },
   M5_VALIDADO: {
     titulo: 'FPL publicada',

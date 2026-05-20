@@ -33,11 +33,11 @@ function setVistaAtual(v) {
 // Click num step sem CTA "Validar" faz scrollIntoView no card respetivo.
 const CARD_DO_MARCO = {
   M0: 'card-a',   // Identificação
-  M1: 'card-e',   // Consulta pública
-  M2: 'card-e',
-  M3: 'card-d',   // Interações externas (núcleo da pegada)
-  M4: 'card-cmp', // Comprovativos
-  M5: 'card-cmp',
+  M1: 'card-d',   // Interações externas (Bloco D — núcleo da pegada)
+  M2: 'card-e',   // Consulta pública (abertura)
+  M3: 'card-e',   // Consulta pública (encerramento)
+  M4: 'card-cmp', // Comprovativos (Pré-CM)
+  M5: 'card-cmp', // Comprovativos (Publicação)
 };
 
 // ---------- Entry point ----------
@@ -54,12 +54,12 @@ export async function viewDetalhePainel() {
 // ---------- Header (breadcrumb + título + meta + toggle + stepper) ----------
 function renderHeader(f, vista) {
   const marcos = [
-    { id: 'M0', label: 'Abertura',     data: f.m0_validado_em, bloq: true  },
-    { id: 'M1', label: 'Pré-CP',       data: f.m1_validado_em, bloq: false },
-    { id: 'M2', label: 'Pós-CP',       data: f.m2_validado_em, bloq: false },
-    { id: 'M3', label: 'Pré-RSE',      data: f.m3_validado_em, bloq: true  },
-    { id: 'M4', label: 'Pré-CM',       data: f.m4_validado_em, bloq: true  },
-    { id: 'M5', label: 'Publicação',   data: f.m5_validado_em, bloq: true  },
+    { id: 'M0', label: 'Abertura',            data: f.m0_validado_em, bloq: true  },
+    { id: 'M1', label: 'Pré-RSE',             data: f.m1_validado_em, bloq: true  },
+    { id: 'M2', label: 'Pós-RSE · Abre CP',   data: f.m2_validado_em, bloq: false },
+    { id: 'M3', label: 'Encerramento CP',     data: f.m3_validado_em, bloq: false },
+    { id: 'M4', label: 'Pré-CM',              data: f.m4_validado_em, bloq: true  },
+    { id: 'M5', label: 'Publicação',          data: f.m5_validado_em, bloq: true  },
   ];
   // O "current" é o primeiro sem data
   let currentIdx = marcos.findIndex(m => !m.data);
@@ -278,7 +278,7 @@ function cardE(f) {
 
 function cardComprovativos(f) {
   const cmps = state.comprovativos || [];
-  const marcosBloq = ['M0', 'M3', 'M4', 'M5'];
+  const marcosBloq = ['M0', 'M1', 'M4', 'M5'];
   const emitidos = cmps.length;
   const pendentes = marcosBloq.filter(m => !cmps.find(c => c.marco === m));
   return `<div class="pc-card" id="card-cmp">
@@ -305,18 +305,18 @@ function cardComprovativos(f) {
 }
 
 function cardF(f) {
-  const m3 = f.m3_validado_em ? '✓ M3 assinada' : 'M3 pendente';
+  const m1 = f.m1_validado_em ? '✓ M1 assinada' : 'M1 pendente';
   const m4 = f.m4_validado_em ? '✓ M4 assinada' : 'M4 pendente';
-  const status = f.m3_validado_em && f.m4_validado_em ? 'ok' : 'warn';
+  const status = f.m1_validado_em && f.m4_validado_em ? 'ok' : 'warn';
   return `<div class="pc-card" id="card-f">
     <div class="pc-card-head">
       <div class="pc-letter f">F</div>
       <div><div class="ttl">Declaração</div><div class="sub">Bloco F · ponto focal</div></div>
-      ${status === 'ok' ? '<span class="ok">✓ completas</span>' : `<span class="warn">${esc(!f.m3_validado_em ? m3 : m4)}</span>`}
+      ${status === 'ok' ? '<span class="ok">✓ completas</span>' : `<span class="warn">${esc(!f.m1_validado_em ? m1 : m4)}</span>`}
     </div>
     <div class="pc-card-body">
       <div class="pc-quote">"Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:10px">${m3} · ${m4}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px">${m1} · ${m4}</div>
     </div>
   </div>`;
 }
@@ -448,8 +448,8 @@ function renderSla() {
   return `
     <div class="crono-side-hdr" style="margin-top:24px">SLA · médias 2026</div>
     <div class="crono-sla">
-      M0→M3 mediano: <strong>72 dias</strong><br>
-      M3→M5 mediano: <strong>34 dias</strong><br>
+      M0→M1 mediano: <strong>72 dias</strong><br>
+      M1→M5 mediano: <strong>34 dias</strong><br>
       Esta FPL · M0→hoje: <strong>${m0 ? diasDesde(m0) + ' dias' : '—'}</strong>
     </div>`;
 }
@@ -522,7 +522,7 @@ function listarProximos(f, eventos) {
     const d = new Date(iso);
     const dias = Math.round((d - new Date(hoje)) / 86400000);
     for (const e of evs) {
-      const cor = e.k === 'M3' || e.k === 'M4' ? 'gold'
+      const cor = e.k === 'M1' || e.k === 'M4' ? 'gold'
                 : e.k === 'M5' || e.k === 'DR' ? 'green'
                 : e.k === 'RSE' || e.k === 'CM' ? 'red'
                 : 'blue';
@@ -543,7 +543,10 @@ function listarProximos(f, eventos) {
 
 function descricaoEvento(e) {
   switch (e.k) {
-    case 'M3': return 'Validação bloqueante · pré-RSE';
+    case 'M0': return 'Validação bloqueante · abertura';
+    case 'M1': return 'Validação bloqueante · pré-RSE';
+    case 'M2': return 'Pós-RSE · abertura da consulta pública';
+    case 'M3': return 'Encerramento da consulta pública';
     case 'M4': return 'Validação bloqueante · pré-CM';
     case 'M5': return 'Validação bloqueante · publicação';
     case 'RSE': return 'Reunião de Secretários de Estado';
