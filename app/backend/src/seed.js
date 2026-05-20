@@ -212,22 +212,32 @@ async function seed() {
                       m2_validado_em, m3_validado_em,
                       m4_validado_em, m4_validado_por, m4_declaracao,
                       criado_por, versao_atual)
-     VALUES (?, '2026/MTSSS/0003', 'DL', ?, ?, 'mtsss', 'EM_CM', 'PROGRAMA_GOVERNO', 'Eixo II, medida 2.7',
-             ?, 1, 'CL/2026/0067', ?, ?, 23, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 6)`,
-    [f3,
-     'Decreto-Lei que aprova o regime extraordinário de apoio à inserção profissional de jovens NEET',
-     'Apoio à inserção de jovens NEET',
-     'A persistência de uma taxa significativa de jovens NEET (não em emprego, educação ou formação) requer uma resposta integrada de apoio à inserção profissional. O presente diploma estabelece um regime extraordinário de incentivos à contratação, com majoração nas regiões com taxas de desemprego jovem acima da média nacional, e articulação com o IEFP para acompanhamento personalizado durante os primeiros 12 meses.',
-     dia(120), dia(90), dia(45),
-     'Os 23 contributos recebidos repartem-se entre três blocos: (a) parceiros sociais (CIP, CGTP, UGT, CCP) com posições convergentes na necessidade de majoração regional mas divergentes sobre o cálculo das majorações; (b) entidades académicas e de investigação (CES da Universidade de Coimbra, ISEG) pedindo maior densidade na avaliação de impacto regional; (c) entidades do terceiro setor (ANIMAR, EAPN) sublinhando a importância do acompanhamento pós-colocação.',
-     'Acolhe-se a sugestão de cálculo de majorações por NUTS III com pesos baseados na taxa de desemprego jovem dos últimos 12 meses (CGTP/UGT) e o reforço do acompanhamento personalizado pelos 12 meses subsequentes à colocação (ANIMAR/EAPN). Não se acolhe a proposta de extensão automática a estágios profissionais por sobreposição com o programa Estágios ATIVAR.PT.',
-     dia(150), pedro,
-     dia(80), pedro,
-     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.',
-     dia(75), dia(40),
-     dia(10), pedro,
-     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.',
-     pedro]
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [f3,                                                                           // id
+     '2026/MTSSS/0003',                                                            // numero_processo
+     'DL',                                                                          // tipo_diploma
+     'Decreto-Lei que aprova o regime extraordinário de apoio à inserção profissional de jovens NEET', // titulo
+     'Apoio à inserção de jovens NEET',                                             // titulo_curto
+     'mtsss',                                                                       // gabinete_id
+     'EM_CM',                                                                       // estado_workflow
+     'PROGRAMA_GOVERNO',                                                            // tipo_origem
+     'Eixo II, medida 2.7',                                                         // referencia_origem
+     'A persistência de uma taxa significativa de jovens NEET (não em emprego, educação ou formação) requer uma resposta integrada de apoio à inserção profissional. O presente diploma estabelece um regime extraordinário de incentivos à contratação, com majoração nas regiões com taxas de desemprego jovem acima da média nacional, e articulação com o IEFP para acompanhamento personalizado durante os primeiros 12 meses.', // sintese_problema
+     1,                                                                             // avaliacao_previa
+     'CL/2026/0067',                                                                // consulta_lex_ref
+     dia(120),                                                                      // consulta_lex_inicio
+     dia(90),                                                                       // consulta_lex_fim
+     23,                                                                            // consulta_lex_n_contributos
+     'Os 23 contributos recebidos repartem-se entre três blocos: (a) parceiros sociais (CIP, CGTP, UGT, CCP) com posições convergentes na necessidade de majoração regional mas divergentes sobre o cálculo das majorações; (b) entidades académicas e de investigação (CES da Universidade de Coimbra, ISEG) pedindo maior densidade na avaliação de impacto regional; (c) entidades do terceiro setor (ANIMAR, EAPN) sublinhando a importância do acompanhamento pós-colocação.', // consulta_lex_sintese
+     'Acolhe-se a sugestão de cálculo de majorações por NUTS III com pesos baseados na taxa de desemprego jovem dos últimos 12 meses (CGTP/UGT) e o reforço do acompanhamento personalizado pelos 12 meses subsequentes à colocação (ANIMAR/EAPN). Não se acolhe a proposta de extensão automática a estágios profissionais por sobreposição com o programa Estágios ATIVAR.PT.', // consulta_lex_decisao
+     dia(150), pedro,                                                               // m0_validado_em, m0_validado_por
+     dia(140), pedro,                                                               // m1_validado_em, m1_validado_por
+     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.', // m1_declaracao
+     dia(120), dia(80),                                                             // m2_validado_em, m3_validado_em
+     dia(10), pedro,                                                                // m4_validado_em, m4_validado_por
+     'Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos.', // m4_declaracao
+     pedro,                                                                         // criado_por
+     6]                                                                             // versao_atual
   );
   await db.run(
     `INSERT INTO versao_fpl (id, fpl_id, numero, autor_id, snapshot, marco_validado, descricao) VALUES

@@ -7,10 +7,10 @@ import { toast } from '../utils.js';
 import { ico } from '../icons.js';
 
 const ROLES_DEMO = [
-  { email: 'maria.silva@gov.pt',     iniciais: 'MS', cor: '#1d3461', nome: 'Maria Silva',    papel: 'PF · MAE' },
-  { email: 'rui.ferreira@sggov.pt',  iniciais: 'RF', cor: '#a36507', nome: 'Rui Ferreira',   papel: 'SGGOV · QA' },
-  { email: 'carla.almeida@sggov.pt', iniciais: 'CA', cor: '#a71728', nome: 'Carla Almeida',  papel: 'SGGOV · Admin' },
-  { email: 'ana.santos@gov.pt',      iniciais: 'AS', cor: '#0f7858', nome: 'Ana Santos',     papel: 'PF · MS' },
+  { email: 'maria.silva@maen.gov.pt',         iniciais: 'MS', cor: '#1d3461', nome: 'Maria Silva',    papel: 'PF · MAEN' },
+  { email: 'rui.ferreira@sggoverno.gov.pt',   iniciais: 'RF', cor: '#a36507', nome: 'Rui Ferreira',   papel: 'SGGOV · QA' },
+  { email: 'carla.almeida@sggoverno.gov.pt',  iniciais: 'CA', cor: '#a71728', nome: 'Carla Almeida',  papel: 'SGGOV · Admin' },
+  { email: 'ana.santos@ms.gov.pt',            iniciais: 'AS', cor: '#0f7858', nome: 'Ana Santos',     papel: 'PF · MS' },
 ];
 
 export function renderLogin() {
