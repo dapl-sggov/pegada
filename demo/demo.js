@@ -12,6 +12,7 @@ const ESTADOS = {
   EM_CONSULTA_INTERNA:{l:'Consulta interna',c:'consulta'},
   EM_CONSULTA_PUBLICA:{l:'Consulta pública',c:'consulta'},
   EM_RSE:{l:'Em RSE',c:'rse'},
+  POS_RSE:{l:'Pós-RSE (CP dispensada)',c:'rse'},
   EM_CM:{l:'Em CM',c:'cm'},
   APROVADO:{l:'Aprovado',c:'aprovado'},
   PUBLICADO:{l:'Publicado',c:'publicado'},
@@ -25,7 +26,7 @@ const FORMAS = {REUNIAO:'Reunião presencial',AUDIENCIA:'Audiência',VIDEOCONFER
 const FORMAS_C = {PARECER_ESCRITO:'Parecer escrito',REUNIAO:'Reunião',AUDIENCIA:'Audiência'};
 const DECISOES = {INCORPORADA:'Incorporada',PARCIALMENTE_INCORPORADA:'Parcialmente incorporada',NAO_INCORPORADA:'Não incorporada',SEM_OBJETO:'Sem objeto'};
 const MARCOS_BLOQ = ['M0','M1','M4','M5'];
-const LIM = {SINTESE_B:200,SINTESE_E:300,DECISAO_E:200,OBJETO_D:50,SINTESE_D:100,JUSTIF_D:100};
+const LIM = {SINTESE_B:200,SINTESE_E:300,DECISAO_E:200,OBJETO_D:50,SINTESE_D:100,JUSTIF_D:100,JUSTIF_CP:200};
 
 // XXV Governo Constitucional — siglas oficiais dos ministérios.
 // Fonte: SMARTBP · Tabela · Grupo Entidade: Governo (2026/02/11).
@@ -53,10 +54,6 @@ const GABINETES = [
 const PERFIS = [
   {id:'u-maria', nome:'Maria Silva',   email:'maria.silva@maen.gov.pt',    papel:'PONTO_FOCAL',     gabinete:'maen',  cor:'#1d3461'},
   {id:'u-joao',  nome:'João Pereira',  email:'joao.pereira@mect.gov.pt',   papel:'PONTO_FOCAL_ALT', gabinete:'mect',  cor:'#2f4f8a'},
-  {id:'u-ana',   nome:'Ana Santos',    email:'ana.santos@ms.gov.pt',       papel:'PONTO_FOCAL',     gabinete:'ms',    cor:'#0f7858'},
-  {id:'u-pedro', nome:'Pedro Lopes',   email:'pedro.lopes@mtsss.gov.pt',   papel:'PONTO_FOCAL',     gabinete:'mtsss', cor:'#7c2d3e'},
-  {id:'u-sofia', nome:'Sofia Mendes',  email:'sofia.mendes@meci.gov.pt',   papel:'PONTO_FOCAL',     gabinete:'meci',  cor:'#5e3a8a'},
-  {id:'u-luis',  nome:'Luís Tavares',  email:'luis.tavares@mef.gov.pt',    papel:'PONTO_FOCAL',     gabinete:'mef',   cor:'#1a4a3a'},
   {id:'u-rui',   nome:'Rui Ferreira',  email:'rui.ferreira@sggoverno.gov.pt',   papel:'SGGOV_QA',    gabinete:null,    cor:'#a36507'},
   {id:'u-carla', nome:'Carla Almeida', email:'carla.almeida@sggoverno.gov.pt',  papel:'SGGOV_ADMIN', gabinete:null,    cor:'#a71728'},
   {id:'u-cidadao',nome:'Acesso Público',email:'—',                          papel:'PUBLICO',       gabinete:null,    cor:'#5e6573'},
@@ -94,7 +91,7 @@ const tag = t => `<span class="tag t-${t}">${t}</span>`;
 const b64u = obj => btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
 
 /* ============ STORE (backend simulado + localStorage) ============ */
-const LS_KEY = 'fpl-demo-v1';
+const LS_KEY = 'fpl-demo-v3';
 let DB = null;
 
 function seed() {
@@ -163,90 +160,6 @@ function seed() {
         {n:2,ts:'2026-04-28T10:00:00Z',autor:'Maria Silva',marco:'M0',desc:'M0 validado · comprovativo emitido · estado → Em elaboração'},
         {n:3,ts:'2026-05-12T17:30:00Z',autor:'Maria Silva',marco:null,desc:'Bloco D: registo da reunião com APED'},
         {n:4,ts:'2026-05-15T11:00:00Z',autor:'Maria Silva',marco:null,desc:'Bloco D: correspondência da Sociedade Ponto Verde anexada'},
-      ],
-    }),
-    // ── fpl-003 · EM_CONSULTA_PUBLICA (CP em curso) ─────────────────────
-    mk({
-      id:'fpl-003', numero:'2026/MS/0011', tipo:'DL', gabinete:'ms',
-      titulo:'Decreto-Lei que aprova o regime de partilha secundária de dados de saúde do Serviço Nacional de Saúde para fins de investigação científica',
-      titulo_curto:'Partilha de dados de saúde para investigação',
-      estado:'EM_CONSULTA_PUBLICA', origem:'INICIATIVA_MINISTERIO', ref_origem:'Programa do Governo XXV, Eixo IV — Saúde e Sociedade do Conhecimento',
-      sintese:'Estabelece o quadro jurídico aplicável à partilha secundária de dados pseudonimizados e anonimizados originados no Serviço Nacional de Saúde para fins de investigação científica, em articulação com o Regulamento (UE) 2025/327 (Espaço Europeu de Dados de Saúde). Cria salvaguardas específicas para o tratamento de categorias especiais de dados nos termos do art. 9.º do RGPD e institui um Comité de Acesso multidisciplinar, sob coordenação dos Serviços Partilhados do Ministério da Saúde, para apreciação e autorização individualizada de cada projeto de investigação.',
-      avaliacao_previa:1, criado_por:'u-ana', criado_em:'2026-02-15T09:30:00Z',
-      cl_ref:'CL-2026-024', cl_inicio:'2026-05-12', cl_fim:null, cl_n:31,
-      m0:'2026-02-15T10:00:00Z',m0_por:'u-ana',
-      m1:'2026-04-17T15:20:00Z',m1_por:'u-ana',m1_decl:1,
-      m2:'2026-05-08T11:00:00Z',m3:null,m4:null,m5:null,
-      cp_prevista_fim:'2026-06-11',cm_prevista:'2026-07-15',
-      bloco_d:[
-        {id:'d1',data:'2026-03-10',forma:'REUNIAO',entidade:'Ordem dos Médicos',rtri_id:'RTRI/2025/00061',natureza:'RTRI_FORCA_LEI',gov:'Secretário de Estado da Saúde; Chefe de gabinete',interlocutor:'Bastonário; Presidente do Conselho Médico',objeto:'Posição da Ordem dos Médicos sobre o acesso de equipas de investigação a dados clínicos pseudonimizados e o papel das comissões de ética.',sintese:'A Ordem manifestou apoio de princípio ao regime, condicionado a três salvaguardas reforçadas: (i) prova documental de pseudonimização irreversível para a categoria de "dados sensíveis ampliados"; (ii) parecer obrigatório de comissão de ética sectorial para todos os projetos que envolvam categorias especiais nos termos do art. 9.º RGPD; (iii) registo público das autorizações concedidas com indicação da finalidade e do prazo.',decisao:'INCORPORADA',justificacao:'Reforçaram-se as garantias técnicas de pseudonimização no art. 8.º (com remissão para a norma ISO/IEC 25237). Tornou-se obrigatória a apreciação prévia por comissão de ética em todos os projetos com tratamento de categorias especiais (art. 11.º) e instituiu-se o registo público centralizado no portal da SPMS (art. 19.º).'},
-        {id:'d2',data:'2026-03-18',forma:'AUDIENCIA',entidade:'Conselho Nacional de Ética para as Ciências da Vida (CNECV)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'Ministra da Saúde; SE Saúde',interlocutor:'Presidente; Conselheira relatora',objeto:'Parecer institucional do CNECV sobre o modelo de governação proposto e os limites do consentimento presumido.',sintese:'O CNECV emitiu parecer globalmente favorável (Parecer n.º 121/CNECV/2026), sublinhando a necessidade de um Comité de Acesso com composição multidisciplinar obrigatória (incluindo um eticista, um jurista especializado em proteção de dados e um representante dos utentes do SNS) e a sujeição do regime a revisão obrigatória ao fim de 24 meses. Manifestou reserva quanto à dispensa de consentimento expresso para certas categorias de investigação não-interventiva.',decisao:'INCORPORADA',justificacao:'A composição multidisciplinar obrigatória do Comité de Acesso ficou consagrada no art. 14.º/2, com a inclusão dos três perfis recomendados pelo CNECV. A obrigatoriedade de revisão do regime ao fim de 24 meses ficou inscrita no art. 23.º (cláusula de revisão).'},
-        {id:'d3',data:'2026-03-25',forma:'REUNIAO',entidade:'Comissão Nacional de Proteção de Dados (CNPD)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'SE Saúde; Adjunto SES',interlocutor:'Presidente; Vogal relator',objeto:'Compatibilidade do regime com o RGPD e articulação com o EHDS.',sintese:'A CNPD considerou a base jurídica adequada (art. 6.º/1, alínea e) e art. 9.º/2, alínea j) do RGPD, conjugados com o art. 29.º da Lei n.º 58/2019), pedindo, contudo, o reforço das exigências de avaliação de impacto sobre a proteção de dados (DPIA) por projeto e a designação obrigatória de encarregado de proteção de dados em cada equipa de investigação que aceda a dados nominativos.',decisao:'INCORPORADA',justificacao:'A obrigatoriedade de DPIA por projeto e a designação de DPO em cada equipa requerente foram acolhidas no art. 13.º. As recomendações relativas a auditorias periódicas foram acolhidas no art. 21.º com cadência bianual.'},
-        {id:'d4',data:'2026-04-01',forma:'VIDEOCONFERENCIA',entidade:'APIFARMA — Associação Portuguesa da Indústria Farmacêutica',rtri_id:'RTRI/2025/00467',natureza:'RTRI_INSCRITO',gov:'SE Saúde',interlocutor:'Diretora-geral; Coordenador científico',objeto:'Acesso de equipas de investigação clínica do setor farmacêutico aos dados secundários do SNS.',sintese:'A APIFARMA defendeu o reconhecimento dos centros de I&D farmacêutica como entidades requerentes elegíveis em pé de igualdade com os centros de investigação académica, sujeitos aos mesmos critérios éticos e técnicos. Apresentou modelo de governação utilizado na Dinamarca (DST Research Data) e estimou em 8-12 ensaios/ano o potencial de utilização nacional.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'O reconhecimento como entidade requerente elegível foi acolhido no art. 6.º/2, alínea c). Não se acolheu, porém, a paridade plena de tratamento processual, mantendo-se um regime de fundamentação reforçada da finalidade científica para entidades com interesse comercial, à luz dos princípios da minimização e da finalidade do RGPD.'},
-        {id:'d5',data:'2026-04-09',forma:'CORRESPONDENCIA',entidade:'DECO — Associação Portuguesa para a Defesa do Consumidor',rtri_id:'RTRI/2025/00604',natureza:'RTRI_INSCRITO',gov:'Adjunto SES',interlocutor:'',objeto:'Direitos dos utentes do SNS sobre os seus dados secundários e mecanismos de opt-out.',sintese:'A DECO submeteu contributo escrito defendendo a criação de um mecanismo simples de opt-out exercitável a qualquer momento pelos utentes do SNS sem necessidade de fundamentação, bem como o direito de informação prévia, em linguagem acessível, sobre o âmbito da partilha secundária e respetivas finalidades. Sublinhou a importância da transparência para a confiança institucional.',decisao:'INCORPORADA',justificacao:'O mecanismo de opt-out foi acolhido no art. 16.º, com exercício através da Área do Cidadão do SNS24 e efeitos a 30 dias. A obrigação de informação prévia em linguagem acessível foi consagrada no art. 17.º, com aprovação dos modelos pela DGS após auscultação da DECO.'},
-        {id:'d6',data:'2026-04-15',forma:'REUNIAO',entidade:'Prof.ª Helena Canhão (NOVA Medical School — coordenadora EpiDoC)',rtri_id:'',natureza:'ACADEMIA_PERITO',gov:'SE Saúde; Adjunto SES',interlocutor:'',objeto:'Modelo técnico de partilha e necessidades operacionais da comunidade científica nacional.',sintese:'A Prof.ª Canhão apresentou levantamento das 14 principais coortes nacionais e respetivas necessidades de articulação com o regime proposto. Defendeu a criação de um ambiente seguro de análise (TRE — Trusted Research Environment) à semelhança do modelo SAIL britânico, em alternativa a modelos de extração de dados, e a previsão de prazos de resposta vinculativos do Comité (60 dias para projetos com parecer ético prévio).',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A criação do TRE nacional ficou consagrada no art. 12.º, com responsabilidade operacional da SPMS, e o prazo vinculativo de 60 dias foi acolhido no art. 15.º/3. A interoperabilidade automática com plataformas internacionais ficou diferida para regulamentação subsequente, dada a sua complexidade técnica e custo associado.'},
-      ],
-      bloco_c:[
-        {id:'c1',data:'2026-03-30',entidade:'Serviços Partilhados do Ministério da Saúde (SPMS)',forma:'PARECER_ESCRITO',objeto:'Capacidade operacional para gestão do regime',sintese:'A SPMS confirmou disponibilidade para assumir a operacionalização do TRE e o secretariado executivo do Comité de Acesso, estimando custo de implementação de 4,2M€ no triénio 2026-2028 com financiamento via PRR (componente C18).'},
-        {id:'c2',data:'2026-04-04',entidade:'Direção-Geral da Saúde (DGS)',forma:'PARECER_ESCRITO',objeto:'Salvaguardas clínicas e qualidade dos dados',sintese:'A DGS emitiu parecer favorável, propondo a criação de um Conselho Consultivo Científico junto do Comité de Acesso para apoio na avaliação metodológica dos protocolos e a obrigatoriedade de devolução dos resultados agregados de cada projeto.'},
-      ],
-      comprovativos:[
-        {jti:'cmp_M0-2hX8wK4mLp9q',marco:'M0',emitido_em:'2026-02-15T10:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M1-7yQ3kF8nLp2w',marco:'M1',emitido_em:'2026-04-17T15:20:00Z',estado:'VERIFICADO'},
-      ],
-      versoes:[
-        {n:1,ts:'2026-02-15T09:30:00Z',autor:'Ana Santos',marco:null,desc:'FPL criada'},
-        {n:2,ts:'2026-02-15T10:00:00Z',autor:'Ana Santos',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:5,ts:'2026-03-18T18:00:00Z',autor:'Ana Santos',marco:null,desc:'Bloco D: audiência CNECV registada'},
-        {n:7,ts:'2026-04-09T11:30:00Z',autor:'Ana Santos',marco:null,desc:'Bloco D: contributo escrito DECO anexado'},
-        {n:9,ts:'2026-04-17T15:20:00Z',autor:'Ana Santos',marco:'M1',desc:'M1 validado · declaração assinada · estado → Em RSE'},
-        {n:11,ts:'2026-05-08T11:00:00Z',autor:'Ana Santos',marco:'M2',desc:'M2 registado · CL-2026-024 ConsultaLEX · CP aberta a 12/05 · estado → Em consulta pública'},
-        {n:12,ts:'2026-05-18T09:45:00Z',autor:'Ana Santos',marco:null,desc:'Bloco E: 31 contributos recebidos até à data'},
-      ],
-    }),
-    // ── fpl-004 · EM_CM (CP encerrada, M4 validado) ─────────────────────
-    mk({
-      id:'fpl-004', numero:'2026/MTSSS/0007', tipo:'PL', gabinete:'mtsss',
-      titulo:'Proposta de Lei que altera o Código do Trabalho em matéria de teletrabalho e consagra o direito à desconexão profissional',
-      titulo_curto:'Teletrabalho e direito à desconexão',
-      estado:'EM_CM', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo XXV, Eixo II — Trabalho e Conciliação',
-      sintese:'A presente proposta de lei revê o regime do teletrabalho previsto nos artigos 165.º a 171.º-A do Código do Trabalho, consagrando o direito à desconexão profissional como direito subjetivo do trabalhador (novo art. 199.º-B), clarificando a repartição dos custos inerentes à atividade em teletrabalho e estabelecendo um regime supletivo modulável por instrumento de regulamentação coletiva de trabalho. Reforça as competências de fiscalização da Autoridade para as Condições do Trabalho (ACT) e tipifica a violação do direito à desconexão como contraordenação muito grave.',
-      avaliacao_previa:1, criado_por:'u-pedro', criado_em:'2026-01-08T09:30:00Z',
-      cl_ref:'CL-2026-018', cl_inicio:'2026-02-14', cl_fim:'2026-03-16', cl_n:178,
-      cl_sintese:'Os 178 contributos recebidos distribuem-se em três blocos. As confederações patronais (CIP, CCP, CTP) e ordens económicas defenderam, de forma convergente, a flexibilidade na definição dos horários de desconexão por acordo coletivo e a calibração da repartição de custos por critérios objetivos de utilização efetiva. As estruturas sindicais (CGTP-IN, UGT e federações sectoriais) defenderam maioritariamente a desconexão como direito imperativo absoluto, sem possibilidade de derrogação por contratação coletiva, e o reforço significativo dos meios humanos da ACT. Um terceiro bloco, composto por 94 submissões individuais de trabalhadores, peritos académicos e o Conselho Económico e Social, evidenciou as dificuldades práticas de fiscalização do regime, propondo soluções específicas para a deteção e prova da violação do direito à desconexão (designadamente a presunção iuris tantum do art. 199.º-B/4 e a obrigação de blackout técnico das comunicações empresariais fora do horário).',
-      cl_decisao:'Acolheu-se a arquitetura de um regime supletivo modulável por convenção coletiva acima de um patamar imperativo mínimo, equilibrando as posições recolhidas. A fiscalização foi reforçada com a atribuição de competências específicas à ACT, dotação adicional de 35 inspetores e a previsão da contraordenação muito grave para violação do direito à desconexão. Não se acolheu a imperatividade absoluta defendida pelos sindicatos por colidir com a margem constitucional de autonomia coletiva, nem a discricionariedade plena defendida pelas confederações patronais. A presunção iuris tantum proposta pelo CES foi integrada no art. 199.º-B/4.',
-      m0:'2026-01-08T10:00:00Z',m0_por:'u-pedro',
-      m1:'2026-02-05T10:00:00Z',m1_por:'u-pedro',m1_decl:1,
-      m2:'2026-02-13T10:00:00Z',
-      m3:'2026-03-24T14:00:00Z',
-      m4:'2026-04-15T10:00:00Z',m4_por:'u-pedro',m4_decl:1,
-      m5:null,ref_dr:null,
-      cm_prevista:'2026-05-28',
-      bloco_d:[
-        {id:'d1',data:'2026-01-15',forma:'REUNIAO',entidade:'Confederação da Indústria Portuguesa (CIP)',rtri_id:'RTRI/2025/00018',natureza:'RTRI_INSCRITO',gov:'Ministro do Trabalho; SE Trabalho',interlocutor:'Presidente; Secretário-geral',objeto:'Posição patronal sobre o regime do teletrabalho, repartição de custos e modulação do direito à desconexão.',sintese:'A CIP defendeu três posições estruturantes: (i) flexibilidade total na definição dos horários de desconexão por acordo coletivo de trabalho ou regulamento interno, sem patamar imperativo legal; (ii) repartição de custos baseada em critério de utilização efetiva e não em montante fixo; (iii) exclusão expressa dos quadros dirigentes do regime de desconexão. Apresentou estudo de impacto setorial estimando custo adicional de 320M€/ano para o tecido empresarial no cenário de regime imperativo.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'Acolheu-se a modulação por convenção coletiva acima do patamar mínimo, com derrogação possível para quadros dirigentes nos termos do art. 199.º-B/3. Não se acolheu a inexistência de patamar imperativo, por colidir com a garantia mínima exigida pelo art. 59.º da Constituição. A repartição de custos seguiu modelo misto (valor de referência mensal + ajuste por utilização).'},
-        {id:'d2',data:'2026-01-22',forma:'REUNIAO',entidade:'Confederação Geral dos Trabalhadores Portugueses (CGTP-IN)',rtri_id:'RTRI/2025/00027',natureza:'RTRI_INSCRITO',gov:'Ministro do Trabalho',interlocutor:'Coordenador; Secretária Executiva',objeto:'Posição sindical sobre o direito à desconexão como direito fundamental e meios de fiscalização.',sintese:'A CGTP-IN defendeu a consagração da desconexão como direito imperativo absoluto, sem possibilidade de derrogação por contratação coletiva ou regulamento interno, com fundamento na proteção da saúde mental dos trabalhadores. Reivindicou o reforço significativo dos meios humanos da ACT (mínimo de 80 inspetores adicionais), a inversão do ónus da prova em sede contraordenacional, e o reconhecimento do burnout como doença profissional.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'Acolheu-se o reforço da ACT (35 inspetores adicionais no triénio 2026-2028) e a inversão do ónus da prova através de presunção iuris tantum (art. 199.º-B/4). Não se acolheu a imperatividade absoluta — opção legislativa por patamar mínimo modulável. O reconhecimento do burnout como doença profissional foi remetido para a revisão da lista de doenças profissionais em curso no MTSSS, por exceder o âmbito do diploma.'},
-        {id:'d3',data:'2026-01-29',forma:'REUNIAO',entidade:'União Geral de Trabalhadores (UGT)',rtri_id:'RTRI/2025/00031',natureza:'RTRI_INSCRITO',gov:'Ministro do Trabalho; SE Trabalho',interlocutor:'Secretário-geral; Coordenadora do Departamento Jurídico',objeto:'Posição sindical sobre o regime supletivo e a articulação com a contratação coletiva sectorial.',sintese:'A UGT manifestou-se favorável à arquitetura de regime supletivo modulável por convenção coletiva sectorial, próxima da solução final adotada, defendendo, contudo, a fixação legal de um período mínimo de descanso noturno de onze horas consecutivas insuscetível de derrogação e a previsão expressa de tempo de formação contínua para chefias intermédias sobre boas práticas de gestão de equipas em teletrabalho.',decisao:'INCORPORADA',justificacao:'A posição da UGT correspondeu, em larga medida, à arquitetura final adotada. O período mínimo de onze horas consecutivas de descanso noturno foi consagrado no art. 199.º-B/2, alínea a) como patamar imperativo absoluto. A formação obrigatória para chefias intermédias foi acolhida no art. 199.º-C, com 8 horas anuais mínimas.'},
-        {id:'d4',data:'2026-02-03',forma:'AUDIENCIA',entidade:'Conselho Económico e Social (CES)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'Ministro do Trabalho',interlocutor:'Presidente; Coordenadora da Comissão Permanente de Concertação Social',objeto:'Parecer institucional do CES sobre a proposta de lei (Parecer CES n.º 03/2026).',sintese:'O CES emitiu parecer maioritariamente favorável, recomendando a inclusão de uma presunção iuris tantum de violação do direito à desconexão sempre que se demonstre o envio sistemático de comunicações fora do horário, a previsão de blackout técnico facultativo e a criação de um Observatório Nacional do Teletrabalho para monitorização ex-post do regime.',decisao:'INCORPORADA',justificacao:'A presunção iuris tantum foi acolhida no art. 199.º-B/4. A faculdade de blackout técnico foi consagrada no art. 199.º-B/5 como medida de boa prática facultativa. O Observatório Nacional do Teletrabalho ficou previsto no art. 28.º do diploma, sob coordenação do GEP/MTSSS.'},
-        {id:'d5',data:'2026-02-09',forma:'CORRESPONDENCIA',entidade:'Prof.ª Teresa Coelho Moreira (Universidade do Minho — Direito do Trabalho)',rtri_id:'',natureza:'ACADEMIA_PERITO',gov:'SE Trabalho',interlocutor:'',objeto:'Parecer jurídico independente sobre a constitucionalidade e a compatibilidade europeia do regime proposto.',sintese:'A Prof.ª Coelho Moreira emitiu parecer favorável quanto à compatibilidade do regime com o art. 59.º da CRP e com a Diretiva (UE) 2003/88 (tempo de trabalho), assinalando, contudo, a oportunidade de antecipação de soluções constantes da iniciativa em curso a nível europeu sobre o "right to disconnect". Sugeriu reformulação do art. 199.º-B/1 para evitar interpretação meramente declarativa.',decisao:'INCORPORADA',justificacao:'A reformulação do art. 199.º-B/1 foi acolhida, conferindo natureza imediatamente preceptiva ao direito à desconexão. As referências jurisprudenciais e doutrinárias do parecer foram integradas na exposição de motivos da proposta de lei a apresentar à Assembleia da República.'},
-      ],
-      bloco_c:[
-        {id:'c1',data:'2026-01-12',entidade:'Autoridade para as Condições do Trabalho (ACT)',forma:'PARECER_ESCRITO',objeto:'Capacidade operacional para fiscalização do novo regime',sintese:'A ACT emitiu parecer técnico identificando a necessidade de 35 inspetores adicionais e de um sistema informático específico para receção e triagem de denúncias relacionadas com violação do direito à desconexão. O custo plurianual de implementação foi estimado em 6,8M€.'},
-        {id:'c2',data:'2026-01-19',entidade:'Direção-Geral do Emprego e das Relações de Trabalho (DGERT)',forma:'PARECER_ESCRITO',objeto:'Articulação com contratação coletiva em vigor',sintese:'A DGERT analisou o impacto sobre as 92 convenções coletivas em vigor com cláusulas de teletrabalho, identificando 38 que carecem de adaptação por força do novo regime e propondo um período transitório de 12 meses para renegociação.'},
-      ],
-      comprovativos:[
-        {jti:'cmp_M0-7yR3kP9nQw2m',marco:'M0',emitido_em:'2026-01-08T10:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M1-4tH8vB2xLk6p',marco:'M1',emitido_em:'2026-02-05T10:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M4-3pR8vN2kHy6t',marco:'M4',emitido_em:'2026-04-15T10:00:00Z',estado:'VERIFICADO'},
-      ],
-      versoes:[
-        {n:1,ts:'2026-01-08T09:30:00Z',autor:'Pedro Lopes',marco:null,desc:'FPL criada'},
-        {n:2,ts:'2026-01-08T10:00:00Z',autor:'Pedro Lopes',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:6,ts:'2026-02-03T18:00:00Z',autor:'Pedro Lopes',marco:null,desc:'Bloco D: audiência CES registada'},
-        {n:7,ts:'2026-02-05T10:00:00Z',autor:'Pedro Lopes',marco:'M1',desc:'M1 validado · declaração assinada · estado → Em RSE'},
-        {n:9,ts:'2026-02-13T10:00:00Z',autor:'Pedro Lopes',marco:'M2',desc:'M2 registado · CL-2026-018 ConsultaLEX · CP aberta a 14/02 · estado → Em consulta pública'},
-        {n:12,ts:'2026-03-24T14:00:00Z',autor:'Pedro Lopes',marco:'M3',desc:'M3 registado · CP encerrada · 178 contributos recebidos · síntese e decisão Bloco E preenchidas'},
-        {n:13,ts:'2026-04-12T17:00:00Z',autor:'Rui Ferreira',marco:null,desc:'Auditoria SGGOV-QA concluída · pontuação 86/100 · sem pedido de correção'},
-        {n:14,ts:'2026-04-15T10:00:00Z',autor:'Pedro Lopes',marco:'M4',desc:'M4 validado · declaração assinada · comprovativo emitido · estado → Em CM'},
       ],
     }),
     // ── fpl-005 · PUBLICADO (ciclo completo) ────────────────────────────
@@ -333,119 +246,20 @@ function seed() {
         {n:8,ts:'2026-04-29T18:00:00Z',autor:'João Pereira',marco:null,desc:'Bloco D: audiência DECO registada (decisão pendente)'},
       ],
     }),
-    // ── fpl-007 · APROVADO (aguarda M5/DR) ──────────────────────────────
-    mk({
-      id:'fpl-007', numero:'2026/MEF/0014', tipo:'DL', gabinete:'mef',
-      titulo:'Decreto-Lei que atualiza o regime fiscal aplicável aos rendimentos prediais e às mais-valias imobiliárias provenientes da alienação de habitação própria',
-      titulo_curto:'Regime fiscal predial · OE 2026',
-      estado:'APROVADO', origem:'INICIATIVA_MINISTERIO', ref_origem:'Autorização legislativa do art. 235.º da Lei n.º 88-A/2025 (OE/2026)',
-      sintese:'O presente decreto-lei executa a autorização legislativa concedida pelo art. 235.º da Lei n.º 88-A/2025 (Orçamento do Estado para 2026), atualizando as taxas autónomas aplicáveis aos rendimentos prediais previstas no art. 72.º do CIRS e introduzindo um regime de exclusão tributária parcial para mais-valias provenientes da alienação de habitação própria e permanente quando o produto da alienação seja, em até 50%, reinvestido na colocação no mercado de arrendamento acessível nos termos da Lei n.º 81/2020. Estima-se uma execução orçamental neutra no primeiro biénio e ligeiramente positiva a partir de 2028.',
-      avaliacao_previa:1, criado_por:'u-luis', criado_em:'2026-02-01T10:00:00Z',
-      cl_ref:'CL-2026-019', cl_inicio:'2026-03-04', cl_fim:'2026-04-03', cl_n:124,
-      cl_sintese:'Os 124 contributos recebidos repartem-se por três blocos identificáveis. Em primeiro lugar, 58 contributos provenientes de proprietários particulares e da Associação Lisbonense de Proprietários, da Associação Nacional de Proprietários e do Movimento Iniciativa Senhorios, defendendo o alargamento das exclusões a quaisquer mais-valias imobiliárias e contestando o condicionamento à colocação em arrendamento acessível. Em segundo lugar, 41 contributos de associações de inquilinos, plataformas habitacionais (Habita!, Stop Despejos) e estruturas sindicais que apoiam o princípio da exclusão condicionada e propõem o reforço dos critérios de elegibilidade. Por fim, um conjunto de 25 contributos de fiscalistas (Ordem dos Contabilistas Certificados, AFP, peritos individuais) sublinha a complexidade do regime de exceção e a necessidade de operacionalização através de simulador na AT e de declaração fiscal simplificada. Uma maioria expressiva dos contributos apoia o princípio do diploma mas pede simplificação operacional.',
-      cl_decisao:'Reformulou-se o art. 7.º para simplificar o regime de exclusão, mantendo o condicionamento ao arrendamento acessível como proposto pelas associações de inquilinos e pelas plataformas habitacionais. Não se acolheu o alargamento generalizado das exclusões por razões de neutralidade fiscal e por exceder o âmbito da autorização legislativa do OE/2026. Acolheram-se as propostas de simplificação operacional do bloco fiscalista, com criação de simulador no Portal das Finanças e declaração simplificada anexa à Modelo 3.',
-      m0:'2026-02-01T11:00:00Z',m0_por:'u-luis',
-      m1:'2026-02-26T09:00:00Z',m1_por:'u-luis',m1_decl:1,
-      m2:'2026-03-03T17:00:00Z',
-      m3:'2026-04-13T11:00:00Z',
-      m4:'2026-04-27T15:00:00Z',m4_por:'u-luis',m4_decl:1,
-      m5:null,ref_dr:'DR n.º __/2026, 1.ª Série, de __-__-2026',
-      dr_prevista:'2026-05-29',
-      bloco_d:[
-        {id:'d1',data:'2026-02-15',forma:'REUNIAO',entidade:'Associação Portuguesa de Bancos (APB)',rtri_id:'RTRI/2025/00482',natureza:'RTRI_INSCRITO',gov:'Secretário de Estado dos Assuntos Fiscais; Adjunta SEAF',interlocutor:'Secretário-geral; Diretora do Departamento Fiscal',objeto:'Impacto do regime no crédito hipotecário e na avaliação fiscal das garantias prestadas pelos mutuários.',sintese:'A APB apresentou análise detalhada sobre o efeito do regime na avaliação patrimonial das garantias hipotecárias, particularmente nos casos de execução fiscal de bens que tenham beneficiado da exclusão tributária por reinvestimento. Propôs ajustamentos no regime de execução fiscal para clarificar a posição do banco mutuante perante a fazenda pública e sugeriu um regime transitório alargado de 36 meses para a entrada em vigor das novas taxas autónomas sobre rendimentos prediais.',decisao:'PARCIALMENTE_INCORPORADA',justificacao:'A clarificação sobre execução fiscal foi acolhida no art. 12.º/3, salvaguardando a posição preferencial do credor hipotecário inscrito em data anterior ao benefício da exclusão. A proposta de regime transitório alargado de 36 meses não foi acolhida por razões de previsibilidade orçamental e por colidir com a execução da autorização legislativa do OE/2026.'},
-        {id:'d2',data:'2026-03-04',forma:'AUDIENCIA',entidade:'Associação Lisbonense de Proprietários (ALP)',rtri_id:'',natureza:'OUTRA',gov:'Ministro de Estado e das Finanças; SE Assuntos Fiscais',interlocutor:'Presidente; Vogal da Direção',objeto:'Posição sobre o condicionamento da exclusão tributária à colocação no arrendamento acessível.',sintese:'A ALP defendeu o alargamento das exclusões a todas as mais-valias imobiliárias decorrentes da alienação de habitação própria, sem o condicionamento à colocação em arrendamento acessível, argumentando que tal condicionamento desincentiva a fluidez do mercado imobiliário e penaliza injustificadamente os proprietários singulares. Apresentou estudo económico encomendado a uma consultora independente.',decisao:'NAO_INCORPORADA',justificacao:'O alargamento generalizado não foi acolhido por razões de neutralidade fiscal (estimativa de perda de receita de 240M€/ano) e por exceder o perímetro da autorização legislativa do OE/2026 (art. 235.º), que circunscreve expressamente o regime de exclusão à finalidade de promoção do arrendamento acessível.'},
-        {id:'d3',data:'2026-03-12',forma:'CORRESPONDENCIA',entidade:'Ordem dos Contabilistas Certificados (OCC)',rtri_id:'',natureza:'RTRI_FORCA_LEI',gov:'SE Assuntos Fiscais',interlocutor:'Bastonário',objeto:'Parecer técnico sobre simplificação do regime para efeitos de declaração fiscal.',sintese:'A OCC alertou para a complexidade técnica do regime de exclusão parcial proposto, antecipando dificuldades significativas no preenchimento da declaração Modelo 3 por parte dos sujeitos passivos. Propôs três medidas concretas: (i) disponibilização de simulador específico no Portal das Finanças; (ii) criação de declaração simplificada anexa à Modelo 3; (iii) campanha de informação dirigida a contabilistas certificados antes da entrada em vigor.',decisao:'INCORPORADA',justificacao:'Todas as três medidas foram acolhidas. A simplificação técnica foi consagrada no art. 6.º. A AT disponibilizará simulador no Portal das Finanças até 30/06/2026 (compromisso formalizado em ata) e a declaração simplificada Modelo 3-A foi prevista no art. 8.º. A campanha de informação dirigida aos contabilistas certificados ficou prevista no protocolo OCC/AT já assinado.'},
-        {id:'d4',data:'2026-03-19',forma:'REUNIAO',entidade:'Habita! — Associação pelo Direito à Habitação',rtri_id:'',natureza:'OUTRA',gov:'SE Assuntos Fiscais; Chefe de gabinete',interlocutor:'Coordenação executiva',objeto:'Critérios de elegibilidade do arrendamento acessível e prevenção de utilização abusiva do regime.',sintese:'A Habita! defendeu o reforço significativo dos critérios de elegibilidade para o regime de arrendamento acessível, evitando que a exclusão tributária beneficie habitação devoluta, alojamento turístico ou outras utilizações distintas do arrendamento permanente para residência principal. Propôs ainda a previsão de mecanismos de fiscalização ex-post pela AT em articulação com o IHRU e a obrigação de manutenção do regime por período mínimo de 10 anos.',decisao:'INCORPORADA',justificacao:'Reforçaram-se os critérios de elegibilidade no art. 9.º com referência expressa ao conceito legal de "arrendamento acessível" da Lei n.º 81/2020, dispensando interpretação criativa. A fiscalização ex-post AT/IHRU ficou prevista no art. 13.º. O período mínimo de manutenção do regime foi fixado em 8 anos (versão calibrada com a duração contratual típica do mercado).'},
-        {id:'d5',data:'2026-03-26',forma:'VIDEOCONFERENCIA',entidade:'Prof. Rui Duarte Morais (Universidade Católica Portuguesa — Centro de Estudos Fiscais)',rtri_id:'',natureza:'ACADEMIA_PERITO',gov:'Adjunta SEAF',interlocutor:'',objeto:'Parecer jurídico-fiscal sobre conformidade do regime com a Constituição Fiscal e o direito europeu.',sintese:'O Prof. Duarte Morais emitiu parecer concluindo pela conformidade do regime com o art. 104.º da CRP e com o regime europeu dos auxílios de Estado, designadamente porque a vantagem fiscal não tem natureza seletiva. Sugeriu, contudo, a clarificação do regime aplicável às situações de cessação antecipada do arrendamento por causa imputável ao senhorio e a previsão de mecanismo de reembolso parcial proporcional.',decisao:'INCORPORADA',justificacao:'A clarificação do regime de cessação antecipada por causa imputável ao senhorio foi acolhida no art. 10.º, com previsão expressa de reembolso proporcional ao IRS. As referências doutrinárias e jurisprudenciais do parecer foram integradas na nota justificativa que acompanhará o diploma na sua apreciação em CM.'},
-      ],
-      bloco_c:[
-        {id:'c1',data:'2026-02-10',entidade:'Autoridade Tributária e Aduaneira (AT)',forma:'PARECER_ESCRITO',objeto:'Operacionalização do regime e impacto na receita',sintese:'A AT analisou a operacionalização do regime, confirmando viabilidade técnica e estimando impacto orçamental neutro no biénio 2026-2027. Propôs ajustamentos no formulário declarativo e calendarização de implementação compatível com o ciclo Modelo 3 de 2027.'},
-        {id:'c2',data:'2026-02-18',entidade:'Instituto da Habitação e da Reabilitação Urbana (IHRU)',forma:'PARECER_ESCRITO',objeto:'Articulação com o regime de arrendamento acessível',sintese:'O IHRU emitiu parecer favorável e propôs a criação de plataforma única de registo dos contratos de arrendamento acessível, em articulação com o Portal e-Justiça, para efeitos de monitorização integrada do regime.'},
-      ],
-      comprovativos:[
-        {jti:'cmp_M0-1xQ9pK3wLm7n',marco:'M0',emitido_em:'2026-02-01T11:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M1-6tR4kP2nQy8z',marco:'M1',emitido_em:'2026-02-26T09:00:00Z',estado:'VERIFICADO'},
-        {jti:'cmp_M4-9wH5vB3xLk7p',marco:'M4',emitido_em:'2026-04-27T15:00:00Z',estado:'VERIFICADO'},
-      ],
-      versoes:[
-        {n:1,ts:'2026-02-01T10:00:00Z',autor:'Luís Tavares',marco:null,desc:'FPL criada'},
-        {n:2,ts:'2026-02-01T11:00:00Z',autor:'Luís Tavares',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:6,ts:'2026-02-15T18:00:00Z',autor:'Luís Tavares',marco:null,desc:'Bloco D: registo da reunião com APB'},
-        {n:8,ts:'2026-02-26T09:00:00Z',autor:'Luís Tavares',marco:'M1',desc:'M1 validado · declaração assinada · estado → Em RSE'},
-        {n:10,ts:'2026-03-03T17:00:00Z',autor:'Luís Tavares',marco:'M2',desc:'M2 registado · CL-2026-019 ConsultaLEX · CP aberta a 04/03'},
-        {n:13,ts:'2026-04-13T11:00:00Z',autor:'Luís Tavares',marco:'M3',desc:'M3 registado · CP encerrada · 124 contributos · síntese Bloco E preenchida'},
-        {n:14,ts:'2026-04-20T11:00:00Z',autor:'Rui Ferreira',marco:null,desc:'Auditoria SGGOV-QA · pontuação 88/100 · CONCLUIDA · sem pedido de correção'},
-        {n:15,ts:'2026-04-27T15:00:00Z',autor:'Luís Tavares',marco:'M4',desc:'M4 validado · declaração assinada · comprovativo emitido · estado → Em CM'},
-        {n:16,ts:'2026-05-15T19:30:00Z',autor:'Luís Tavares',marco:null,desc:'Aprovado em Conselho de Ministros de 15/05/2026 · estado → Aprovado · aguarda publicação em DR'},
-      ],
-    }),
-    // ── fpl-008 · CRIADO ────────────────────────────────────────────────
-    mk({
-      id:'fpl-008', numero:'2026/MAI/0009', tipo:'RCM', gabinete:'mai',
-      titulo:'Resolução do Conselho de Ministros que aprova o Plano Nacional de Prevenção e Combate ao Cibercrime 2026–2030 (PNPCC)',
-      titulo_curto:'PNPCC 2026–2030',
-      estado:'CRIADO', origem:'INICIATIVA_MINISTERIO', ref_origem:'',
-      sintese:'A presente resolução do Conselho de Ministros aprova o Plano Nacional de Prevenção e Combate ao Cibercrime para o quinquénio 2026–2030, definindo eixos estratégicos e medidas operacionais de cooperação reforçada entre forças e serviços de segurança, autoridade nacional de proteção civil, autoridades reguladoras setoriais e o setor privado. Pretende-se que substitua o plano anterior (RCM n.º 17/2021), cujo termo de vigência se atinge a 31 de dezembro do corrente ano. A FPL encontra-se ainda em fase preliminar de preparação do Bloco B.',
-      avaliacao_previa:0, criado_por:'u-pedro', criado_em:'2026-05-15T14:00:00Z',
-      versoes:[
-        {n:1,ts:'2026-05-15T14:00:00Z',autor:'Pedro Lopes',marco:null,desc:'FPL criada · aguarda preenchimento do Bloco B (síntese ainda insuficiente para validar M0)'},
-      ],
-    }),
-    // ── fpl-009 · EM_REVISAO_QA (pedido de correção SGGOV) ──────────────
-    mk({
-      id:'fpl-009', numero:'2026/MECI/0017', tipo:'DESPACHO', gabinete:'meci',
-      titulo:'Despacho normativo que define o regime de avaliação de centros de investigação científica e unidades de I&D para o triénio 2026–2028',
-      titulo_curto:'Avaliação de centros de I&D · 2026–2028',
-      estado:'EM_REVISAO_QA', origem:'PROGRAMA_GOVERNO', ref_origem:'Programa do Governo XXV, Eixo V — Conhecimento e Inovação',
-      sintese:'O presente despacho normativo define os critérios, painéis e procedimentos para a avaliação dos centros de investigação científica e das unidades de I&D para o período 2026-2028, em articulação com a Fundação para a Ciência e a Tecnologia, I.P., e os painéis científicos internacionais convocados nos termos do regulamento de avaliação. Atualiza a metodologia adotada no ciclo 2018-2025 e introduz indicadores específicos de ciência aberta, transferência tecnológica e impacto societal, alinhados com as orientações do Espaço Europeu de Investigação. A FPL encontra-se temporariamente em revisão por pedido de correção SGGOV-QA — Bloco D incompleto.',
-      avaliacao_previa:1, criado_por:'u-sofia', criado_em:'2026-01-25T11:00:00Z',
-      m0:'2026-01-25T12:00:00Z',m0_por:'u-sofia',
-      m1:null,m2:null,m3:null,m4:null,m5:null,
-      cl_ref:null, cl_inicio:null, cl_fim:null, cl_n:null,
-      rse_prevista:'2026-06-10',
-      bloco_d:[
-        {id:'d1',data:'2026-02-05',forma:'REUNIAO',entidade:'Conselho de Reitores das Universidades Portuguesas (CRUP)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'Ministra da Educação, Ciência e Inovação; SE Ciência',interlocutor:'Presidente; Vice-presidente para a Investigação',objeto:'Critérios de avaliação dos centros e unidades de I&D no ciclo 2026-2028.',sintese:'O CRUP solicitou o reforço significativo do peso da componente colaborativa e da participação em redes europeias (designadamente projetos Horizonte Europa e missões da UE) na avaliação. Propôs igualmente a constituição de painéis com avaliadores estrangeiros maioritários (mínimo 60%) e a publicação prévia da grelha de avaliação detalhada para permitir adequação das candidaturas.',decisao:null,justificacao:''},
-        {id:'d2',data:'2026-02-18',forma:'AUDIENCIA',entidade:'Conselho Coordenador dos Institutos Superiores Politécnicos (CCISP)',rtri_id:'',natureza:'AUTORIDADE_PUBLICA',gov:'SE Ciência',interlocutor:'Presidente; Coordenador da Comissão de I&D',objeto:'Critérios diferenciados para o ensino superior politécnico e investigação aplicada.',sintese:'O CCISP defendeu critérios de avaliação que valorizem expressamente a investigação aplicada, a transferência tecnológica e a articulação com o tecido empresarial regional, em distinção razoável face à investigação fundamental, para centros associados ao ensino superior politécnico. Propôs a criação de uma sub-grelha específica e a inclusão de avaliadores com perfil de investigação aplicada nos painéis.',decisao:null,justificacao:''},
-        {id:'d3',data:'2026-03-03',forma:'REUNIAO',entidade:'Associação Nacional de Investigadores em Ciência e Tecnologia (ANICT)',rtri_id:'',natureza:'OUTRA',gov:'SE Ciência; Adjunta SEC',interlocutor:'Direção',objeto:'Indicadores de carreira de investigação e impacto na avaliação dos centros.',sintese:'A ANICT manifestou preocupação com a ponderação dos indicadores quantitativos tradicionais (publicações, citações) face a indicadores de carreira mais qualitativos, como a formação avançada e a estabilização de jovens investigadores. Propôs a inclusão de indicador específico de "qualidade do emprego científico" e a salvaguarda da diversidade disciplinar dos painéis.',decisao:null,justificacao:''},
-      ],
-      comprovativos:[{jti:'cmp_M0-3rF8kV2pLn7q',marco:'M0',emitido_em:'2026-01-25T12:00:00Z',estado:'VERIFICADO'}],
-      versoes:[
-        {n:1,ts:'2026-01-25T11:00:00Z',autor:'Sofia Mendes',marco:null,desc:'FPL criada'},
-        {n:2,ts:'2026-01-25T12:00:00Z',autor:'Sofia Mendes',marco:'M0',desc:'M0 validado · comprovativo emitido'},
-        {n:4,ts:'2026-02-18T18:00:00Z',autor:'Sofia Mendes',marco:null,desc:'Bloco D: audiência CCISP registada (decisão de incorporação pendente)'},
-        {n:5,ts:'2026-03-03T17:00:00Z',autor:'Sofia Mendes',marco:null,desc:'Bloco D: registo da reunião com ANICT (decisão pendente)'},
-        {n:6,ts:'2026-05-04T11:00:00Z',autor:'Rui Ferreira',marco:null,desc:'Auditoria SGGOV-QA · pontuação 62/100 · pedido de correção emitido · estado → Em revisão QA'},
-      ],
-    }),
   ];
   const auditorias = [
     {id:'a1',fpl_id:'fpl-001',auditor:'Rui Ferreira',data:'2026-05-06T10:00:00Z',pontuacao:94,observacoes:'FPL com cobertura adequada e proporcional das interações relevantes. Decisões de incorporação bem fundamentadas, com remissão expressa para articulado. Diversidade de naturezas (RTRI, perito académico, autoridade pública) bem assegurada. Sugestão menor: explicitar no objeto da entrada D-2 (EDP) se a videoconferência abrangeu também aspetos tarifários (decisão correta de remissão para ERSE, mas merece registo expresso).',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
-    {id:'a2',fpl_id:'fpl-004',auditor:'Rui Ferreira',data:'2026-04-12T17:00:00Z',pontuacao:86,observacoes:'Boa cobertura do triângulo concertação social (CIP, CGTP-IN, UGT) e parecer institucional do CES. Decisões equilibradas e bem fundamentadas. Bloco E sólido com decisão clara sobre o que foi acolhido e recusado. Recomenda-se, em FPLs futuras, registar igualmente as interações com a CCP e CTP, identificadas como participantes em CP mas sem registo prévio no Bloco D.',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
     {id:'a3',fpl_id:'fpl-005',auditor:'Rui Ferreira',data:'2026-02-26T11:00:00Z',pontuacao:92,observacoes:'Auditoria ex-post realizada na transição entre M3 e M4. FPL exemplar quanto ao equilíbrio das audiências e à fundamentação detalhada das decisões de não-incorporação, designadamente quanto à mediação obrigatória (parecer Prof. Bonifácio Ramos) e aos honorários mínimos (parecer AdC). Excelente articulação Bloco C/Bloco D/Bloco E.',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
-    {id:'a4',fpl_id:'fpl-007',auditor:'Rui Ferreira',data:'2026-04-20T11:00:00Z',pontuacao:88,observacoes:'Cobertura adequada das interações relevantes em três blocos distintos (banca, inquilinos, fiscalistas/academia). Decisões de incorporação fundamentadas e proporcionais. Sem pedidos de correção. A decisão de NAO_INCORPORADA quanto à ALP encontra-se devidamente justificada por referência ao perímetro da autorização legislativa.',pedido_correcao:0,estado_correcao:'CONCLUIDA'},
-    {id:'a5',fpl_id:'fpl-009',auditor:'Rui Ferreira',data:'2026-05-04T11:00:00Z',pontuacao:62,observacoes:'Bloco D incompleto: as três entradas registadas (CRUP, CCISP, ANICT) encontram-se sem decisão de incorporação preenchida, em violação da regra prevista para M1 (pré-RSE). Bloqueia a validação de M1 enquanto não forem completados os campos de decisão e justificação (≥100 caracteres). Pedido formal de correção emitido em 04/05/2026; prazo de resposta 15 dias úteis.',pedido_correcao:1,estado_correcao:'EM_CURSO'},
   ];
   const notificacoes = [
     // fpl-001
     {id:'n01',user:'u-maria',tipo:'M1_VALIDADO',titulo:'M1 validado · 2026/MAEN/0042',msg:'Comprovativo de M1 (pré-RSE) emitido. Aguarda agendamento em Reunião de Secretários de Estado.',ts:'2026-05-04T16:08:00Z',lida:false,fpl_id:'fpl-001'},
     {id:'n02',user:'u-maria',tipo:'AUDITORIA_QA_CONCLUIDA',titulo:'Auditoria QA concluída · 2026/MAEN/0042',msg:'Pontuação 94/100. Sem pedidos de correção. Observação menor sobre a entrada D-2.',ts:'2026-05-06T10:30:00Z',lida:true,fpl_id:'fpl-001'},
     {id:'n03',user:'u-rui',tipo:'M1_VALIDADO',titulo:'M1 emitido · 2026/MAEN/0042',msg:'Comprovativo de M1 verificado pelo SmartLegis.',ts:'2026-05-04T16:10:00Z',lida:true,fpl_id:'fpl-001'},
-    // fpl-003
-    {id:'n04',user:'u-ana',tipo:'M2_VALIDADO',titulo:'M2 registado · 2026/MS/0011',msg:'Abertura de CP comunicada à ConsultaLEX (CL-2026-024). Estado → Em consulta pública.',ts:'2026-05-08T11:05:00Z',lida:true,fpl_id:'fpl-003'},
-    {id:'n05',user:'u-ana',tipo:'CONSULTA_LEX_RECEBIDA',titulo:'Contributos CP · 2026/MS/0011',msg:'Foram recebidos 31 contributos até esta data. CP termina a 11/06/2026.',ts:'2026-05-18T09:50:00Z',lida:false,fpl_id:'fpl-003'},
-    // fpl-004
-    {id:'n06',user:'u-pedro',tipo:'AUDITORIA_QA_CONCLUIDA',titulo:'Auditoria QA concluída · 2026/MTSSS/0007',msg:'Pontuação 86/100. Sem pedidos de correção. Recomendação registada para FPLs futuras.',ts:'2026-04-12T17:15:00Z',lida:true,fpl_id:'fpl-004'},
-    {id:'n07',user:'u-pedro',tipo:'M4_VALIDADO',titulo:'M4 validado · 2026/MTSSS/0007',msg:'Comprovativo de M4 emitido. Proposta de Lei pronta para apreciação em Conselho de Ministros de 28/05.',ts:'2026-04-15T10:05:00Z',lida:true,fpl_id:'fpl-004'},
-    {id:'n08',user:'u-rui',tipo:'M4_VALIDADO',titulo:'M4 emitido · 2026/MTSSS/0007',msg:'Comprovativo de M4 verificado pelo SmartLegis.',ts:'2026-04-15T10:07:00Z',lida:true,fpl_id:'fpl-004'},
     // fpl-005
     {id:'n09',user:'u-carla',tipo:'M5_VALIDADO',titulo:'M5 validado · 2025/MJ/0058',msg:'Diploma publicado no DR n.º 78/2026, 1.ª Série. FPL exportada para o Portal do Governo.',ts:'2026-04-22T08:05:00Z',lida:true,fpl_id:'fpl-005'},
     // fpl-006
     {id:'n10',user:'u-joao',tipo:'M0_VALIDADO',titulo:'Bloco D: decisão pendente · 2026/MECT/0023',msg:'Entrada DECO (29/04) ainda sem decisão de incorporação. M1 (pré-RSE) bloqueado.',ts:'2026-04-29T18:10:00Z',lida:false,fpl_id:'fpl-006'},
-    // fpl-007
-    {id:'n11',user:'u-luis',tipo:'M5_VALIDADO',titulo:'Aguarda publicação em DR · 2026/MEF/0014',msg:'Aprovado em CM de 15/05. Publicação prevista no DR para 29/05/2026.',ts:'2026-05-15T19:35:00Z',lida:false,fpl_id:'fpl-007'},
-    // fpl-009
-    {id:'n12',user:'u-sofia',tipo:'AUDITORIA_QA_PEDIDO_CORRECAO',titulo:'Pedido de correção · 2026/MECI/0017',msg:'Bloco D incompleto (3 entradas sem decisão). M1 (pré-RSE) bloqueado até resposta. Prazo: 15 dias úteis.',ts:'2026-05-04T11:30:00Z',lida:false,fpl_id:'fpl-009'},
-    {id:'n13',user:'u-rui',tipo:'AUDITORIA_QA_PEDIDO_CORRECAO',titulo:'Auditoria com pedido de correção emitida · 2026/MECI/0017',msg:'Pontuação 62/100. Aguarda resposta do Ponto Focal.',ts:'2026-05-04T11:32:00Z',lida:true,fpl_id:'fpl-009'},
   ];
   return {fpls,auditorias,notificacoes,seq:96};
 }
@@ -469,10 +283,13 @@ function resetDB() { DB = seed(); save(); }
 const TRANS = {
   M0:{from:['CRIADO'],to:'EM_ELABORACAO'},
   M1:{from:['EM_ELABORACAO','EM_CONSULTA_INTERNA'],to:'EM_RSE'},
+  // M2: abertura da CP (EM_RSE → EM_CONSULTA_PUBLICA) ou, se CP dispensada,
+  //     marca apenas a saída de RSE (EM_RSE → POS_RSE).
   M2:{from:['EM_RSE'],to:'EM_CONSULTA_PUBLICA'},
   // M3 (encerramento da CP) é informativo — mantém estado EM_CONSULTA_PUBLICA.
   M3:{from:['EM_CONSULTA_PUBLICA'],to:'EM_CONSULTA_PUBLICA'},
-  M4:{from:['EM_CONSULTA_PUBLICA'],to:'EM_CM'},
+  // M4: aceita CP encerrada ou CP dispensada (POS_RSE).
+  M4:{from:['EM_CONSULTA_PUBLICA','POS_RSE'],to:'EM_CM'},
   M5:{from:['APROVADO'],to:'PUBLICADO'},
 };
 function validarMarco(f, marco) {
@@ -495,22 +312,29 @@ function validarMarco(f, marco) {
     });
   }
   // M2 · Pós-RSE / Abertura da CP (informativo)
+  // Se CP dispensada: M2 marca apenas a saída da RSE; exige justificação ≥ LIM.JUSTIF_CP.
   if (marco==='M2') {
     if (!f.m1) p.push({d:'M1 (pré-RSE) não validado'});
-    if (!f.cl_ref) p.push({d:'Bloco E: referência da consulta pública por preencher'});
-    if (!f.cl_inicio) p.push({d:'Bloco E: data de início da CP por preencher'});
+    if (f.cl_dispensada) {
+      const j = f.cl_dispensada_justif || '';
+      if (j.length < LIM.JUSTIF_CP) p.push({d:`Bloco E: justificação da dispensa de consulta pública (mínimo ${LIM.JUSTIF_CP} caracteres; atual ${j.length})`});
+    } else {
+      if (!f.cl_ref) p.push({d:'Bloco E: referência da consulta pública por preencher'});
+      if (!f.cl_inicio) p.push({d:'Bloco E: data de início da CP por preencher'});
+    }
   }
-  // M3 · Encerramento da CP (informativo)
+  // M3 · Encerramento da CP (informativo) — não se aplica se CP dispensada
   if (marco==='M3') {
+    if (f.cl_dispensada) p.push({d:'CP dispensada — M3 não é aplicável'});
     if (!f.m2) p.push({d:'M2 (abertura da CP) não validado'});
     if (!f.cl_fim) p.push({d:'Bloco E: data de fim da CP por preencher'});
     if (!f.cl_sintese || f.cl_sintese.length<LIM.SINTESE_E) p.push({d:`Bloco E: síntese das posições (mínimo ${LIM.SINTESE_E} caracteres)`});
     if (!f.cl_decisao || f.cl_decisao.length<LIM.DECISAO_E) p.push({d:`Bloco E: decisão sobre incorporação (mínimo ${LIM.DECISAO_E} caracteres)`});
   }
-  // M4 · Pré-CM (bloqueante) — depende de M1 + M3 e auditoria QA sem pedidos.
+  // M4 · Pré-CM (bloqueante) — depende de M1 e (M3 ou CP dispensada) e auditoria QA sem pedidos.
   if (marco==='M4') {
     if (!f.m1) p.push({d:'M1 (pré-RSE) não validado'});
-    if (!f.m3) p.push({d:'M3 (encerramento da CP) não validado'});
+    if (!f.cl_dispensada && !f.m3) p.push({d:'M3 (encerramento da CP) não validado'});
     const pend = DB.auditorias.filter(a=>a.fpl_id===f.id && a.pedido_correcao && a.estado_correcao!=='CONCLUIDA');
     if (pend.length) p.push({d:`${pend.length} pedido(s) de correção pendente(s) da auditoria SGGOV`});
   }
@@ -525,8 +349,13 @@ function proxMarco(f) {
   if (!f.m0) return 'M0';
   if (!f.m1 && ['EM_ELABORACAO','EM_CONSULTA_INTERNA'].includes(f.estado)) return 'M1';
   if (!f.m2 && f.estado==='EM_RSE') return 'M2';
-  if (!f.m3 && f.estado==='EM_CONSULTA_PUBLICA' && f.cl_fim) return 'M3';
-  if (!f.m4 && f.estado==='EM_CONSULTA_PUBLICA' && f.m3) return 'M4';
+  // CP dispensada: salta M3, vai direto a M4 a partir de POS_RSE
+  if (f.cl_dispensada) {
+    if (!f.m4 && f.estado==='POS_RSE') return 'M4';
+  } else {
+    if (!f.m3 && f.estado==='EM_CONSULTA_PUBLICA' && f.cl_fim) return 'M3';
+    if (!f.m4 && f.estado==='EM_CONSULTA_PUBLICA' && f.m3) return 'M4';
+  }
   if (!f.m5 && f.estado==='APROVADO') return 'M5';
   if (f.estado==='EM_CM') return 'APROVAR';
   return null;
@@ -537,11 +366,15 @@ function emitirComprovativo(f, marco, user) {
   const jti = 'cmp_'+marco+'-'+Math.random().toString(36).slice(2,14);
   const header = {alg:'EdDSA',typ:'fpl-comprovativo+jws',kid:'fpl-2026-01'};
   const payload = {
-    iss:'fpl.sggov.ring', sub:f.numero, fpl_id:f.id, marco,
+    iss:'fpl.gov.pt', sub:f.numero, fpl_id:f.id, marco,
     validado_em:nowISO(), validado_por:user.papel+':'+(user.gabinete||'sggov'),
     snapshot_hash:'sha256:'+Math.random().toString(16).slice(2,18)+Math.random().toString(16).slice(2,18),
     jti, iat:Math.floor(Date.now()/1000),
   };
+  if (marco==='M2' && f.cl_dispensada) {
+    payload.cp_dispensada = true;
+    payload.cp_justif_hash = 'sha256:'+Math.random().toString(16).slice(2,18)+Math.random().toString(16).slice(2,18);
+  }
   const sig = (Math.random().toString(36)+Math.random().toString(36)+Math.random().toString(36)).replace(/[^a-z0-9]/g,'').slice(0,86);
   const jws = b64u(header)+'.'+b64u(payload)+'.'+sig;
   return {jti, marco, emitido_em:payload.validado_em, estado:'VALIDO', jws, header, payload};
@@ -681,6 +514,7 @@ const I = {
   refresh:'<path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/>',
   building:'<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/>',
   list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>',
 };
 const svg = (p,cls='') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}">${p}</svg>`;
 
@@ -730,7 +564,7 @@ function renderLogin() {
         </ul>
       </div>
       <div class="entrada-foot">
-        Demonstração interativa autónoma · v1.2<br>
+        Demonstração interativa autónoma · v1.5<br>
         Corre inteiramente no seu navegador · dados fictícios<br>
         XXV Governo Constitucional
       </div>
@@ -745,8 +579,7 @@ function renderLogin() {
 
         <section>
           <div class="grupo-titulo"><span class="num">1</span>Pontos focais dos gabinetes ministeriais</div>
-          <div class="role-grid">${pfs.slice(0,4).map(p => card(p, p.id === 'u-maria')).join('')}</div>
-          ${pfs.length > 4 ? `<details class="mais-perfis"><summary>Mostrar mais ${pfs.length-4} ponto(s) focal(is)</summary><div class="role-grid mt-12">${pfs.slice(4).map(p => card(p)).join('')}</div></details>` : ''}
+          <div class="role-grid">${pfs.map(p => card(p, p.id === 'u-maria')).join('')}</div>
         </section>
 
         <section>
@@ -929,6 +762,18 @@ window.confirmReset = () => {
   const btn = document.getElementById('resetConfirmBtn');
   inp?.addEventListener('input', () => { btn.disabled = inp.value !== 'RESET'; });
   setTimeout(() => inp?.focus(), 50);
+};
+
+window.confirmAction = (opts) => {
+  // opts: { titulo, mensagem, btnLbl='Confirmar', btnClass='danger', danger=true, action }
+  const danger = opts.danger !== false;
+  const btnId = 'confActBtn_'+Math.random().toString(36).slice(2,8);
+  openModal(`<div class="modal-h"><h3>${esc(opts.titulo)}</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
+  <div class="modal-b"><div class="alert ${danger?'danger':'warning'}"><span class="at">${danger?'Acção irreversível':'Confirmar acção'}</span>${esc(opts.mensagem)}</div></div>
+  <div class="modal-f"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn ${opts.btnClass||(danger?'danger':'primary')}" id="${btnId}">${esc(opts.btnLbl||'Confirmar')}</button></div>`);
+  const btn = document.getElementById(btnId);
+  btn?.addEventListener('click', () => { closeModal(); opts.action && opts.action(); });
+  setTimeout(() => btn?.focus(), 50);
 };
 
 /* ---------- DASHBOARD ---------- */
@@ -1255,6 +1100,90 @@ const CARD_DO_MARCO_DEMO = {
   M5: 'card-cmp',
 };
 
+// ─── Estado colapsado/expandido dos blocos no detalhe da FPL ─────────────
+// Persistido por utilizador + FPL em localStorage, com chave separada do
+// snapshot DB (LS_KEY) para evitar mistura de preocupações.
+const BLOCOS_LETRAS = ['A','B','C','D','E','CMP','F','G'];
+function blocosLSKey(uid, fid) { return `fpl-demo-blocos:${uid}:${fid}`; }
+function defaultBlocosState(f) {
+  const sintLen = f.sintese?.length || 0;
+  const bCompleto = sintLen >= LIM.SINTESE_B && !!f.origem;
+  const eAtual = f.estado === 'EM_CONSULTA_PUBLICA' || (!f.cl_ref && !f.cl_dispensada);
+  const m1Pend = !f.m1;
+  const m4Pend = !f.m4 && (f.estado === 'EM_CONSULTA_PUBLICA' || f.estado === 'POS_RSE');
+  const fPend = m1Pend || m4Pend;
+  const recent = S.recentlyValidated && S.recentlyValidated.fplId === f.id;
+  // true = expandido, false = colapsado
+  return {
+    A: false,
+    B: !bCompleto,
+    C: false,
+    D: true,
+    E: eAtual,
+    F: fPend,
+    G: false,
+    CMP: !!recent,
+  };
+}
+function getBlocosState(f) {
+  const uid = S.user?.id || 'anon';
+  const key = blocosLSKey(uid, f.id);
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const stored = JSON.parse(raw);
+      // Merge com defaults para garantir que blocos novos têm fallback
+      const def = defaultBlocosState(f);
+      return { ...def, ...stored };
+    }
+  } catch {}
+  return defaultBlocosState(f);
+}
+function setBlocosState(f, st) {
+  const uid = S.user?.id || 'anon';
+  try { localStorage.setItem(blocosLSKey(uid, f.id), JSON.stringify(st)); } catch {}
+}
+window._toggleBloco = (letra) => {
+  const f = getFpl(S.fplId); if (!f) return;
+  const st = getBlocosState(f);
+  st[letra] = !st[letra];
+  setBlocosState(f, st);
+  const card = document.getElementById('card-' + letra.toLowerCase());
+  if (!card) return;
+  const expanded = st[letra];
+  card.classList.toggle('collapsed', !expanded);
+  const head = card.querySelector('.pc-card-head');
+  if (head) head.setAttribute('aria-expanded', String(expanded));
+};
+window._toggleTodosBlocos = (expandir) => {
+  const f = getFpl(S.fplId); if (!f) return;
+  const st = {};
+  BLOCOS_LETRAS.forEach(L => st[L] = !!expandir);
+  setBlocosState(f, st);
+  BLOCOS_LETRAS.forEach(L => {
+    const card = document.getElementById('card-' + L.toLowerCase());
+    if (!card) return;
+    card.classList.toggle('collapsed', !expandir);
+    const head = card.querySelector('.pc-card-head');
+    if (head) head.setAttribute('aria-expanded', String(!!expandir));
+  });
+};
+// Helper de renderização para o cabeçalho colapsável.
+// Devolve os atributos a aplicar ao <div class="pc-card"> e o chevron.
+function pcCardOpen(letra, extraClass = '') {
+  const f = getFpl(S.fplId);
+  const st = f ? getBlocosState(f) : defaultBlocosState({estado:''});
+  const aberto = !!st[letra];
+  const idLow = letra.toLowerCase();
+  const cls = `pc-card${aberto ? '' : ' collapsed'}${extraClass ? ' ' + extraClass : ''}`;
+  return {
+    cardAttrs: `class="${cls}" id="card-${idLow}"`,
+    headAttrs: `role="button" tabindex="0" aria-expanded="${aberto}" aria-controls="card-${idLow}-body" data-bloco="${letra}"`,
+    bodyId: `card-${idLow}-body`,
+    chev: `<span class="pc-chev" aria-hidden="true">▾</span>`,
+  };
+}
+
 function viewDetalhe() {
   const f = getFpl(S.fplId);
   if (!f) return '<div class="card-empty" style="padding:32px">FPL não encontrada.</div>';
@@ -1279,6 +1208,11 @@ function bindDetalhe() {
     const ir = () => {
       const el = document.getElementById(target);
       if (!el) return;
+      // Se o card de destino estiver colapsado, abre-o primeiro para o utilizador ver o conteúdo
+      if (el.classList.contains('collapsed')) {
+        const letra = (target.replace('card-','').toUpperCase()) || '';
+        if (letra && BLOCOS_LETRAS.includes(letra)) _toggleBloco(letra);
+      }
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       el.classList.remove('highlight');
       void el.offsetWidth;
@@ -1297,6 +1231,22 @@ function bindDetalhe() {
   document.getElementById('cronoPrev')?.addEventListener('click', () => { S.cronoMesOffset = (S.cronoMesOffset||0) - 1; render(); });
   document.getElementById('cronoNext')?.addEventListener('click', () => { S.cronoMesOffset = (S.cronoMesOffset||0) + 1; render(); });
   document.getElementById('cronoHoje')?.addEventListener('click', () => { S.cronoMesOffset = 0; render(); });
+
+  // Blocos colapsáveis — clique no cabeçalho alterna .collapsed; suporte Enter/Space
+  document.querySelectorAll('.painel-body .pc-card-head[data-bloco]').forEach(head => {
+    const letra = head.dataset.bloco;
+    head.addEventListener('click', (e) => {
+      // Cliques em botões internos (Editar, +, +Adicionar, more, etc.) não toggleam
+      if (e.target.closest('button, a, .pc-mini.clickable')) return;
+      _toggleBloco(letra);
+    });
+    head.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target === head) {
+        e.preventDefault();
+        _toggleBloco(letra);
+      }
+    });
+  });
 }
 
 function bindLista() {
@@ -1331,16 +1281,21 @@ document.addEventListener('keydown', (e) => {
 });
 
 function painelHeader(f, vista) {
+  const disp = !!f.cl_dispensada;
   const marcos = [
-    {id:'M0',lbl:'Abertura',          data:f.m0, bloq:true },
-    {id:'M1',lbl:'Pré-RSE',           data:f.m1, bloq:true },
-    {id:'M2',lbl:'Pós-RSE · Abre CP', data:f.m2, bloq:false},
-    {id:'M3',lbl:'Encerramento CP',   data:f.m3, bloq:false},
-    {id:'M4',lbl:'Pré-CM',            data:f.m4, bloq:true },
-    {id:'M5',lbl:'Publicação',        data:f.m5, bloq:true },
+    {id:'M0',lbl:'Abertura',                                       data:f.m0, bloq:true },
+    {id:'M1',lbl:'Pré-RSE',                                        data:f.m1, bloq:true },
+    {id:'M2',lbl: disp ? 'Pós-RSE (CP dispensada)' : 'Pós-RSE · Abre CP', data:f.m2, bloq:false},
+    {id:'M3',lbl: disp ? 'Encerramento CP (n/a)' : 'Encerramento CP',     data:f.m3, bloq:false, skip:disp},
+    {id:'M4',lbl:'Pré-CM',                                         data:f.m4, bloq:true },
+    {id:'M5',lbl:'Publicação',                                     data:f.m5, bloq:true },
   ];
-  let curIdx = marcos.findIndex(m=>!m.data);
-  marcos.forEach((m,i)=>{ m.estado = m.data ? 'done' : (i===curIdx?'current':'todo'); });
+  // Se CP dispensada, M3 não é "current" — passa para a próxima etapa
+  let curIdx = marcos.findIndex(m=>!m.data && !m.skip);
+  marcos.forEach((m,i)=>{
+    if (m.skip) m.estado = 'skip';
+    else m.estado = m.data ? 'done' : (i===curIdx?'current':'todo');
+  });
 
   const est = ESTADOS[f.estado] || {l:f.estado,c:'criado'};
   const nInter = (f.bloco_d||[]).length;
@@ -1376,14 +1331,18 @@ function painelHeader(f, vista) {
         <button data-vista="detalhe"    role="tab" aria-selected="${vista==='detalhe'}">${svg(I.list)} Detalhe</button>
         <button data-vista="cronograma" role="tab" aria-selected="${vista==='cronograma'}">${svg(I.bar)} Cronograma</button>
       </div>
+      ${vista==='detalhe' ? `<span class="painel-blk-actions" role="group" aria-label="Estado dos blocos">
+        <button class="btn sm" onclick="_toggleTodosBlocos(true)" title="Expandir todos os blocos">Expandir todos</button>
+        <button class="btn sm" onclick="_toggleTodosBlocos(false)" title="Colapsar todos os blocos">Colapsar todos</button>
+      </span>` : ''}
     </div>
     <div class="painel-stepper">
       ${marcos.map(m => `
         <div class="painel-step ${m.estado}" data-card-target="${CARD_DO_MARCO_DEMO[m.id]||''}" role="button" tabindex="0" aria-label="${m.id} ${m.lbl} — ir para a secção">
-          <div class="dot">${m.estado==='done'?'✓':m.id.replace('M','')}</div>
+          <div class="dot">${m.estado==='done'?'✓':m.estado==='skip'?'—':m.id.replace('M','')}</div>
           <div>
             <div class="lbl">${m.id} · ${m.lbl}${m.bloq?'<span class="bloq" aria-hidden="true">bloq.</span>':''}</div>
-            <div class="sub">${m.data?fmtD(m.data):(m.estado==='current'?'a validar agora':'—')}</div>
+            <div class="sub">${m.estado==='skip'?'Não aplicável':(m.data?fmtD(m.data):(m.estado==='current'?'a validar agora':'—'))}</div>
             ${m.estado==='current' && !isPublico() && scopeOk(f) && pm && pm!=='APROVAR' ? `<button class="cta" onclick="event.stopPropagation();modalValidarMarco('${f.id}','${m.id}')">Validar ${m.id}</button>` : ''}
           </div>
         </div>
@@ -1406,13 +1365,15 @@ function painelDetalhe(f) {
 }
 
 function pcA(f) {
-  return `<div class="pc-card" id="card-a">
-    <div class="pc-card-head">
+  const o = pcCardOpen('A');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter">A</div>
       <div><div class="ttl">Identificação</div><div class="sub">Bloco A</div></div>
       <span class="ok">✓ completo</span>
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
+    <div class="pc-card-body" id="${o.bodyId}">
       <div class="pc-kv">
         <div class="k">Tipo</div><div class="v">${esc(TIPOS[f.tipo]||f.tipo)}</div>
         <div class="k">Processo</div><div class="v mono">${esc(f.numero)}</div>
@@ -1427,14 +1388,16 @@ function pcB(f) {
   const sintLen = f.sintese?.length || 0;
   const completo = sintLen >= LIM.SINTESE_B && !!f.origem;
   const ed = !isPublico() && scopeOk(f);
-  return `<div class="pc-card" id="card-b">
-    <div class="pc-card-head">
+  const o = pcCardOpen('B');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter">B</div>
       <div><div class="ttl">Origem e motivação</div><div class="sub">Bloco B</div></div>
       ${completo?'<span class="ok">✓ completo</span>':`<span class="warn">⚠ ${sintLen<LIM.SINTESE_B?'síntese curta':'origem em falta'}</span>`}
-      ${ed?`<button class="more" onclick="modalEditarB('${f.id}')">Editar</button>`:''}
+      ${ed?`<button class="more" onclick="event.stopPropagation();modalEditarB('${f.id}')">Editar</button>`:''}
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
+    <div class="pc-card-body" id="${o.bodyId}">
       <div class="pc-kv">
         <div class="k">Origem</div><div class="v ${!f.origem?'empty':''}">${ORIGENS[f.origem]||'Por preencher'}</div>
         <div class="k">Referência</div><div class="v ${!f.ref_origem?'empty':''}">${esc(f.ref_origem)||'Não aplicável'}</div>
@@ -1460,8 +1423,9 @@ function pcD(f) {
   const visiveis = entradas.slice(0,5);
   const restantes = Math.max(0, total - visiveis.length);
 
-  return `<div class="pc-card wide" id="card-d">
-    <div class="pc-card-head">
+  const o = pcCardOpen('D', 'wide');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter d">D</div>
       <div>
         <div class="ttl">Interações externas — núcleo da pegada</div>
@@ -1469,9 +1433,10 @@ function pcD(f) {
       </div>
       ${c.pend>0?`<span class="warn">⚠ ${c.pend} decisão pendente${c.pend>1?'s':''}</span>`:''}
       <span class="count">${total} entrada${total===1?'':'s'}</span>
-      ${ed?`<button class="more" onclick="modalNovaD('${f.id}')" style="margin-left:8px">+ Adicionar</button>`:''}
+      ${ed?`<button class="more" onclick="event.stopPropagation();modalNovaD('${f.id}')" style="margin-left:8px">+ Adicionar</button>`:''}
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
+    <div class="pc-card-body" id="${o.bodyId}">
       ${total>0?`
         <div class="pc-bar">
           ${c.inc>0?`<div style="background:var(--p-success);width:${(c.inc/total)*100}%"></div>`:''}
@@ -1486,7 +1451,7 @@ function pcD(f) {
           ${c.pend>0?`<span style="margin-left:auto"><strong>${c.pend}</strong> pendente${c.pend===1?'':'s'}</span>`:''}
         </div>
         ${visiveis.map(e=>`
-          <div class="pc-mini">
+          <div class="pc-mini ${ed?'clickable':''}" ${ed?`onclick="modalEditarD('${f.id}','${e.id}')" role="button" tabindex="0" title="Editar entrada" style="cursor:pointer"`:''}>
             <div class="pc-mini-date">${fmtD(e.data)}</div>
             <div>
               <div class="pc-mini-ent">${esc(e.entidade)}</div>
@@ -1508,18 +1473,20 @@ function pcD(f) {
 function pcC(f) {
   const ed = !isPublico() && scopeOk(f);
   const lista = f.bloco_c || [];
-  return `<div class="pc-card" id="card-c">
-    <div class="pc-card-head">
+  const o = pcCardOpen('C');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter">C</div>
       <div><div class="ttl">Contributos internos</div><div class="sub">Bloco C · pareceres formais</div></div>
       <span class="count">${lista.length}</span>
-      ${ed?`<button class="more" onclick="modalNovaC('${f.id}')" style="margin-left:8px">+</button>`:''}
+      ${ed?`<button class="more" onclick="event.stopPropagation();modalNovaC('${f.id}')" style="margin-left:8px">+</button>`:''}
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
+    <div class="pc-card-body" id="${o.bodyId}">
       ${lista.length===0
         ? '<div class="pc-empty">Sem contributos registados</div>'
         : lista.slice(0,4).map(e=>`
-          <div class="pc-mini">
+          <div class="pc-mini ${ed?'clickable':''}" ${ed?`onclick="modalEditarC('${f.id}','${e.id}')" role="button" tabindex="0" title="Editar entrada" style="cursor:pointer"`:''}>
             <div class="pc-mini-date">${fmtD(e.data)}</div>
             <div>
               <div class="pc-mini-ent">${esc(e.entidade)}</div>
@@ -1534,15 +1501,23 @@ function pcC(f) {
 function pcE(f) {
   const ed = !isPublico() && scopeOk(f);
   const tem = !!f.cl_ref;
-  return `<div class="pc-card" id="card-e">
-    <div class="pc-card-head">
+  const disp = !!f.cl_dispensada;
+  const o = pcCardOpen('E');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter">E</div>
       <div><div class="ttl">Consulta pública</div><div class="sub">Bloco E · ConsultaLEX</div></div>
-      ${tem && f.cl_fim ? '<span class="ok">✓ encerrada</span>' : tem ? '<span class="warn">em curso</span>' : ''}
-      ${ed?`<button class="more" onclick="modalEditarE('${f.id}')" style="margin-left:8px">Editar</button>`:''}
+      ${disp ? '<span class="warn cp-dispensada">CP dispensada</span>' : (tem && f.cl_fim ? '<span class="ok">✓ encerrada</span>' : tem ? '<span class="warn">em curso</span>' : '')}
+      ${ed?`<button class="more" onclick="event.stopPropagation();modalEditarE('${f.id}')" style="margin-left:8px">Editar</button>`:''}
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
-      ${tem?`
+    <div class="pc-card-body" id="${o.bodyId}">
+      ${disp ? `
+        <div class="pc-kv">
+          <div class="k">Estado</div><div class="v"><strong>Dispensada</strong></div>
+          <div class="k">Justificação</div><div class="v" style="font-size:11.5px;line-height:1.5">${esc((f.cl_dispensada_justif||'').slice(0,260))}${(f.cl_dispensada_justif||'').length>260?'…':''}</div>
+        </div>
+      ` : tem?`
         <div class="pc-kv">
           <div class="k">Referência</div><div class="v mono">${esc(f.cl_ref)}</div>
           <div class="k">Período</div><div class="v">${fmtD(f.cl_inicio)} → ${fmtD(f.cl_fim)||'—'}</div>
@@ -1557,13 +1532,15 @@ function pcCMP(f) {
   const cmps = f.comprovativos || [];
   const marcos = ['M0','M1','M4','M5'];
   const pendentes = marcos.filter(m=>!cmps.find(c=>c.marco===m));
-  return `<div class="pc-card" id="card-cmp">
-    <div class="pc-card-head">
+  const o = pcCardOpen('CMP');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter cmp">⚿</div>
       <div><div class="ttl">Comprovativos</div><div class="sub">JWS Ed25519 · SmartLegis</div></div>
       <span class="count">${cmps.length} / 4</span>
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
+    <div class="pc-card-body" id="${o.bodyId}">
       ${cmps.length>0 ? cmps.slice(0,2).map(c=>`
         <div class="pc-mini">
           <div class="pc-mini-date">${fmtD(c.emitido_em)}</div>
@@ -1584,13 +1561,15 @@ function pcF(f) {
   const m1 = f.m1 ? '✓ M1 assinada' : 'M1 pendente';
   const m4 = f.m4 ? '✓ M4 assinada' : 'M4 pendente';
   const ok = f.m1 && f.m4;
-  return `<div class="pc-card" id="card-f">
-    <div class="pc-card-head">
+  const o = pcCardOpen('F');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter f">F</div>
       <div><div class="ttl">Declaração</div><div class="sub">Bloco F · ponto focal</div></div>
       ${ok?'<span class="ok">✓ completas</span>':`<span class="warn">${esc(!f.m1?m1:m4)}</span>`}
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
+    <div class="pc-card-body" id="${o.bodyId}">
       <div class="pc-quote">"Confirmo que a presente FPL reflete todas as interações ocorridas no perímetro do diploma e que os campos obrigatórios estão integralmente preenchidos."</div>
       <div style="font-size:11px;color:var(--p-text-mute);margin-top:10px">${m1} · ${m4}</div>
     </div>
@@ -1599,14 +1578,16 @@ function pcF(f) {
 
 function pcG(f) {
   const lista = DB.auditorias.filter(a=>a.fpl_id===f.id);
-  return `<div class="pc-card" id="card-g">
-    <div class="pc-card-head">
+  const o = pcCardOpen('G');
+  return `<div ${o.cardAttrs}>
+    <div class="pc-card-head" ${o.headAttrs}>
       <div class="pc-letter h">G</div>
       <div><div class="ttl">Auditoria QA</div><div class="sub">SGGOV · pontuação ${lista[0]?.pontuacao||'—'}/100</div></div>
       <span class="count">${lista.length}</span>
-      ${isSggov()?`<button class="more" onclick="modalNovaAuditoria()" style="margin-left:8px">+</button>`:''}
+      ${isSggov()?`<button class="more" onclick="event.stopPropagation();modalNovaAuditoria()" style="margin-left:8px">+</button>`:''}
+      ${o.chev}
     </div>
-    <div class="pc-card-body">
+    <div class="pc-card-body" id="${o.bodyId}">
       ${lista.length===0
         ? '<div class="pc-empty">Sem auditorias registadas</div>'
         : lista.slice(0,2).map(a=>`
@@ -1626,11 +1607,13 @@ function pcG(f) {
 window.modalListaD = (id) => {
   const f = getFpl(id); if (!f) return;
   const todas = f.bloco_d || [];
+  const ed = !isPublico() && scopeOk(f);
   openModal(`
     <div class="modal-h"><h3>Bloco D · Interações externas (${todas.length})</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
     <div class="modal-b" style="max-height:65vh;overflow-y:auto">
+      ${ed?'<div class="alert info" style="margin-bottom:12px">Clique numa linha para editar ou remover.</div>':''}
       ${todas.map(e=>`
-        <div class="pc-mini" style="padding:10px 0">
+        <div class="pc-mini ${ed?'clickable':''}" ${ed?`onclick="closeModal();modalEditarD('${f.id}','${e.id}')" role="button" tabindex="0" title="Editar entrada" style="padding:10px 0;cursor:pointer"`:'style="padding:10px 0"'}>
           <div class="pc-mini-date">${fmtD(e.data)}</div>
           <div>
             <div class="pc-mini-ent">${esc(e.entidade)}</div>
@@ -1840,7 +1823,7 @@ function blocoC(f) {
     <div class="entrada" id="ec${i}">
       <div class="entrada-h" onclick="document.getElementById('ec${i}').classList.toggle('open')">
         <div class="info"><span class="e">${esc(e.entidade)}</span><span class="tag">${FORMAS_C[e.forma]||e.forma}</span></div>
-        <span class="data">${fmtD(e.data)}</span>
+        <span class="data">${fmtD(e.data)}${ed?` <button class="btn-icon" aria-label="Editar contributo" title="Editar" onclick="event.stopPropagation();modalEditarC('${f.id}','${e.id}')">${svg(I.edit)}</button>`:''}</span>
       </div>
       <div class="entrada-b">
         <div class="row"><span class="l">Objeto</span><span>${esc(e.objeto)}</span></div>
@@ -1862,7 +1845,7 @@ function blocoD(f) {
           ${e.rtri_id?`<span class="rtri-pill">✓ ${esc(e.rtri_id)}</span>`:`<span class="rtri-pill na">${esc(NATUREZAS[e.natureza]||e.natureza)}</span>`}
           ${e.decisao?`<span class="tag" style="background:rgba(15,120,88,.1);color:var(--green);border-color:rgba(15,120,88,.3)">→ ${DECISOES[e.decisao]}</span>`:'<span class="tag" style="background:rgba(163,101,7,.12);color:var(--warning);border-color:rgba(163,101,7,.3)">⚠ decisão pendente</span>'}
         </div>
-        <span class="data">${fmtD(e.data)}</span>
+        <span class="data">${fmtD(e.data)}${ed?` <button class="btn-icon" aria-label="Editar interação" title="Editar" onclick="event.stopPropagation();modalEditarD('${f.id}','${e.id}')">${svg(I.edit)}</button>`:''}</span>
       </div>
       <div class="entrada-b">
         <div class="row"><span class="l">Forma</span><span>${FORMAS[e.forma]||e.forma}</span></div>
@@ -1883,6 +1866,15 @@ function blocoD(f) {
 }
 function blocoE(f) {
   const ed = !isPublico() && scopeOk(f);
+  if (f.cl_dispensada) {
+    return blocoWrap('E','Resultado da consulta pública','CP dispensada — fundamentação registada',`
+      <div class="alert warning" style="margin-bottom:14px"><span class="at">CP dispensada</span>A consulta pública não foi realizada. A justificação seguinte foi registada no Bloco E e fica vinculada ao comprovativo de M2.</div>
+      <div class="field-grid">
+        <div class="field full"><label>Justificação da dispensa <span class="help">(mínimo ${LIM.JUSTIF_CP} caracteres)</span></label><div class="v">${esc(f.cl_dispensada_justif)||'Por preencher'}</div>
+          ${f.cl_dispensada_justif?`<div class="help ${f.cl_dispensada_justif.length>=LIM.JUSTIF_CP?'ok':'bad'}">${f.cl_dispensada_justif.length} caracteres ${f.cl_dispensada_justif.length>=LIM.JUSTIF_CP?'✓':'— mínimo '+LIM.JUSTIF_CP}</div>`:''}
+        </div>
+      </div>`, ed?`<button class="btn sm" onclick="modalEditarE('${f.id}')">Editar</button>`:'');
+  }
   return blocoWrap('E','Resultado da consulta pública','Importado do Consulta.Lex',`
     <div class="field-grid">
       <div class="field"><label>Referência Consulta.Lex</label><div class="v ${!f.cl_ref?'empty':''}">${esc(f.cl_ref)||'Sem consulta pública'}</div></div>
@@ -1953,17 +1945,21 @@ function aplicarMarco(f, marco) {
   f[marco.toLowerCase()] = nowISO();
   if (['M0','M1','M4'].includes(marco)) f[marco.toLowerCase()+'_por'] = S.user.id;
   if (['M1','M4'].includes(marco)) f[marco.toLowerCase()+'_decl'] = 1;
-  // M2 e M3 são informativos: M2 muda EM_RSE → EM_CONSULTA_PUBLICA;
-  // M3 mantém o estado EM_CONSULTA_PUBLICA até validação de M4.
+  // M2 e M3 são informativos: M2 muda EM_RSE → EM_CONSULTA_PUBLICA (ou POS_RSE
+  // se CP dispensada); M3 mantém o estado EM_CONSULTA_PUBLICA até M4.
   const transicionaEstado = marco !== 'M3';
-  if (transicionaEstado) f.estado = t.to;
+  let destino = t.to;
+  if (marco === 'M2' && f.cl_dispensada) destino = 'POS_RSE';
+  if (transicionaEstado) f.estado = destino;
   if (marco==='M5') { f.data_publicacao = nowISO(); }
   let cmp = null;
   if (MARCOS_BLOQ.includes(marco)) {
     cmp = emitirComprovativo(f, marco, S.user);
     f.comprovativos.push({jti:cmp.jti,marco,emitido_em:cmp.emitido_em,estado:'VALIDO',jws:cmp.jws});
+    // Sinaliza que esta FPL acabou de receber um comprovativo, para abrir o bloco "Comprovativos" no detalhe
+    S.recentlyValidated = { fplId: f.id, ts: Date.now() };
   }
-  novaVersao(f, marco, `${marco} validado${cmp?' · comprovativo emitido':''}${transicionaEstado?' · estado → '+ESTADOS[t.to].l:''}`);
+  novaVersao(f, marco, `${marco} validado${cmp?' · comprovativo emitido':''}${transicionaEstado?' · estado → '+ESTADOS[destino].l:''}`);
   // notificações
   if (marco==='M1') notificar(f.criado_por,'M1',`FPL ${f.numero} — M1 validado`,'Comprovativo emitido. Aguarda agendamento em RSE.',f.id);
   if (marco==='M4') notificar(f.criado_por,'M4',`FPL ${f.numero} — M4 validado`,'Comprovativo de M4 emitido. Submetida para Conselho de Ministros.',f.id);
@@ -1993,7 +1989,7 @@ window.modalValidarMarco = (id, marco) => {
   const v = validarMarco(f, marco);
   const bloq = MARCOS_BLOQ.includes(marco);
   const precisaDecl = ['M1','M4'].includes(marco);
-  const lbl = {M0:'Abertura',M1:'submissão para Reunião de Secretários de Estado',M2:'pós-RSE · abertura da consulta pública',M3:'encerramento da consulta pública',M4:'submissão para Conselho de Ministros',M5:'publicação'}[marco];
+  const lbl = {M0:'Abertura',M1:'submissão para Reunião de Secretários de Estado',M2: (f.cl_dispensada ? 'pós-RSE · CP dispensada' : 'pós-RSE · abertura da consulta pública'),M3:'encerramento da consulta pública',M4:'submissão para Conselho de Ministros',M5:'publicação'}[marco];
   openModal(`
     <div class="modal-h"><h3>Validar Marco ${marco} — ${lbl}</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
     <div class="modal-b">
@@ -2023,14 +2019,14 @@ window.confirmarMarco = (id, marco) => {
 
 /* ----- MODAL: ver comprovativo ----- */
 function modalVerComprovativoObj(f, cmp, recemEmitido) {
-  const jws = cmp.jws || (b64u({alg:'EdDSA',typ:'fpl-comprovativo+jws',kid:'fpl-2026-01'})+'.'+b64u({iss:'fpl.sggov.ring',sub:f.numero,marco:cmp.marco,jti:cmp.jti})+'.'+'k7Qx9aF2bLnQmR4vP8wZ3yT6sN1uH0eK5cB7dG2fXa9JpYrW3M8tL4QvciZoExS');
+  const jws = cmp.jws || (b64u({alg:'EdDSA',typ:'fpl-comprovativo+jws',kid:'fpl-2026-01'})+'.'+b64u({iss:'fpl.gov.pt',sub:f.numero,marco:cmp.marco,jti:cmp.jti})+'.'+'k7Qx9aF2bLnQmR4vP8wZ3yT6sN1uH0eK5cB7dG2fXa9JpYrW3M8tL4QvciZoExS');
   const [h,p,s] = jws.split('.');
   openModal(`
     <div class="modal-h"><h3>${recemEmitido?cmp.marco+' validado — comprovativo emitido':'Comprovativo criptográfico · '+cmp.marco}</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
     <div class="modal-b">
       ${recemEmitido?`<div class="alert success"><span class="at">Marco ${cmp.marco} validado</span>O sistema gerou o comprovativo abaixo. Copie-o e cole-o no campo correspondente do SmartLegis.</div>`:''}
       <div class="cmp-code"><span class="h">${h}</span>.<span class="p">${p}</span>.<span class="s">${s}</span></div>
-      <div class="cmp-meta"><span><b>Algoritmo</b> EdDSA (Ed25519)</span><span><b>Emissor</b> fpl.sggov.ring</span><span><b>Marco</b> ${cmp.marco}</span><span><b>jti</b> ${esc(cmp.jti)}</span><span><b>kid</b> fpl-2026-01</span></div>
+      <div class="cmp-meta"><span><b>Algoritmo</b> EdDSA (Ed25519)</span><span><b>Emissor</b> fpl.gov.pt</span><span><b>Marco</b> ${cmp.marco}</span><span><b>jti</b> ${esc(cmp.jti)}</span><span><b>kid</b> fpl-2026-01</span></div>
       <div class="cmp-flow">
         <div class="node"><div class="ic">${svg(I.doc)}</div><div class="t">FPL</div><div class="d">Emite o JWS assinado</div></div>
         <div class="arrow">copia ▶</div>
@@ -2084,26 +2080,70 @@ window.salvarB = (id) => {
 };
 window.modalEditarE = (id) => {
   const f = getFpl(id);
+  const disp = !!f.cl_dispensada;
   openModal(`<div class="modal-h"><h3>Editar Bloco E — Consulta pública</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
-  <div class="modal-b"><div class="field-grid">
-    <div class="field"><label>Referência Consulta.Lex</label><input type="text" id="e-ref" value="${esc(f.cl_ref||'')}" placeholder="CL-2026-..."></div>
-    <div class="field"><label>N.º de contributos</label><input type="number" id="e-n" value="${f.cl_n??''}"></div>
-    <div class="field"><label>Início</label><input type="date" id="e-ini" value="${(f.cl_inicio||'').slice(0,10)}"></div>
-    <div class="field"><label>Fim</label><input type="date" id="e-fim" value="${(f.cl_fim||'').slice(0,10)}"></div>
-    <div class="field full"><label>Síntese das posições <span class="help">(mín. ${LIM.SINTESE_E} caracteres)</span></label><textarea id="e-sintese" rows="5">${esc(f.cl_sintese||'')}</textarea></div>
-    <div class="field full"><label>Decisão sobre incorporação <span class="help">(mín. ${LIM.DECISAO_E} caracteres)</span></label><textarea id="e-decisao" rows="4">${esc(f.cl_decisao||'')}</textarea></div>
-  </div></div>
+  <div class="modal-b">
+    <div class="field" style="margin-bottom:14px">
+      <label style="font-weight:600">Estado da consulta pública</label>
+      <div class="flex gap-12" style="margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="e-modo" value="realizada" ${!disp?'checked':''}> Realizada</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="e-modo" value="dispensada" ${disp?'checked':''}> Dispensada</label>
+      </div>
+    </div>
+    <div id="e-bloco-realizada" style="${disp?'display:none':''}">
+      <div class="field-grid">
+        <div class="field"><label>Referência Consulta.Lex</label><input type="text" id="e-ref" value="${esc(f.cl_ref||'')}" placeholder="CL-2026-..."></div>
+        <div class="field"><label>N.º de contributos</label><input type="number" id="e-n" value="${f.cl_n??''}"></div>
+        <div class="field"><label>Início</label><input type="date" id="e-ini" value="${(f.cl_inicio||'').slice(0,10)}"></div>
+        <div class="field"><label>Fim</label><input type="date" id="e-fim" value="${(f.cl_fim||'').slice(0,10)}"></div>
+        <div class="field full"><label>Síntese das posições <span class="help">(mín. ${LIM.SINTESE_E} caracteres)</span></label><textarea id="e-sintese" rows="5">${esc(f.cl_sintese||'')}</textarea></div>
+        <div class="field full"><label>Decisão sobre incorporação <span class="help">(mín. ${LIM.DECISAO_E} caracteres)</span></label><textarea id="e-decisao" rows="4">${esc(f.cl_decisao||'')}</textarea></div>
+      </div>
+    </div>
+    <div id="e-bloco-dispensada" style="${disp?'':'display:none'}">
+      <div class="alert warning" style="margin-bottom:12px"><span class="at">CP dispensada</span>A consulta pública é, em regra, obrigatória. A dispensa deve ser fundamentada (mín. ${LIM.JUSTIF_CP} caracteres) e fica registada no comprovativo de M2.</div>
+      <div class="field full"><label>Justificação para dispensar a consulta pública * <span class="help">(mín. ${LIM.JUSTIF_CP} caracteres)</span></label>
+        <textarea id="e-disp-just" rows="6" placeholder="Fundamento legal e/ou material da dispensa (ex.: urgência reconhecida, transposição com margem normativa nula, autorização legislativa)...">${esc(f.cl_dispensada_justif||'')}</textarea>
+        <div class="help" id="e-disp-cont">0 caracteres</div>
+      </div>
+    </div>
+  </div>
   <div class="modal-f"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="salvarE('${id}')">Guardar</button></div>`);
+  const radios = document.querySelectorAll('input[name=e-modo]');
+  const blocoR = document.getElementById('e-bloco-realizada');
+  const blocoD = document.getElementById('e-bloco-dispensada');
+  radios.forEach(r => r.addEventListener('change', () => {
+    const v = document.querySelector('input[name=e-modo]:checked').value;
+    blocoR.style.display = v==='realizada' ? '' : 'none';
+    blocoD.style.display = v==='dispensada' ? '' : 'none';
+  }));
+  const ta = document.getElementById('e-disp-just');
+  const cont = document.getElementById('e-disp-cont');
+  const upd = () => { const n = ta.value.length; cont.textContent = `${n} caracteres ${n>=LIM.JUSTIF_CP?'✓':'(mín. '+LIM.JUSTIF_CP+')'}`; cont.className = 'help '+(n>=LIM.JUSTIF_CP?'ok':'bad'); };
+  ta.addEventListener('input', upd); upd();
 };
 window.salvarE = (id) => {
   const f = getFpl(id);
-  f.cl_ref = document.getElementById('e-ref').value.trim();
-  const n = document.getElementById('e-n').value; f.cl_n = n===''?null:parseInt(n,10);
-  f.cl_inicio = document.getElementById('e-ini').value||null;
-  f.cl_fim = document.getElementById('e-fim').value||null;
-  f.cl_sintese = document.getElementById('e-sintese').value.trim();
-  f.cl_decisao = document.getElementById('e-decisao').value.trim();
-  novaVersao(f,null,'Bloco E atualizado'); save(); closeModal(); toast('Bloco E atualizado.','success'); render();
+  const modo = document.querySelector('input[name=e-modo]:checked').value;
+  if (modo === 'dispensada') {
+    const just = document.getElementById('e-disp-just').value.trim();
+    if (just.length < LIM.JUSTIF_CP) { toast(`Justificação da dispensa: mínimo ${LIM.JUSTIF_CP} caracteres (atual ${just.length}).`,'error'); return; }
+    f.cl_dispensada = true;
+    f.cl_dispensada_justif = just;
+    // Limpar campos da CP realizada (preserva os valores, mas marca dispensa)
+    novaVersao(f,null,'Bloco E: CP marcada como dispensada · justificação registada');
+  } else {
+    f.cl_dispensada = false;
+    f.cl_dispensada_justif = '';
+    f.cl_ref = document.getElementById('e-ref').value.trim();
+    const n = document.getElementById('e-n').value; f.cl_n = n===''?null:parseInt(n,10);
+    f.cl_inicio = document.getElementById('e-ini').value||null;
+    f.cl_fim = document.getElementById('e-fim').value||null;
+    f.cl_sintese = document.getElementById('e-sintese').value.trim();
+    f.cl_decisao = document.getElementById('e-decisao').value.trim();
+    novaVersao(f,null,'Bloco E atualizado');
+  }
+  save(); closeModal(); toast('Bloco E atualizado.','success'); render();
 };
 window.modalNovaC = (id) => {
   openModal(`<div class="modal-h"><h3>Nova entrada · Bloco C (contributo interno)</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
@@ -2178,6 +2218,113 @@ window.salvarD = (id) => {
   f.bloco_d.push({id:uuid(),data:g('d-data'),forma:g('d-forma'),entidade:ent,rtri_id:rtri,natureza:nat,gov:g('d-gov'),interlocutor:g('d-int'),objeto:obj,sintese:sin,decisao:'',justificacao:''});
   novaVersao(f,null,'Bloco D: adicionada interação ('+ent+')'); save(); closeModal(); toast('Interação adicionada ao Bloco D.','success'); render();
 };
+/* ----- MODAIS: editar / remover entrada do Bloco D ----- */
+window.modalEditarD = (fid, eid) => {
+  const f = getFpl(fid); if (!f) return;
+  const e = (f.bloco_d||[]).find(x=>x.id===eid); if (!e) return;
+  const ed = !isPublico() && scopeOk(f);
+  if (!ed) return;
+  openModal(`<div class="modal-h"><h3>Editar interação · Bloco D</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
+  <div class="modal-b">
+    <div class="alert info" style="margin-bottom:14px">Edite os campos da interação. Os marcos já validados não são afetados; o histórico é atualizado.</div>
+    <div class="field-grid">
+      <div class="field"><label>Data *</label><input type="date" id="d-data" value="${esc((e.data||'').slice(0,10))}"></div>
+      <div class="field"><label>Forma *</label><select id="d-forma">${Object.entries(FORMAS).map(([k,v])=>`<option value="${k}" ${e.forma===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div class="field full"><label>Entidade interlocutora *</label><input type="text" id="d-ent" value="${esc(e.entidade||'')}"></div>
+      <div class="field"><label>N.º RTRI</label><input type="text" id="d-rtri" value="${esc(e.rtri_id||'')}"></div>
+      <div class="field"><label>Natureza jurídica *</label><select id="d-nat">${Object.entries(NATUREZAS).map(([k,v])=>`<option value="${k}" ${e.natureza===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div class="field full"><label>Pessoas pelo Governo</label><input type="text" id="d-gov" value="${esc(e.gov||'')}"></div>
+      <div class="field full"><label>Pessoas pela entidade</label><input type="text" id="d-int" value="${esc(e.interlocutor||'')}"></div>
+      <div class="field full"><label>Objeto / matéria * <span class="help">(mín. ${LIM.OBJETO_D} caracteres)</span></label><textarea id="d-obj" rows="2">${esc(e.objeto||'')}</textarea></div>
+      <div class="field full"><label>Síntese da posição * <span class="help">(mín. ${LIM.SINTESE_D} caracteres)</span></label><textarea id="d-sin" rows="4">${esc(e.sintese||'')}</textarea></div>
+      <div class="field"><label>Decisão de incorporação</label><select id="d-dec"><option value="">— Pendente —</option>${Object.entries(DECISOES).map(([k,v])=>`<option value="${k}" ${e.decisao===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div class="field full"><label>Justificação da decisão <span class="help">(mín. ${LIM.JUSTIF_D} caracteres se decisão preenchida)</span></label><textarea id="d-just" rows="4">${esc(e.justificacao||'')}</textarea></div>
+    </div>
+  </div>
+  <div class="modal-f">
+    <button class="btn danger" onclick="removerD('${fid}','${eid}')" style="margin-right:auto">Remover</button>
+    <button class="btn" onclick="closeModal()">Cancelar</button>
+    <button class="btn primary" onclick="atualizarD('${fid}','${eid}')">Guardar</button>
+  </div>`, true);
+};
+window.atualizarD = (fid, eid) => {
+  const f = getFpl(fid); const e = f.bloco_d.find(x=>x.id===eid); if (!e) return;
+  const g = i => document.getElementById(i).value.trim();
+  const ent=g('d-ent'), obj=g('d-obj'), sin=g('d-sin'), nat=g('d-nat'), rtri=g('d-rtri'), dec=g('d-dec'), just=g('d-just');
+  const errs = [];
+  if (!ent) errs.push('entidade');
+  if (obj.length<LIM.OBJETO_D) errs.push(`objeto (mín. ${LIM.OBJETO_D})`);
+  if (sin.length<LIM.SINTESE_D) errs.push(`síntese (mín. ${LIM.SINTESE_D})`);
+  if (nat==='RTRI_INSCRITO' && !rtri) errs.push('n.º RTRI obrigatório para entidade inscrita');
+  if (dec && just.length<LIM.JUSTIF_D) errs.push(`justificação (mín. ${LIM.JUSTIF_D}) se a decisão estiver preenchida`);
+  if (errs.length) { toast('Corrija: '+errs.join(', '),'error'); return; }
+  Object.assign(e, {
+    data:g('d-data'), forma:g('d-forma'), entidade:ent, rtri_id:rtri, natureza:nat,
+    gov:g('d-gov'), interlocutor:g('d-int'), objeto:obj, sintese:sin,
+    decisao:dec, justificacao:just,
+  });
+  novaVersao(f,null,'Bloco D: entrada atualizada ('+ent+')');
+  save(); closeModal(); toast('Entrada atualizada.','success'); render();
+};
+window.removerD = (fid, eid) => {
+  const f = getFpl(fid); const e = (f.bloco_d||[]).find(x=>x.id===eid); if (!e) return;
+  confirmAction({
+    titulo:'Remover interação externa',
+    mensagem:`Remover a interação com "${e.entidade}"? Esta ação não pode ser desfeita.`,
+    btnLbl:'Remover',
+    action: () => {
+      f.bloco_d = f.bloco_d.filter(x=>x.id!==eid);
+      novaVersao(f,null,'Bloco D: entrada removida ('+e.entidade+')');
+      save(); toast('Entrada removida.','warning'); render();
+    },
+  });
+};
+
+/* ----- MODAIS: editar / remover entrada do Bloco C ----- */
+window.modalEditarC = (fid, eid) => {
+  const f = getFpl(fid); if (!f) return;
+  const e = (f.bloco_c||[]).find(x=>x.id===eid); if (!e) return;
+  const ed = !isPublico() && scopeOk(f);
+  if (!ed) return;
+  openModal(`<div class="modal-h"><h3>Editar contributo · Bloco C</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
+  <div class="modal-b"><div class="field-grid">
+    <div class="field"><label>Data *</label><input type="date" id="c-data" value="${esc((e.data||'').slice(0,10))}"></div>
+    <div class="field"><label>Forma *</label><select id="c-forma">${Object.entries(FORMAS_C).map(([k,v])=>`<option value="${k}" ${e.forma===k?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field full"><label>Entidade contactada *</label><input type="text" id="c-ent" value="${esc(e.entidade||'')}"></div>
+    <div class="field full"><label>Objeto *</label><input type="text" id="c-obj" value="${esc(e.objeto||'')}"></div>
+    <div class="field full"><label>Síntese da posição *</label><textarea id="c-sin" rows="4">${esc(e.sintese||'')}</textarea></div>
+  </div></div>
+  <div class="modal-f">
+    <button class="btn danger" onclick="removerC('${fid}','${eid}')" style="margin-right:auto">Remover</button>
+    <button class="btn" onclick="closeModal()">Cancelar</button>
+    <button class="btn primary" onclick="atualizarC('${fid}','${eid}')">Guardar</button>
+  </div>`);
+};
+window.atualizarC = (fid, eid) => {
+  const f = getFpl(fid); const e = f.bloco_c.find(x=>x.id===eid); if (!e) return;
+  const g = i => document.getElementById(i).value.trim();
+  const ent = g('c-ent'), obj = g('c-obj'), sin = g('c-sin');
+  if (!ent || !obj || !sin) { toast('Preencha todos os campos obrigatórios.','error'); return; }
+  Object.assign(e, {
+    data:g('c-data'), forma:g('c-forma'), entidade:ent, objeto:obj, sintese:sin,
+  });
+  novaVersao(f,null,'Bloco C: entrada atualizada ('+ent+')');
+  save(); closeModal(); toast('Contributo atualizado.','success'); render();
+};
+window.removerC = (fid, eid) => {
+  const f = getFpl(fid); const e = (f.bloco_c||[]).find(x=>x.id===eid); if (!e) return;
+  confirmAction({
+    titulo:'Remover contributo interno',
+    mensagem:`Remover o contributo de "${e.entidade}"? Esta ação não pode ser desfeita.`,
+    btnLbl:'Remover',
+    action: () => {
+      f.bloco_c = f.bloco_c.filter(x=>x.id!==eid);
+      novaVersao(f,null,'Bloco C: entrada removida ('+e.entidade+')');
+      save(); toast('Entrada removida.','warning'); render();
+    },
+  });
+};
+
 window.modalDecisaoD = (fid, eid) => {
   const f = getFpl(fid); const e = f.bloco_d.find(x=>x.id===eid);
   openModal(`<div class="modal-h"><h3>Decisão de incorporação</h3><button class="x-btn" onclick="closeModal()">✕</button></div>
