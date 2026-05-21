@@ -14,7 +14,7 @@ inclui, no mínimo:
 | Campo | Origem | Observação |
 |---|---|---|
 | `jti` | servidor | Identificador único `cmp_<marco>-<uuid>` |
-| `iss` | config | Emitente — `fpl.sggov.gov.pt` em produção |
+| `iss` | config | Emitente — `fpl.gov.pt` em produção |
 | `sub` | FPL | Número de processo da FPL (`2026/MAE/0042`) |
 | `marco` | parâmetro | `M0` / `M3` / `M4` / `M5` |
 | `gabinete_id` | FPL | Sigla normalizada |
@@ -84,7 +84,7 @@ Qualquer entidade autorizada (Portal do Governo, SmartLegis, AT) pode
 verificar offline:
 
 ```js
-const jwks = await fetch('https://fpl.sggov.gov.pt/api/.well-known/fpl-jwks.json').then(r => r.json());
+const jwks = await fetch('https://fpl.gov.pt/api/.well-known/fpl-jwks.json').then(r => r.json());
 const key = jwks.keys.find(k => k.kid === decodedHeader.kid);
 // Verificar a assinatura Ed25519 sobre Base64URL(header) + "." + Base64URL(payload)
 ```

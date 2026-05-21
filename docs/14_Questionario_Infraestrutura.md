@@ -111,7 +111,7 @@ Esta secção condensa o que está em `docs/12_Especificacao_Comprovativo_SmartL
    - Selecionar a chave Ed25519 pelo `kid` (chave previamente entregue e registada localmente como chave de confiança — `"pinned"` em terminologia técnica; o JWKS é apenas mecanismo de descoberta).
    - Verificar a assinatura sobre `header.payload`.
    - Verificar `iat` (não no futuro além de 60s de skew), `exp` (não no passado).
-   - Verificar `iss = "fpl.sggov.gov.pt"` e `marco ∈ {M0, M1, M4, M5}`.
+   - Verificar `iss = "fpl.gov.pt"` e `marco ∈ {M0, M1, M4, M5}`.
 3. **Regra de aceitação por estado da tramitação** (`docs/12 §4.1`):
    - Submissão a RSE: exige **M0 + M1** válidos.
    - Submissão a CM: exige **M0 + M1 + M4** válidos.
@@ -199,7 +199,7 @@ A FPL Ponte disponibilizará seis vetores em `/api/.well-known/fpl-test-vectors.
 **6.1.** Que **VLAN** será atribuída à aplicação? Que outras VLANs (utilizadores, serviços de dados, monitorização) precisam de acesso à VLAN da aplicação?
 - *Impacto:* matriz de firewall.
 
-**6.2.** Que **nome DNS interno** será atribuído? Sugestão: `fpl.sggov.gov.pt` ou `pegada.sggov.gov.pt`. A escolha tem de ser fechada **antes da geração da chave Ed25519**, porque o `iss` do JWS é hardcoded no payload e mudar implica nova chave.
+**6.2.** Que **nome DNS interno** será atribuído? Sugestão: `fpl.gov.pt`. A escolha tem de ser fechada **antes da geração da chave Ed25519**, porque o `iss` do JWS é hardcoded no payload e mudar implica nova chave.
 - *Impacto:* hardcoded em `app/backend/src/comprovativo.js` e em `docs/12 §2.3`.
 
 **6.3.** **Certificado TLS** para o nome DNS interno: emitido pela CA interna do Governo? Wildcard ou específico? Quem renova e com que cadência?

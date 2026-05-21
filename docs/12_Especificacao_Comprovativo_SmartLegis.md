@@ -75,7 +75,7 @@ QUUvMDA0MiIs...QbV3w8h5g.JKDqFf1z5x...kQ3wq-w
 
 ```json
 {
-  "iss": "fpl.sggov.gov.pt",
+  "iss": "fpl.gov.pt",
   "sub": "2026/MAE/0042",
   "fpl_id": "0d6e0e3a-7c14-4f7b-8a76-aeec24c2a8b9",
   "marco": "M1",
@@ -90,7 +90,7 @@ QUUvMDA0MiIs...QbV3w8h5g.JKDqFf1z5x...kQ3wq-w
 
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
-| `iss` | string | sim | Emitente. **Sempre `"fpl.sggov.gov.pt"`** em produção. |
+| `iss` | string | sim | Emitente. **Sempre `"fpl.gov.pt"`** em produção. |
 | `sub` | string | sim | Número de processo da FPL (formato `AAAA/SIGLA/NNNN`). É o ponto de ligação humano com o diploma. |
 | `fpl_id` | UUID v4 | sim | Identificador opaco da FPL para reconciliação técnica. |
 | `marco` | enum | sim | `"M0"` \| `"M1"` \| `"M4"` \| `"M5"`. **Só estes quatro emitem comprovativo.** |
@@ -114,7 +114,7 @@ A assinatura tem 64 bytes; em formato base64url ocupa **86 caracteres**.
 ### 3.1 Endpoint JWKS
 
 ```
-GET https://fpl.sggov.gov.pt/api/.well-known/fpl-jwks.json
+GET https://fpl.gov.pt/api/.well-known/fpl-jwks.json
 ```
 
 Resposta (RFC 7517):
@@ -182,7 +182,7 @@ function verificarComprovativoFPL(jws, jwks) {
   if (payload.exp <= agora)      return { valido: false, erro: 'expirado' };
 
   // 6. Verificar emitente
-  if (payload.iss !== 'fpl.sggov.gov.pt') return { valido: false, erro: 'iss-recusado' };
+  if (payload.iss !== 'fpl.gov.pt') return { valido: false, erro: 'iss-recusado' };
 
   // 7. Verificar marco
   if (!['M0','M1','M4','M5'].includes(payload.marco))
@@ -287,7 +287,7 @@ A FPL Ponte disponibilizará um conjunto de **vetores de teste** para o
 SmartLegis verificar a sua implementação:
 
 ```
-GET https://fpl.sggov.gov.pt/api/.well-known/fpl-test-vectors.json
+GET https://fpl.gov.pt/api/.well-known/fpl-test-vectors.json
 ```
 
 Vetores:

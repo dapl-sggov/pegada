@@ -14,7 +14,7 @@ Imagem Docker + `docker-compose` (Postgres/Redis/MinIO) · CSP/CSRF/2FA TOTP · 
 
 | # | Decisão | Quem decide | Porquê é bloqueante |
 |---|---|---|---|
-| 1 | **Nome DNS interno definitivo** (sugestão `fpl.sggov.gov.pt`) | DSTD + DAPL/DSSD | Hardcoded no `iss` do JWS — mudar implica nova chave e nova distribuição |
+| 1 | **Nome DNS interno definitivo** (sugestão `fpl.gov.pt`) | DSTD + DAPL/DSSD | Hardcoded no `iss` do JWS — mudar implica nova chave e nova distribuição |
 | 2 | **Cofre de segredos** e modo da chave privada Ed25519 (HSM ou ficheiro 0600?) | DSTD | Afeta o módulo de assinatura |
 | 3 | **Calendário do SmartLegis** para o verificador (T0 + 10 sem é viável até 27 jul?) | SmartLegis | Prazo legal de entrada em vigor |
 | 4 | **Diretório interno** — LDAP/AD URL, base DN, conta de bind, mapeamento de grupos | DSTD | Sem isto fica em modo `local` (não escala) |

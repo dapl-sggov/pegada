@@ -542,7 +542,7 @@ table.t td.num{font-family:var(--mono);font-weight:500;color:var(--gold);width:3
         <table class="t">
           <thead><tr><th style="width:36px">#</th><th>Decisão</th><th style="width:160px">Quem decide</th><th>Porquê é bloqueante</th></tr></thead>
           <tbody>
-            <tr><td class="num">1</td><td><strong>Nome DNS interno</strong> definitivo (sugestão <span class="mono">fpl.sggov.gov.pt</span>)</td><td>DSTD + DAPL/DSSD</td><td>Hardcoded no <span class="mono">iss</span> do JWS — mudar implica nova chave e redistribuição</td></tr>
+            <tr><td class="num">1</td><td><strong>Nome DNS interno</strong> definitivo (sugestão <span class="mono">fpl.gov.pt</span>)</td><td>DSTD + DAPL/DSSD</td><td>Hardcoded no <span class="mono">iss</span> do JWS — mudar implica nova chave e redistribuição</td></tr>
             <tr><td class="num">2</td><td><strong>Cofre de segredos</strong> e modo da chave Ed25519 (HSM ou ficheiro 0600?)</td><td>DSTD</td><td>Afeta o módulo de assinatura e o procedimento de rotação</td></tr>
             <tr><td class="num">3</td><td><strong>Calendário do SmartLegis</strong> para o verificador (T0 + 10 sem)</td><td>SmartLegis</td><td>Prazo legal de 27 jul é o limite duro</td></tr>
             <tr><td class="num">4</td><td><strong>Diretório interno</strong> — LDAP/AD URL, base DN, conta de bind, mapeamento de grupos</td><td>DSTD</td><td>Sem isto fica em modo <span class="mono">local</span> (não escala)</td></tr>

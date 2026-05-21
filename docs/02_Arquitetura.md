@@ -245,7 +245,7 @@ Header:
 Payload:
 ```json
 {
-  "iss": "fpl.sggov.ring",            // emissor: aplicação FPL
+  "iss": "fpl.gov.pt",                // emissor: aplicação FPL
   "sub": "2026/MAE/0042",             // número de processo do diploma
   "fpl_id": "uuid-da-fpl",
   "marco": "M3",

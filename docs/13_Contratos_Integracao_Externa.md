@@ -179,7 +179,7 @@ const body = JSON.stringify({ cl_ref, fpl_numero, periodo, contributos });
 const sig = crypto.createHmac('sha256', CL_WEBHOOK_KEY)
   .update(ts + '.', 'utf8').update(body, 'utf8').digest('hex');
 
-await fetch('https://fpl.sggov.gov.pt/api/hooks/consulta-lex', {
+await fetch('https://fpl.gov.pt/api/hooks/consulta-lex', {
   method: 'POST',
   headers: {
     'content-type': 'application/json',

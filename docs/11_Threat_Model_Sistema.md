@@ -152,7 +152,7 @@ pública partilhada — o SmartLegis não precisa de chamar a FPL Ponte.
 ### 3.3 Compromisso da CA do Governo
 
 **Impacto:** atacante pode emitir certificados TLS válidos para
-`fpl.sggov.gov.pt`.
+`fpl.gov.pt`.
 **Mitigação:** fora do âmbito desta aplicação; resposta pelo CEGER/GNS.
 
 ### 3.4 Insider threat

@@ -129,7 +129,7 @@ export const config = {
   // substitui o antigo M3 como marco bloqueante de pré-RSE.
   comprovativo: {
     algoritmo: 'EdDSA', // Ed25519
-    issuer: env.COMPROVATIVO_ISSUER || 'fpl.sggov.ring',
+    issuer: env.COMPROVATIVO_ISSUER || 'fpl.gov.pt',
     // Identificador da chave ativa para emissão (header `kid` do JWS).
     keyId: env.COMPROVATIVO_KEY_ID || 'fpl-dev-2026-01',
     // Chave privada Ed25519 em PEM (PKCS#8). NUNCA na base de dados nem
