@@ -3,7 +3,7 @@
 Documento técnico do Bloco C2 do plano de desenvolvimento. Cobre o
 mecanismo de **comprovativo criptográfico** que evidencia, de forma
 verificável e não-repudiável, a validação de cada marco bloqueante da FPL
-(M0, M3, M4, M5), em cumprimento do Memorando Executivo (Princípio 5) e
+(M0, M1, M4, M5), em cumprimento do Memorando Executivo (Princípio 5) e
 da RCM v2 (n.º 4).
 
 ## 1. Ativo protegido
@@ -16,7 +16,7 @@ inclui, no mínimo:
 | `jti` | servidor | Identificador único `cmp_<marco>-<uuid>` |
 | `iss` | config | Emitente — `fpl.gov.pt` em produção |
 | `sub` | FPL | Número de processo da FPL (`2026/MAE/0042`) |
-| `marco` | parâmetro | `M0` / `M3` / `M4` / `M5` |
+| `marco` | parâmetro | `M0` / `M1` / `M4` / `M5` |
 | `gabinete_id` | FPL | Sigla normalizada |
 | `validador_id` | sessão | UUID do utilizador (não o email) |
 | `validador_papel` | sessão | Papel ativo aplicado |
@@ -49,7 +49,7 @@ processo do servidor**. Verificação é feita com a chave pública.
 | Categoria | Ameaça | Mitigação implementada |
 |---|---|---|
 | **Spoofing** | Atacante emite um comprovativo falso e tenta colá-lo na FPL | Emissão exige sessão autenticada com papel apropriado (RBAC) e *correr* dentro do processo do servidor. Assinatura Ed25519 prova autoria. |
-| **Spoofing** | Atacante forja JWKS num MITM e faz o verificador aceitar uma chave atacante | JWKS servido na mesma origem da API, sobre TLS. `kid` cruza com o registo BD; em produção a chave pública é pinada/distribuída internamente (não confiar exclusivamente em DNS). |
+| **Spoofing** | Atacante forja JWKS num MITM e faz o verificador aceitar uma chave atacante | JWKS servido na mesma origem da API, sobre TLS. `kid` cruza com o registo BD; em produção a chave pública é registada localmente / distribuída internamente (não confiar exclusivamente em DNS). |
 | **Tampering** | Modificação de payload ou cabeçalho | Verificação Ed25519 falha (testes `dominio.test.js` cobrem payload e assinatura adulterados). |
 | **Tampering** | Substituição da chave privada na BD por um atacante com acesso à BD | Backup verificado + alarmes em `INSERT/UPDATE` em `comprovativo_chave`; rotação obrigatória em compromisso. Em produção a chave deve ser servida via HSM/KMS (interface `comprovativo.js` está preparada — substitui-se o adapter). |
 | **Repudiation** | Validador nega que validou o marco | Comprovativo associa `validador_id` + `validador_papel` + `iat`; versão `versao_fpl` regista quem emitiu; log `evento_fpl` mantido por **10 anos** (config `RETENTION_EVENTOS_ANOS`). |

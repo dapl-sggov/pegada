@@ -2,7 +2,7 @@
 // Toda a configuração vem de variáveis de ambiente, com defaults para
 // desenvolvimento local. NUNCA colocar segredos reais neste ficheiro.
 //
-// Em produção (CEGER on-premises) as variáveis são injetadas pelo
+// Em produção (DSTD on-premises) as variáveis são injetadas pelo
 // orquestrador de containers ou por ficheiro .env não versionado.
 
 function bool(v, def = false) {
@@ -68,13 +68,13 @@ export const config = {
     optional: bool(env.REDIS_OPTIONAL, !isProd),
   },
 
-  // --- Object storage (S3-compatível: MinIO no CEGER) ---
+  // --- Object storage (S3-compatível: MinIO na DSTD) ---
   storage: {
     // 's3' usa MinIO/S3; 'fs' usa filesystem local (modo legado/dev)
     driver: env.STORAGE_DRIVER || (isProd ? 's3' : 'fs'),
     s3: {
       endpoint: env.S3_ENDPOINT || 'http://localhost:9000',
-      region: env.S3_REGION || 'pt-ceger-1',
+      region: env.S3_REGION || 'pt-dstd-1',
       bucket: env.S3_BUCKET || 'fpl-anexos',
       accessKey: req('S3_ACCESS_KEY', env.S3_ACCESS_KEY, { allowDevDefault: 'fpl-minio' }),
       secretKey: req('S3_SECRET_KEY', env.S3_SECRET_KEY, { allowDevDefault: 'fpl-minio-secret' }),
@@ -107,7 +107,7 @@ export const config = {
       ldapBaseDn: env.LDAP_BASE_DN || '',           // ex: OU=Pessoal,DC=gov,DC=pt
       ldapBindDn: env.LDAP_BIND_DN || '',           // conta de serviço para pesquisar
       ldapBindPassword: env.LDAP_BIND_PASSWORD || '',
-      // HTTP REST (alternativa: broker interno do CEGER ou outro front-end)
+      // HTTP REST (alternativa: broker interno da DSTD ou outro front-end)
       httpUrl: env.DIRECTORY_HTTP_URL || '',
       httpAuth: env.DIRECTORY_HTTP_AUTH || '',      // header `authorization` opcional
     },
@@ -147,7 +147,7 @@ export const config = {
     marcosBloqueantes: ['M0', 'M1', 'M4', 'M5'],
   },
 
-  // --- Email transacional (SMTP do Estado / CEGER) ---
+  // --- Email transacional (SMTP do Estado / DSTD) ---
   email: {
     // 'outbox' guarda em base de dados sem enviar (dev/staging);
     // 'smtp' envia através do servidor configurado (produção).

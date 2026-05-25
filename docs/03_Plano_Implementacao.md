@@ -33,7 +33,7 @@ de decisão da SGGOV (documentação interna, não versionada neste repositório
 | E3 | Auth via diretório interno + RBAC | 2-3 | Login contra diretório interno, sessões, papéis, escopo por gabinete, TOTP |
 | E4 | Núcleo CRUD FPL | 3-4 | Criar FPL, editar blocos A-E, listar, ler, versionar |
 | E5 | Workflow + marcos M0-M5 | 4-5 | Máquina de estados; validações server-side; devolução de pendências |
-| **E6** | **Comprovativo criptográfico** | **5-6** | **Emissão Ed25519 nos marcos M0/M3/M4/M5; verificação offline; JWKS; rotação de chaves. Especificação fechada com SmartLegis.** |
+| **E6** | **Comprovativo criptográfico** | **5-6** | **Emissão Ed25519 nos marcos M0/M1/M4/M5; verificação offline; JWKS; rotação de chaves. Especificação fechada com SmartLegis.** |
 | E7 | Bloco D + RTRI (fallback) | 6 | Interações externas; lookup RTRI local; modo degradado manual |
 | E8 | Frontend MVP | 4-8 (paralelo) | UI completa para o fluxo M0→M5, incluindo apresentação do comprovativo |
 | E9 | Anexos (MinIO) + auditoria | 7 | Upload S3, SHA-256, antivírus, audit log |
@@ -69,7 +69,7 @@ Face à v1.0 do plano: **E6 (comprovativo) é novo**; **E12 deixou de ser "porta
 ### E6 — Comprovativo criptográfico (semana 5-6) — MARCO NOVO
 - Módulo `comprovativo.js`: emissão e verificação
 - Geração de par de chaves Ed25519; chave privada no cofre de segredos
-- Emissão de JWS compacto nos marcos M0, M3, M4, M5
+- Emissão de JWS compacto nos marcos M0, M1, M4, M5
 - Cálculo de `snapshot_hash` (SHA-256 do snapshot canónico)
 - Tabelas `comprovativo` e `chave_assinatura`
 - Endpoint `GET /api/.well-known/fpl-jwks.json` (consumido pelo SmartLegis)

@@ -118,7 +118,7 @@ CREATE TABLE comprovativo (
   jti           TEXT PRIMARY KEY,           -- identificador único do comprovativo
   fpl_id        TEXT NOT NULL REFERENCES fpl(id),
   numero_processo TEXT NOT NULL,
-  marco         TEXT NOT NULL,              -- M0, M3, M4, M5
+  marco         TEXT NOT NULL,              -- M0, M1, M4, M5
   validado_por  TEXT NOT NULL,              -- papel + identificação do ponto focal
   snapshot_hash TEXT NOT NULL,              -- SHA-256 do estado da FPL no momento
   kid           TEXT NOT NULL,              -- key id da chave de assinatura usada
@@ -199,30 +199,29 @@ Não há `/api/publico/*`. A face pública é o **Portal do Governo**, alimentad
 ## 5. Máquina de estados e marcos
 
 ```
-   [CRIADO] ──M0──> [EM_ELABORACAO] ──(M1)──> [EM_CONSULTA_PUBLICA]
-                          │                          │
-                          │                         (M2)
-                          │                          │
-                          └────────M3────────────────┘
-                                    │
-                                    ▼
-                              [EM_RSE] ──M4──> [EM_CM] ──aprovação──> [APROVADO]
-                                                                          │
-                                                                          M5
-                                                                          ▼
-                                                                    [PUBLICADO]
+   [CRIADO] ──M0──> [EM_ELABORACAO] ──M1──> [EM_RSE] ──(M2)──> [EM_CONSULTA_PUBLICA]
+                                                                        │
+                                                                       (M3)
+                                                                        │
+                                                                        ▼
+                                              [EM_CM] <──M4── [EM_CONSULTA_PUBLICA]
+                                                 │
+                                            aprovação
+                                                 │
+                                                 ▼
+                                            [APROVADO] ──M5──> [PUBLICADO]
 
-   Marcos BLOQUEANTES (emitem comprovativo criptográfico): M0, M3, M4, M5
-   Marcos REGISTADOS (não bloqueiam, não emitem comprovativo): M1, M2
+   Marcos BLOQUEANTES (emitem comprovativo criptográfico): M0, M1, M4, M5
+   Marcos REGISTADOS (não bloqueiam, não emitem comprovativo): M2, M3
 ```
 
 | Marco | Pré-condições internas | Emite comprovativo? |
 |---|---|:---:|
 | **M0** — Abertura | Bloco A completo + Bloco B obrigatórios | ✅ |
-| M1 — Pré-consulta | M0 validado | ❌ (registado) |
-| M2 — Pós-consulta | M1 validado + Bloco E síntese e decisão | ❌ (registado) |
-| **M3** — Pré-RSE | M0 + Bloco D com decisão+justificação em todas as entradas + declaração F | ✅ |
-| **M4** — Pré-CM | M3 + tudo completo + sem correções QA pendentes + 2.ª declaração F | ✅ |
+| **M1** — Pré-RSE | M0 + Bloco D com interlocutores prévios e decisões preenchidas + declaração F | ✅ |
+| M2 — Pós-RSE · Abertura CP | M1 validado + versão pós-RSE + referência ConsultaLEX | ❌ (registado) |
+| M3 — Encerramento CP | M2 validado + contributos importados + síntese da decisão | ❌ (registado) |
+| **M4** — Pré-CM | M1 + M3 + tudo completo + sem correções QA pendentes + 2.ª declaração F | ✅ |
 | **M5** — Publicação | M4 + estado APROVADO + referência DR | ✅ |
 
 A cada marco bloqueante, após a validação interna passar, a app emite o comprovativo (ver §6) e regista-o. O ponto focal copia o comprovativo para o SmartLegis.
@@ -248,7 +247,7 @@ Payload:
   "iss": "fpl.gov.pt",                // emissor: aplicação FPL
   "sub": "2026/MAE/0042",             // número de processo do diploma
   "fpl_id": "uuid-da-fpl",
-  "marco": "M3",
+  "marco": "M1",
   "validado_em": "2026-04-30T16:05:00Z",
   "validado_por": "PONTO_FOCAL:gab-mae",   // papel + gabinete, não a pessoa
   "snapshot_hash": "sha256:9f2a...",   // hash do estado da FPL no momento
@@ -295,7 +294,7 @@ A especificação técnica detalhada (campos exatos, tratamento de erros, format
 - Sessão em cookie httpOnly + JWT de sessão; expiração 8h.
 
 ### 7.2. Não há federação OIDC
-Decisão expressa do Memorando (Princípio 1) e da RCM v2 (n.º 11.1). O confinamento à RING torna a federação externa desnecessária e elimina a dependência da AMA para o arranque.
+Decisão expressa do Memorando (Princípio 1) e da RCM v2 (n.º 11.1). O confinamento à RING torna a federação externa desnecessária e elimina a dependência da ARTE para o arranque.
 
 ### 7.3. Hardening
 - CSRF (double-submit cookie), rate limiting, bloqueio de conta após N tentativas — já implementados.

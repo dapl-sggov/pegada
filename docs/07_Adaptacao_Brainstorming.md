@@ -28,13 +28,13 @@ Os documentos de decisão consolidam o regime e fixam escolhas que, no trabalho 
 
 ### 1.2. Acoplamento por comprovativo criptográfico — substitui a "submissão bloqueante interna"
 
-**Decisão:** em cada marco bloqueante (**M0, M3, M4, M5**), a aplicação FPL gera um **comprovativo criptográfico assinado**. O ponto focal copia-o para o campo correspondente no SmartLegis, que o **verifica localmente com a chave pública partilhada** e bloqueia a tramitação se a verificação falhar.
+**Decisão:** em cada marco bloqueante (**M0, M1, M4, M5**), a aplicação FPL gera um **comprovativo criptográfico assinado**. O ponto focal copia-o para o campo correspondente no SmartLegis, que o **verifica localmente com a chave pública partilhada** e bloqueia a tramitação se a verificação falhar.
 
 **Consequências técnicas:**
 - É preciso um **módulo novo de emissão e verificação de comprovativos** (assinatura Ed25519 ou ECDSA P-256, gestão de chaves, JWS compacto).
 - A comunicação FPL↔SmartLegis é **máquina-a-máquina por handoff**, não integração síncrona nem coordenação humana periódica.
 - O conceito de "submissão bloqueante" que estava implementado **dentro** da app passa a ter um segundo nível: a app continua a impedir a validação de marco sem cumprir as regras (validação interna), **e adicionalmente** emite o comprovativo que torna o cumprimento verificável por um sistema terceiro.
-- Marcos bloqueantes passam a ser **quatro** (M0, M3, M4, M5) — M5 (publicação) também emite comprovativo. Antes M5 era apenas conclusivo.
+- Marcos bloqueantes passam a ser **quatro** (M0, M1, M4, M5) — M5 (publicação) também emite comprovativo. Antes M5 era apenas conclusivo.
 
 ### 1.3. Publicação no Portal do Governo — não num portal próprio nem no Consulta.Lex
 
@@ -114,7 +114,7 @@ A adaptação do **código** (último item) integra-se na Fase 2 já planeada (r
 
 Detalhe completo em `docs/02_Arquitetura.md` §6. Em síntese:
 
-- **Quando:** emitido na validação dos marcos M0, M3, M4, M5.
+- **Quando:** emitido na validação dos marcos M0, M1, M4, M5.
 - **Conteúdo (payload):** `fpl_id`, `numero_processo`, `marco`, `validado_em`, `validado_por` (papel, não pessoa), `snapshot_hash` (SHA-256 do estado da FPL no momento), `jti` (identificador único), `iss` (emissor: aplicação FPL), `iat`/`exp`.
 - **Assinatura:** Ed25519 (chave privada na FPL; chave pública partilhada com o SmartLegis). Formato JWS compacto.
 - **Verificação:** o SmartLegis verifica a assinatura offline com a chave pública. Não há chamada de rede entre os sistemas — *handoff* assíncrono.

@@ -62,7 +62,7 @@ O documento trata RTRI, Consulta.Lex, autenticação.gov.pt e DRE como serviços
 
 - **RTRI da AR**: a Lei 5-A/2026 entrou em vigor mas a operacionalização técnica do RTRI é responsabilidade da AR, não do Governo. A API pode não existir, pode não estar documentada, pode não suportar a volumetria, pode não ter contrato de SLA com o Governo. **Sem contrato formal de uso da API, este risco é externo e não controlável.**
 - **Consulta.Lex**: o webhook proposto pode não estar implementado. O modelo de dados da plataforma pode não expor os contributos no formato necessário.
-- **autenticação.gov.pt**: a federação OIDC com novos clientes do Governo exige processo formal junto da AMA, com prazos não-controláveis.
+- **autenticação.gov.pt**: a federação OIDC com novos clientes do Governo exige processo formal junto da ARTE, com prazos não-controláveis.
 - **DRE**: a API existe mas o seu *rate limiting* e estabilidade não estão acordados para uso intensivo.
 
 **Recomendação:** o sistema deve ser desenhado para funcionar em **modo degradado** quando qualquer destas integrações falhar, e os pontos focais devem ter sempre uma via manual de inserção (com flag de "validação RTRI pendente", por exemplo). O documento menciona isto en passant na §4.3 mas não o eleva a princípio arquitetural.
@@ -105,10 +105,10 @@ A §8.1 enuncia conformidade WCAG 2.2 AA. O custo desta conformidade não é tri
 
 ### 2.6. Operação — modelo pós-go-live insuficiente
 
-A §9.4 lista três opções (operação interna SGGOV, delegada CEGER/AMA, contratada ao fornecedor) mas não recomenda nenhuma. O custo de cada uma e os SLAs efetivos variam significativamente:
+A §9.4 lista três opções (operação interna SGGOV, delegada DSTD/ARTE, contratada ao fornecedor) mas não recomenda nenhuma. O custo de cada uma e os SLAs efetivos variam significativamente:
 
 - **Interna SGGOV**: requer recrutar SRE e equipa de suporte; pode custar 150-200 k€/ano em pessoal;
-- **Delegada CEGER**: encaixa em estrutura existente mas pode ter SLAs menos competitivos e dificuldade em interlocução técnica direta;
+- **Delegada DSTD**: encaixa em estrutura existente mas pode ter SLAs menos competitivos e dificuldade em interlocução técnica direta;
 - **Contratada ao fornecedor**: continuidade técnica garantida mas dependência de um contrato em curso.
 
 **Recomendação:** clarificar antes do *go-live* qual a opção, porque as decisões de design (logging, alertas, runbooks) dependem disto.
@@ -158,7 +158,7 @@ Sem isto, a aplicação técnica pode ser perfeita e o regime falhar.
 
 Substituir a meta de "aplicação completa a 27 julho" por:
 
-> **FPL Ponte v1.0** — sistema autónomo, deliberadamente minimalista, capaz de cumprir o regime nos seus aspetos bloqueantes (M0, M3, M4), com integrações externas em modo *fallback* e adoção monitorizada à mão pela SGGOV nas primeiras 8 semanas.
+> **FPL Ponte v1.0** — sistema autónomo, deliberadamente minimalista, capaz de cumprir o regime nos seus aspetos bloqueantes (M0, M1, M4), com integrações externas em modo *fallback* e adoção monitorizada à mão pela SGGOV nas primeiras 8 semanas.
 
 A v1.0 cobre apenas P1 (do Anexo B do documento), e mesmo assim com simplificações:
 - Lookup RTRI: pesquisa em base local *seeded* manualmente, atualizável em batch;
@@ -203,11 +203,11 @@ A SGGOV deve fechar **nos próximos 7 dias** as seguintes decisões para que o c
 
 1. **Stack**: Node.js / Python / Java / .NET (ou low-code OutSystems);
 2. **Modelo de aquisição**: Build interno / contratação externa / híbrido;
-3. **Infraestrutura**: cloud nacional / on-premises CEGER / cloud comercial soberana;
-4. **Modelo de operação**: SGGOV / CEGER / fornecedor;
+3. **Infraestrutura**: cloud nacional / on-premises DSTD / cloud comercial soberana;
+4. **Modelo de operação**: SGGOV / DSTD / fornecedor;
 5. **Patrocinador político e budget**: confirmação de envelope financeiro até final de 2026;
 6. **Compromisso da AR**: contacto formal sobre a API RTRI e SLA;
-7. **Compromisso AMA**: federação OIDC para a aplicação.
+7. **Compromisso ARTE**: federação OIDC para a aplicação.
 
 ---
 

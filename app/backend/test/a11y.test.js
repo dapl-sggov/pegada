@@ -30,7 +30,7 @@ test('a11y: declaração de acessibilidade existe e está conforme', () => {
   assert.match(h, /WCAG 2\.2/i, 'menciona WCAG 2.2');
   assert.match(h, /skip-link/, 'tem skip-link');
   assert.match(h, /Mecanismo de comunicação e contacto/i, 'inclui mecanismo de contacto');
-  assert.match(h, /AMA/, 'menciona a AMA como entidade de fiscalização');
+  assert.match(h, /ARTE/, 'menciona a ARTE como entidade de fiscalização');
 });
 
 test('a11y: shell + views usam marcação semântica + ARIA + skip-link', () => {

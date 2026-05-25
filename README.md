@@ -202,7 +202,7 @@ Maria Silva (MAE) só vê as FPL do MAE. Carla Almeida (SGGOV_ADMIN) vê tudo. V
 
 ## O que ficou explicitamente fora desta entrega
 
-- **Federação OIDC real com autenticação.gov.pt** — exige processo formal AMA. A federação simulada está pronta a ser substituída.
+- **Federação OIDC real com autenticação.gov.pt** — exige processo formal ARTE. A federação simulada está pronta a ser substituída.
 - **API RTRI real da AR** — exige acordo formal e API documentada. Cache local com 15 entidades reais.
 - **SMTP real** — implementação trivial via Nodemailer + SMTP do Governo. Outbox está pronta para o consumir.
 - **ClamAV real** — interface está abstraída em `scanForViruses()`. Trocar por daemon ClamAV é trivial.
@@ -306,7 +306,7 @@ O quadro técnico ficou:
 
 - **Confinamento à RING** — aplicação não exposta à internet, acesso por VPN, sem federação OIDC
 - **Acoplamento por comprovativo criptográfico** — a app emite um JWS Ed25519 em cada marco
-  bloqueante (M0/M3/M4/M5); o SmartLegis verifica-o offline e bloqueia a tramitação se inválido
+  bloqueante (M0/M1/M4/M5); o SmartLegis verifica-o offline e bloqueia a tramitação se inválido
 - **Publicação no Portal do Governo** — a app exporta pacotes estruturados; o portal serve-os
   ao público, ao lado da Agenda Pública dos membros do Governo
 - **Gestão exclusivamente SGGOV** — build interno, sem contratação externa de desenvolvimento

@@ -292,7 +292,7 @@ Auditoria automática em `backend/test/integracao.test.js` (rejeita regressões)
 1. Detetar via alarme (alteração não autorizada na tabela `comprovativo_chave` ou ficheiro da chave).
 2. Marcar todos os comprovativos da chave como `estado = REVOGADO` na BD.
 3. Gerar nova chave + atualizar JWKS num único deploy atómico.
-4. Notificar o SmartLegis em **24 horas** (ofício + email + nova chave pinada).
+4. Notificar o SmartLegis em **24 horas** (ofício + email + nova chave canónica).
 5. Informar a CNPD se houver indícios de exposição de dados pessoais (art. 33.º RGPD).
 
 ### 7.4 SBOM e dependências

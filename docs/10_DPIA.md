@@ -36,7 +36,7 @@ duas posições tornam-na **obrigatória**.
 ### 1.2 Posicionamento jurídico
 
 - **Responsável:** SGGOV (entidade que decide finalidades e meios).
-- **Subcontratantes:** equipa interna do CEGER (operação da RING),
+- **Subcontratantes:** equipa interna da DSTD (operação da RING),
   ENISA/AT/SmartLegis enquanto destinatários de comprovativos
   (não acedem ao conteúdo da FPL).
 - **Encarregado de Proteção de Dados:** [a indicar pela SGGOV].
@@ -87,7 +87,7 @@ duas posições tornam-na **obrigatória**.
 | GSEPCM | Acesso a FPL pré-CM | idem |
 | SmartLegis | **Apenas o JWS** do comprovativo (jti, marco, número de processo, hash do snapshot) | idem |
 | Portal do Governo | Dataset público sem PII | idem |
-| AMA (fiscalização da acessibilidade) | Declaração de acessibilidade | DL 83/2018 |
+| ARTE (fiscalização da acessibilidade) | Declaração de acessibilidade | DL 83/2018 |
 | CNPD (parecer prévio + supervisão) | DPIA + relatório de violação se aplicável | RGPD art. 36.º e 33.º |
 
 **Não há transferências internacionais** — todo o tratamento ocorre na
@@ -180,12 +180,12 @@ medidas de mitigação documentadas em `docs/11_Threat_Model_Sistema.md` e
 |---|---|---|---|---|---|---|
 | R1 | Acesso indevido a FPL por trabalhador da AP fora do escopo (PF de outro gabinete vê FPL alheia) | 2 | 3 | Médio | RBAC por gabinete em `routes.js` (`fplComEscopo`); testado em 4 cenários de integração HTTP | Baixo |
 | R2 | Comprometimento da chave privada Ed25519 | 1 | 4 | Médio | Chave em ficheiro `0600`; rotação documentada; alarmes em alterações na tabela `comprovativo_chave`; migração para HSM em produção | Baixo |
-| R3 | Inserção de PII excessiva no campo livre "sintese_problema" do Bloco D | 3 | 2 | Médio | Formação de PF + revisão pelo QA SGGOV antes de M3; alerta UI a partir de 5 000 caracteres (heurística) | Médio |
+| R3 | Inserção de PII excessiva no campo livre "sintese_problema" do Bloco D | 3 | 2 | Médio | Formação de PF + revisão pelo QA SGGOV antes de M1; alerta UI a partir de 5 000 caracteres (heurística) | Médio |
 | R4 | Vazamento por exportação para Portal do Governo (PII num campo livre) | 2 | 3 | Médio | `export.js` filtra explicitamente campos não-PII; revisão SGGOV obrigatória antes de M5 (publicar) | Baixo |
 | R5 | Brute-force de password de PF | 2 | 2 | Baixo | Hash bcrypt rounds=12, rate-limit IP+email (5 falhas/5 min); bloqueio automático 8 falhas/30 min; 2FA TOTP obrigatório para SGGOV admin | Muito baixo |
 | R6 | Captura de sessão por XSS | 1 | 3 | Baixo | CSP rígida sem `unsafe-inline` em scripts; cookie `HttpOnly` e `SameSite=Lax`; sanitização (`esc()`) em todo o HTML; CSRF token | Muito baixo |
 | R7 | Perda de logs (apagamento intencional) | 1 | 3 | Baixo | Eventos imutáveis na tabela `evento_fpl`; backups diários cifrados; retenção 10 anos | Muito baixo |
-| R8 | Verificador externo aceitar comprovativo falsificado (chave pública atacante) | 1 | 4 | Médio | Distribuição da chave pública pinada/canónica para SmartLegis (out-of-band); `kid` verifica-se contra o JWKS na origem | Baixo |
+| R8 | Verificador externo aceitar comprovativo falsificado (chave pública atacante) | 1 | 4 | Médio | Distribuição da chave pública canónica para o SmartLegis (out-of-band); `kid` verifica-se contra o JWKS na origem | Baixo |
 | R9 | Ataque MITM dentro da RING | 1 | 3 | Baixo | TLS mútuo entre componentes; certificados emitidos pela CA do Governo | Muito baixo |
 | R10 | Erro humano: PF publica versão errada como APROVADO | 2 | 3 | Médio | Workflow bloqueante M0→M5; SGGOV QA + GSEPCM aprovam antes de M5; comprovativo torna a versão imutável | Baixo |
 

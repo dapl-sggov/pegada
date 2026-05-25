@@ -69,7 +69,7 @@ Migração do código de SQLite síncrono para a arquitetura-alvo: PostgreSQL as
 👤 Nada.
 
 ### Sessão A5 — Módulo de comprovativo criptográfico ⭐
-🤖 `comprovativo.js` — geração de par de chaves Ed25519, emissão de JWS compacto nos marcos M0/M3/M4/M5, cálculo de `snapshot_hash`, tabelas `comprovativo` e `chave_assinatura`, endpoint `/.well-known/fpl-jwks.json`, endpoint de verificação, rotação de chaves por `kid`. Integração na máquina de estados.
+🤖 `comprovativo.js` — geração de par de chaves Ed25519, emissão de JWS compacto nos marcos M0/M1/M4/M5, cálculo de `snapshot_hash`, tabelas `comprovativo` e `chave_assinatura`, endpoint `/.well-known/fpl-jwks.json`, endpoint de verificação, rotação de chaves por `kid`. Integração na máquina de estados.
 👤 Nada para o desenvolvimento. (A *especificação conjunta* com a equipa do SmartLegis — ver Bloco D/E — pode correr em paralelo.)
 
 ### Sessão A6 — Exportação e diretório interno

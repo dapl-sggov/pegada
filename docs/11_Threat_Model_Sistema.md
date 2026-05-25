@@ -41,7 +41,7 @@ no JWS Ed25519) e `docs/10_DPIA.md` (foco no titular de dados).
                 ▼                          ▼                  ▼
        ┌────────────────┐         ┌────────────────┐    ┌──────────────┐
        │ Prometheus     │         │ SmartLegis     │    │ Terceiros    │
-       │ (RING interno) │         │ (verificador)  │    │ (AT, AMA)    │
+       │ (RING interno) │         │ (verificador)  │    │ (AT, ARTE)   │
        └────────────────┘         └────────────────┘    └──────────────┘
 ```
 

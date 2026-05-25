@@ -32,7 +32,7 @@ Tudo tem peso visual semelhante: dashboards parecem listas, listas parecem tabel
 - Azul `#0a3161` é mais próximo do US Federal do que da paleta `gov.pt`
 - O dourado é usado pontualmente mas marca presença excessiva no badge demo
 - Vermelho da bandeira praticamente ausente
-- Não usa o sistema de identidade visual oficial do Estado (que existe na AMA)
+- Não usa o sistema de identidade visual oficial do Estado (que existe na ARTE)
 
 #### 5. Cabeçalho institucional genérico
 "República Portuguesa · Governo" — formulação que não corresponde à comunicação oficial do gov.pt. Falta o crest/brasão real ou referência clara à SGGOV.
@@ -105,7 +105,7 @@ Quando uma view está vazia, é uma oportunidade para educar. O mock actual most
 - Componentes reconhecíveis para quem usa serviços do Estado
 - Branca dominante, azul gov suave, pouco contraste
 - Tipografia "Inter" ou "Lato" como o gov.pt
-- Cumprimento estrito do sistema de identidade visual nacional (se existir formalmente — ainda em discussão na AMA)
+- Cumprimento estrito do sistema de identidade visual nacional (se existir formalmente — ainda em discussão na ARTE)
 - Acessibilidade visivelmente integrada
 - Hero com cards "O que muda" / "Para quem" / "Quando entra em vigor"
 

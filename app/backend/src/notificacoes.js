@@ -227,7 +227,7 @@ async function enviarSmtp(email) {
     to: email.destinatario_email,
     subject: email.assunto,
     html: email.corpo_html,
-    // headers para rastreio dentro do CEGER (MTA pode usar)
+    // headers para rastreio dentro da DSTD (MTA pode usar)
     headers: {
       'X-FPL-Notificacao-Id': email.notificacao_id || '',
       'X-FPL-Outbox-Id': email.id,

@@ -1,6 +1,6 @@
 # ============================================================
 # FPL Ponte — Backend (Node.js + Express)
-# Imagem multi-stage para produção no CEGER.
+# Imagem multi-stage para produção na DSTD.
 #
 # IMPORTANTE: o contexto de build é o diretório `app/` (não `app/backend/`),
 # para que o frontend estático possa ser copiado para a imagem.
@@ -38,7 +38,7 @@ USER fpl
 
 EXPOSE 3717
 
-# Healthcheck nativo — o orquestrador do CEGER usa este sinal
+# Healthcheck nativo — o orquestrador da DSTD usa este sinal
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://localhost:'+(process.env.PORT||3717)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
