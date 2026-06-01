@@ -541,8 +541,11 @@ export function bindDetalhePainel() {
   });
   document.getElementById('btnEditarDatas')?.addEventListener('click', () => abrirEditorDatas());
 
-  // Carregar agenda consolidada apenas quando estamos na vista de cronograma
-  if (document.querySelector('.crono-wrap')) {
+  // Carregar agenda consolidada — apenas se o cache estiver vazio ou expirado
+  // (60s). carregarAgenda() chama renderRoot() ao terminar, o que volta a
+  // disparar este binding; o check de cache evita o loop infinito.
+  const AGENDA_TTL_MS = 60_000;
+  if (document.querySelector('.crono-wrap') && (Date.now() - _agendaCache.ts > AGENDA_TTL_MS)) {
     carregarAgenda();
   }
 
@@ -622,14 +625,25 @@ function mostrarPendencias(marco, pendencias) {
   `);
 }
 
+// Guard contra reentrância: garante que só há um pedido /agenda em voo.
+let _agendaInFlight = false;
+
 async function carregarAgenda() {
+  if (_agendaInFlight) return;
+  _agendaInFlight = true;
+  // Marcar o cache imediatamente — mesmo antes da resposta — para que
+  // qualquer renderRoot que aconteça enquanto o pedido está em voo não
+  // dispare uma segunda chamada (TTL/loop guard).
+  _agendaCache.ts = Date.now();
   try {
     const r = await api('/agenda');
     _agendaCache = { ts: Date.now(), eventos: r.eventos || [] };
-    // Re-renderizar apenas se ainda estamos na vista cronograma
     if (document.querySelector('.crono-wrap')) renderRoot();
   } catch (e) {
+    // Mantém ts marcada para o TTL não disparar reload em loop. Cache fica vazio.
     _agendaCache = { ts: Date.now(), eventos: [] };
+  } finally {
+    _agendaInFlight = false;
   }
 }
 
@@ -834,8 +848,8 @@ function abrirEditorDatas() {
     }
     await api(`/fpl/${f.id}/datas`, { method: 'PATCH', body });
     toast('Datas atualizadas', 'success');
-    // Reset cache de agenda para refletir as novas datas
-    _agendaCache = { ts: 0, eventos: [] };
+    // Forçar recarga da agenda na próxima entrada em cronograma (TTL expirado)
+    _agendaCache.ts = 0;
     await loadFpl(f.id);
     renderRoot();
   });
