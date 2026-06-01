@@ -252,4 +252,146 @@ router.post('/admin/backup', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (
   res.json(await correrBackup());
 }));
 
+// ========================= Admin: Estado do sistema =========================
+// Painel "saúde" para SGGOV: BD, último backup, contagens, atividade recente.
+router.get('/admin/estado', requireAuth, requireRole('SGGOV_QA', 'SGGOV_ADMIN', 'GSEPCM'), ah(async (req, res) => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const config = (await import('./config.js')).default;
+
+  // Tamanho do ficheiro SQLite
+  let dbBytes = 0;
+  try { dbBytes = fs.statSync(db.path).size; } catch {}
+
+  // Último backup: lê manifesto da pasta de backup mais recente
+  let backup = null;
+  try {
+    const baseDir = path.resolve(config.backup.dir);
+    if (fs.existsSync(baseDir)) {
+      const dias = fs.readdirSync(baseDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse();
+      if (dias.length) {
+        const indexPath = path.join(baseDir, dias[0], '_index.json');
+        if (fs.existsSync(indexPath)) {
+          const j = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+          backup = { dia: dias[0], gerado_em: j.gerado_em, total: j.total };
+        }
+      }
+    }
+  } catch {}
+
+  const total_fpl = (await db.get('SELECT COUNT(*) as n FROM fpl')).n;
+  const por_estado = await db.all('SELECT estado, COUNT(*) as n FROM fpl GROUP BY estado');
+  const total_audicoes = (await db.get('SELECT COUNT(*) as n FROM audicao')).n;
+  const total_integra = (await db.get('SELECT COUNT(*) as n FROM interacao_integra')).n;
+  const total_eventos = (await db.get('SELECT COUNT(*) as n FROM evento')).n;
+  const total_utilizadores = (await db.get('SELECT COUNT(*) as n FROM utilizador WHERE ativo = 1')).n;
+  const sessoes_ativas = (await db.get('SELECT COUNT(*) as n FROM sessao WHERE expira_em > ?',
+    [new Date().toISOString()])).n;
+
+  const eventos_recentes = await db.all(
+    `SELECT e.tipo, e.timestamp, u.nome_completo as autor, e.fpl_id,
+            (SELECT numero_processo FROM fpl WHERE id = e.fpl_id) as numero
+     FROM evento e LEFT JOIN utilizador u ON u.id = e.autor_id
+     ORDER BY e.timestamp DESC LIMIT 8`
+  );
+
+  res.json({
+    ts: new Date().toISOString(),
+    db: { path: db.path, bytes: dbBytes },
+    backup,
+    contagens: {
+      fpl: total_fpl,
+      audicoes: total_audicoes,
+      integra: total_integra,
+      eventos: total_eventos,
+      utilizadores: total_utilizadores,
+      sessoes_ativas,
+    },
+    por_estado,
+    eventos_recentes,
+  });
+}));
+
+// ========================= Admin: Audit log global =========================
+router.get('/admin/eventos', requireAuth, requireRole('SGGOV_QA', 'SGGOV_ADMIN', 'GSEPCM'), ah(async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit || '100', 10), 500);
+  const tipo = req.query.tipo;
+  const autorEmail = req.query.autor;
+  let sql = `SELECT e.id, e.tipo, e.timestamp, e.payload, e.ip,
+                    u.nome_completo as autor, u.email as autor_email,
+                    e.fpl_id, (SELECT numero_processo FROM fpl WHERE id = e.fpl_id) as numero
+             FROM evento e LEFT JOIN utilizador u ON u.id = e.autor_id
+             WHERE 1=1`;
+  const params = [];
+  if (tipo) { sql += ' AND e.tipo = ?'; params.push(tipo); }
+  if (autorEmail) { sql += ' AND u.email = ?'; params.push(autorEmail); }
+  sql += ' ORDER BY e.timestamp DESC LIMIT ?';
+  params.push(limit);
+  const items = await db.all(sql, params);
+  const tipos = await db.all('SELECT tipo, COUNT(*) as n FROM evento GROUP BY tipo ORDER BY n DESC');
+  res.json({ items, tipos });
+}));
+
+// ========================= Admin: Verificação de integridade =========================
+// Recalcula o hash SHA-256 das FPLs publicadas e compara com hash_publicacao.
+// Sem alterações de estado — só leitura + cálculo.
+router.post('/admin/verificar-integridade', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA'), ah(async (req, res) => {
+  const crypto = await import('node:crypto');
+  const publicadas = await db.all("SELECT id, numero_processo, hash_publicacao FROM fpl WHERE estado = 'PUBLICADO'");
+  const resultados = [];
+  for (const f of publicadas) {
+    const snap = await canon.toCanonico(f.id);
+    const calc = crypto.createHash('sha256').update(JSON.stringify(snap)).digest('hex');
+    resultados.push({
+      id: f.id,
+      numero_processo: f.numero_processo,
+      hash_gravado: f.hash_publicacao,
+      hash_calculado: calc,
+      coincide: f.hash_publicacao === calc,
+    });
+  }
+  const total = resultados.length;
+  const ok = resultados.filter(r => r.coincide).length;
+  res.json({ verificadas: total, ok, divergentes: total - ok, resultados });
+}));
+
+// ========================= Admin: Utilizadores e papéis =========================
+router.get('/admin/utilizadores', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA'), ah(async (req, res) => {
+  const utilizadores = await db.all(
+    `SELECT id, email, nome_completo, ativo, criado_em FROM utilizador ORDER BY nome_completo`
+  );
+  const papeis = await db.all(
+    `SELECT a.utilizador_id, a.papel, a.gabinete_id, g.sigla as gabinete_sigla
+     FROM atribuicao_papel a LEFT JOIN gabinete g ON g.id = a.gabinete_id`
+  );
+  // Agrupa papéis por utilizador
+  const map = new Map();
+  for (const p of papeis) {
+    if (!map.has(p.utilizador_id)) map.set(p.utilizador_id, []);
+    map.get(p.utilizador_id).push({ papel: p.papel, gabinete_id: p.gabinete_id, gabinete_sigla: p.gabinete_sigla });
+  }
+  res.json(utilizadores.map(u => ({ ...u, papeis: map.get(u.id) || [] })));
+}));
+
+router.post('/admin/utilizadores/:id/papeis', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => {
+  const { papel, gabinete_id } = req.body || {};
+  if (!papel) return res.status(400).json({ error: 'papel obrigatório' });
+  const PAPEIS_VALIDOS = ['PONTO_FOCAL', 'SGGOV_QA', 'SGGOV_ADMIN', 'GSEPCM'];
+  if (!PAPEIS_VALIDOS.includes(papel)) return res.status(400).json({ error: 'papel inválido' });
+  await db.run(
+    `INSERT INTO atribuicao_papel (utilizador_id, papel, gabinete_id) VALUES (?, ?, ?) ON CONFLICT DO NOTHING`,
+    [req.params.id, papel, gabinete_id || null]
+  );
+  res.json({ ok: true });
+}));
+
+router.delete('/admin/utilizadores/:id/papeis/:papel', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => {
+  const gabId = req.query.gabinete_id || null;
+  await db.run(
+    `DELETE FROM atribuicao_papel WHERE utilizador_id = ? AND papel = ? AND (gabinete_id IS ? OR gabinete_id = ?)`,
+    [req.params.id, req.params.papel, gabId, gabId]
+  );
+  res.json({ ok: true });
+}));
+
 export default router;
