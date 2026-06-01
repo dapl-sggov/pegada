@@ -1,6 +1,4 @@
-// render.js — Render dispatcher: monta o shell e despacha para a view.
-// A vista de detalhe usa o módulo `detalhe-painel.js` (modelo painel +
-// cronograma do design handoff `design_handoff_fpl_painel`).
+// render.js — Render dispatcher.
 
 import { state } from './state.js';
 import { esc } from './utils.js';
@@ -10,16 +8,13 @@ import { viewDashboard } from './views/dashboard.js';
 import { viewLista, bindLista } from './views/lista.js';
 import { viewNova, bindNovaFpl } from './views/nova.js';
 import { viewDetalhePainel, bindDetalhePainel } from './views/detalhe-painel.js';
-import { viewEntidades, viewAuditoriaQa, viewExportacao, viewPerfil, viewOutbox } from './views/admin.js';
-import { iniciarCanalNotificacoes } from './notifications.js';
+import { renderAdmin } from './views/admin.js';
 
 export async function renderRoot() {
   if (!state.user) return renderLogin();
   renderShell();
   const main = document.getElementById('main');
 
-  // O painel de detalhe tem o seu próprio padding interno (header + body);
-  // as restantes vistas usam o padding global de `.painel-main-inner`.
   if (state.view === 'detalhe') main.classList.add('no-padding');
   else main.classList.remove('no-padding');
 
@@ -28,22 +23,17 @@ export async function renderRoot() {
   try {
     let html = '';
     switch (state.view) {
-      case 'dashboard':  html = await viewDashboard(); break;
-      case 'lista':      html = await viewLista(); break;
-      case 'nova':       html = await viewNova(); break;
-      case 'detalhe':    html = await viewDetalhePainel(); break;
-      case 'entidades':  html = await viewEntidades(); break;
-      case 'auditoria':  html = await viewAuditoriaQa(); break;
-      case 'exportacao': html = await viewExportacao(); break;
-      case 'perfil':     html = await viewPerfil(); break;
-      case 'outbox':     html = await viewOutbox(); break;
-      default:           html = await viewDashboard();
+      case 'dashboard': html = await viewDashboard(); break;
+      case 'lista':     html = await viewLista(); break;
+      case 'nova':      html = await viewNova(); break;
+      case 'detalhe':   html = await viewDetalhePainel(); break;
+      case 'admin':     await renderAdmin(); return; // renderAdmin escreve diretamente em #main
+      default:          html = await viewDashboard();
     }
     main.innerHTML = html;
     if (state.view === 'detalhe') bindDetalhePainel();
     if (state.view === 'nova')    bindNovaFpl();
     if (state.view === 'lista')   bindLista();
-    iniciarCanalNotificacoes();
   } catch (e) {
     main.innerHTML = `<div class="alert danger"><div><span class="ttl">Erro ao carregar</span>${esc(e.message)}</div></div>`;
   }

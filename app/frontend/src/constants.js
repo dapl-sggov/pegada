@@ -1,18 +1,13 @@
 // constants.js — Dicionários de tradução (slug → rótulo legível).
-// Centralizar aqui evita inconsistências entre vistas.
 
 export const ESTADOS_LBL = {
-  CRIADO: { lbl: 'Criado', cls: 'criado' },
-  EM_ELABORACAO: { lbl: 'Em elaboração', cls: 'elaboracao' },
-  EM_CONSULTA_INTERNA: { lbl: 'Consulta interna', cls: 'consulta' },
-  EM_CONSULTA_PUBLICA: { lbl: 'Consulta pública', cls: 'consulta' },
-  EM_RSE: { lbl: 'Em RSE', cls: 'rse' },
-  EM_CM: { lbl: 'Em CM', cls: 'cm' },
-  APROVADO: { lbl: 'Aprovado', cls: 'aprovado' },
-  PUBLICADO: { lbl: 'Publicado', cls: 'publicado' },
-  EM_REVISAO_QA: { lbl: 'Em revisão QA', cls: 'revisao' },
-  ARQUIVADO: { lbl: 'Arquivado', cls: 'criado' },
-  REJEITADO_M0: { lbl: 'Rejeitado M0', cls: 'criado' },
+  RASCUNHO:            { lbl: 'Rascunho',            cls: 'criado' },
+  EM_RSE:              { lbl: 'Em RSE',              cls: 'rse' },
+  EM_CONSULTA_PUBLICA: { lbl: 'Consulta pública',    cls: 'consulta' },
+  EM_CM:               { lbl: 'Em CM',               cls: 'cm' },
+  APROVADO:            { lbl: 'Aprovado',            cls: 'aprovado' },
+  PUBLICADO:           { lbl: 'Publicado',           cls: 'publicado' },
+  ARQUIVADO:           { lbl: 'Arquivado',           cls: 'criado' },
 };
 
 export const TIPOS = {
@@ -32,30 +27,25 @@ export const ORIGEM_LBL = {
   OUTRA: 'Outra',
 };
 
-export const NATUREZA_LBL = {
-  RTRI_INSCRITO: 'Representante de interesses inscrito no RTRI',
-  RTRI_FORCA_LEI: 'Representante automaticamente inscrito por força da Lei',
-  ACADEMIA_PERITO: 'Academia ou perito individual',
-  AUTORIDADE_PUBLICA: 'Autoridade pública',
-  OUTRA: 'Outra',
+export const AUDICAO_ESTADO_LBL = {
+  PEDIDA:       'Pedida',
+  RESPONDEU:    'Respondeu',
+  DISPENSOU:    'Dispensou-se',
+  SEM_RESPOSTA: 'Sem resposta',
 };
 
 export const FORMA_LBL = {
-  REUNIAO: 'Reunião presencial',
   AUDIENCIA: 'Audiência',
-  VIDEOCONFERENCIA: 'Videoconferência',
-  CORRESPONDENCIA: 'Correspondência escrita',
-  CONTRIBUTO_ESPONTANEO: 'Contributo espontâneo',
-  OUTRA: 'Outra',
+  ESCRITA: 'Escrita',
+  OUTRO: 'Outro',
 };
 
-export const DECISAO_LBL = {
-  INCORPORADA: 'Incorporada',
-  PARCIALMENTE_INCORPORADA: 'Parcialmente incorporada',
-  NAO_INCORPORADA: 'Não incorporada',
-  SEM_OBJETO: 'Sem objeto',
-};
+export const MARCOS = ['M0', 'M2', 'M3', 'M4', 'M5'];
 
-export const MARCO_PRECISA_DECLARACAO = m => ['M1', 'M4'].includes(m);
-export const MARCO_BLOQUEANTE = m => ['M0', 'M1', 'M4', 'M5'].includes(m);
-export const MARCOS_BLOQUEANTES = ['M0', 'M1', 'M4', 'M5'];
+export const MARCOS_LBL = {
+  M0: 'Abertura',
+  M2: 'Abertura CP',
+  M3: 'Encerramento CP',
+  M4: 'Pré-CM',
+  M5: 'Publicação',
+};

@@ -1,8 +1,4 @@
 // state.js — Estado global mutável + seletores derivados.
-// Único objeto, partilhado por referência entre todos os módulos.
-//
-// Convenção: nunca reatribuir `state`; mutar campos. Os seletores não
-// memoizam (a aplicação re-renderiza inteira a cada mudança de view).
 
 export const state = {
   user: null,
@@ -13,23 +9,13 @@ export const state = {
   fpl: null,
   versoes: [],
   eventos: [],
-  rtriEntidades: [],
-  dashboard: null,
-  notificacoes: { items: [], nao_lidas: 0 },
   anexos: [],
-  auditorias: [],
-  comprovativos: [],
-  pending2FA: null,
-  // Filtros persistentes na vista de lista (preservados ao trocar de view)
+  dashboard: null,
+  notificacoes: { items: [], nao_lidas: 0 }, // mantido para compat (não usado em v2.0)
   filtrosLista: { q: '', estado: '', gabinete: '', tipo: '' },
-  // Ordenação da lista (sortable)
-  listaSort: { col: 'numero_processo', dir: 'desc' },
-  // Offset de mês no cronograma (-1 = mês anterior; +1 = seguinte)
-  cronoMesOffset: 0,
-  // MRU da paleta cmdK (top-5 comandos mais recentes, persistido em localStorage)
+  listaSort: { col: 'data_criacao', dir: 'desc' },
   cmdkMru: JSON.parse(localStorage.getItem('fpl_cmdk_mru') || '[]'),
-  // Tema selecionado pelo utilizador (sobrepõe-se a prefers-color-scheme)
-  tema: localStorage.getItem('fpl_tema') || 'auto', // auto | claro | escuro | alto-contraste
+  tema: localStorage.getItem('fpl_tema') || 'auto',
 };
 
 // ---------- seletores ----------

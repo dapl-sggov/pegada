@@ -45,24 +45,18 @@ function comandosContextuais() {
   const lista = [
     { lbl: '🏠 Ir para o Início', hint: 'Dashboard', acao: () => setView('dashboard') },
     { lbl: '📋 Lista de FPL', hint: isSggov() ? 'Todas' : 'As minhas', acao: () => setView('lista') },
-    { lbl: '👤 O meu perfil', hint: '2FA · sessão', acao: () => setView('perfil') },
     { lbl: '⌨️ Mostrar atalhos de teclado', hint: '?', acao: mostrarAtalhos },
     { lbl: '🌓 Alternar tema', hint: 'claro / escuro / alto contraste', acao: () => window.alternarTema?.() },
   ];
   if (!isSggov()) lista.splice(1, 0, { lbl: '➕ Nova FPL', hint: 'Criar', acao: () => setView('nova') });
-  if (isSggov()) {
-    lista.push(
-      { lbl: '🏛 Entidades RTRI', hint: 'Cache local + sincronização', acao: () => setView('entidades') },
-      { lbl: '✓ Auditoria QA', hint: 'Bloco G', acao: () => setView('auditoria') },
-      { lbl: '📤 Painel de exportação', hint: 'Portal do Governo', acao: () => setView('exportacao') },
-    );
+  if (isSggov() || isAdmin()) {
+    lista.push({ lbl: '🛡 Admin SGGOV', hint: 'Backup + export canónico', acao: () => setView('admin') });
   }
-  if (isAdmin()) lista.push({ lbl: '✉ Outbox de email', hint: 'Notificações pendentes', acao: () => setView('outbox') });
   // FPL específicas (lista carregada)
   for (const f of (state.fpls || []).slice(0, 30)) {
     lista.push({
       lbl: '📄 ' + (f.titulo_curto || f.titulo.slice(0, 60)),
-      hint: f.numero_processo + ' · ' + f.estado_workflow,
+      hint: f.numero_processo + ' · ' + f.estado,
       acao: () => setView('detalhe', { fplId: f.id }),
     });
   }
