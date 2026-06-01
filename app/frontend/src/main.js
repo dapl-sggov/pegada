@@ -6,7 +6,6 @@ import { api } from './api.js';
 import { loadGabinetes } from './data.js';
 import { renderRoot } from './render.js';
 import { renderLogin } from './views/login.js';
-import { ligarAtalhosGlobais } from './cmdk.js';
 import { inicializarTema } from './tema.js';
 import { parseHash } from './router.js';
 // Side-effect imports: registam window.* handlers usados por inline onclick
@@ -27,7 +26,6 @@ export async function bootApp() {
 
 (async function init() {
   inicializarTema();
-  ligarAtalhosGlobais();
   try {
     state.user = await api('/auth/me');
     await bootApp();

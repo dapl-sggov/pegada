@@ -14,7 +14,6 @@ export const state = {
   notificacoes: { items: [], nao_lidas: 0 }, // mantido para compat (não usado em v2.0)
   filtrosLista: { q: '', estado: '', gabinete: '', tipo: '' },
   listaSort: { col: 'data_criacao', dir: 'desc' },
-  cmdkMru: JSON.parse(localStorage.getItem('fpl_cmdk_mru') || '[]'),
   tema: localStorage.getItem('fpl_tema') || 'auto',
 };
 

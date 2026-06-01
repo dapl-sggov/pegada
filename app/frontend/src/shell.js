@@ -49,7 +49,6 @@ export function renderShell() {
         </div>
         <div class="group">
           <div class="group-title">Ajuda</div>
-          <button class="link" id="cmdkLink"><span class="ico">${ico('cmd')}</span>Paleta (⌘K)</button>
           <button class="link" id="temaLink"><span class="ico" id="temaIco">${iconeTema(state.tema)}</span>Tema</button>
           <a class="link" href="/declaracao-acessibilidade.html"><span class="ico">${ico('accessibility')}</span>Acessibilidade</a>
         </div>
@@ -77,7 +76,6 @@ export function renderShell() {
     });
     el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } });
   });
-  document.getElementById('cmdkLink')?.addEventListener('click', () => window.abrirCmdK?.());
   document.getElementById('temaLink')?.addEventListener('click', () => window.alternarTema?.());
   document.getElementById('logoutBtn')?.addEventListener('click', () => window.logout?.());
 }
