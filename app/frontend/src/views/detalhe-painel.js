@@ -1,17 +1,20 @@
-// views/detalhe-painel.js — Vista de detalhe da FPL no estilo "painel" do
-// design handoff: cabeçalho com breadcrumb + título + estado + stepper
-// horizontal de marcos, body em grelha 2-colunas com pc-cards por bloco.
+// views/detalhe-painel.js — Vista de detalhe da FPL no estilo painel do
+// design handoff: painel-head (breadcrumb + título + estado + stepper),
+// painel-body em grelha 2-colunas com pc-cards por bloco.
 
 import { api } from '../api.js';
 import { state, isSggov, userOwns, gabSigla, gabNome } from '../state.js';
 import { ESTADOS_LBL, TIPOS, ORIGEM_LBL, AUDICAO_ESTADO_LBL, FORMA_LBL, MARCOS_LBL } from '../constants.js';
-import { esc, fmtData, fmtDH, toast } from '../utils.js';
+import { esc, fmtData, fmtDH, toast, openModal, closeModal } from '../utils.js';
 import { loadFpl } from '../data.js';
+import { renderRoot } from '../render.js';
 import { setView } from '../router.js';
 import { abrirNovaAudicao, abrirImportarIntegra, eliminarAudicao } from '../wizard-audicoes.js';
 
+const MARCOS_ORD = ['M0', 'M2', 'M3', 'M4', 'M5'];
+
 // ---------------------------------------------------------------------------
-// Render dispatcher
+// Render
 // ---------------------------------------------------------------------------
 export async function viewDetalhePainel() {
   if (!state.fplId) return '<div class="card-empty">FPL não selecionada.</div>';
@@ -23,23 +26,18 @@ export async function viewDetalhePainel() {
   return painelHead(f, sub) + (sub === 'cronograma' ? painelCronograma(f) : painelDetalhe(f));
 }
 
-// ---------------------------------------------------------------------------
-// Próximo marco (lógica simétrica à do backend workflow.js)
-// ---------------------------------------------------------------------------
-const MARCOS_ORD = ['M0', 'M2', 'M3', 'M4', 'M5'];
-
 function proximoMarco(f) {
   if (!f.m0_em) return 'M0';
   if (f.estado === 'EM_RSE' && !f.m2_em) return 'M2';
   if (f.estado === 'EM_CONSULTA_PUBLICA' && !f.m3_em) return 'M3';
   if (f.estado === 'EM_CONSULTA_PUBLICA' && f.m3_em && !f.m4_em) return 'M4';
-  if (f.estado === 'EM_CM') return 'APROVAR'; // botão "Aprovar em CM"
+  if (f.estado === 'EM_CM') return 'APROVAR';
   if (f.estado === 'APROVADO' && !f.m5_em) return 'M5';
   return null;
 }
 
 // ---------------------------------------------------------------------------
-// Cabeçalho (painel-head)
+// Cabeçalho
 // ---------------------------------------------------------------------------
 function painelHead(f, sub) {
   const podeEditar = userOwns(f) || isSggov();
@@ -48,9 +46,7 @@ function painelHead(f, sub) {
   const est = ESTADOS_LBL[f.estado] || { lbl: f.estado, cls: 'criado' };
   const nAud = (f.audicoes || []).length;
   const nIntegra = (f.integra || []).length;
-  const versao = f.versao_atual || 1;
 
-  // Estado por marco
   const marcos = MARCOS_ORD.map(id => {
     const em = f[`${id.toLowerCase()}_em`];
     return { id, lbl: MARCOS_LBL[id], em };
@@ -65,7 +61,7 @@ function painelHead(f, sub) {
     <div class="painel-detalhe">
       <header class="painel-head">
         <div class="painel-bcrumb">
-          <button onclick="setView('lista')">FPL</button> / ${esc(f.numero_processo)}
+          <button onclick="setView('lista')">FPL</button> / <span class="mono">${esc(f.numero_processo)}</span>
         </div>
         <div class="painel-title-row">
           <h1 class="painel-title">${esc(f.titulo)}</h1>
@@ -74,15 +70,18 @@ function painelHead(f, sub) {
         <div class="painel-meta">
           <span class="pill-tag">${esc(TIPOS[f.tipo_diploma] || f.tipo_diploma)}</span>
           <span class="pill-tag">${esc(gabSigla(f.gabinete_id))}</span>
-          <span>Versão v${versao}</span>
+          <span>Versão v${f.versao_atual || 1}</span>
           <span class="sep">·</span>
           <span>Criada ${fmtData(f.data_criacao)}</span>
           <span class="sep">·</span>
           <span>${nAud} ${nAud === 1 ? 'audição' : 'audições'}</span>
           ${nIntegra ? `<span class="sep">·</span><span>${nIntegra} INTEGRA</span>` : ''}
-          ${podeAprovarCM ? `<button class="btn sm primary" id="btnAprovarCM" style="margin-left:10px">Marcar aprovado em CM</button>` : ''}
-          ${f.estado === 'PUBLICADO' ? `<a class="btn sm" href="/api/fpl/${f.id}/ficha-publica" target="_blank" rel="noopener" style="margin-left:8px">Ver ficha pública</a>` : ''}
-          ${podeEditar ? `<button class="btn sm" id="btnExportCanon" style="margin-left:8px">↓ JSON canónico</button>` : ''}
+
+          <div class="spacer"></div>
+
+          ${podeAprovarCM ? `<button class="btn sm primary" id="btnAprovarCM">Marcar aprovado em CM</button>` : ''}
+          ${f.estado === 'PUBLICADO' ? `<a class="btn sm" href="/api/fpl/${f.id}/ficha-publica" target="_blank" rel="noopener">Ver ficha pública</a>` : ''}
+          ${podeEditar ? `<button class="btn sm ghost" id="btnExportCanon">↓ JSON canónico</button>` : ''}
 
           <div class="painel-toggle" role="tablist" aria-label="Vista da FPL">
             <button data-sub="detalhe"    role="tab" aria-selected="${sub === 'detalhe'}">Detalhe</button>
@@ -92,7 +91,7 @@ function painelHead(f, sub) {
         <div class="painel-stepper" style="grid-template-columns:repeat(5,1fr)">
           ${marcos.map(m => `
             <div class="painel-step ${m.estado}" data-card-target="${cardDoMarco(m.id)}" role="button" tabindex="0"
-                 aria-label="${m.id} ${m.lbl} — ir para a secção">
+                 aria-label="${m.id} ${m.lbl}">
               <div class="dot">${m.estado === 'done' ? '✓' : m.id.replace('M', '')}</div>
               <div>
                 <div class="lbl">${m.id} · ${esc(m.lbl)}</div>
@@ -113,7 +112,7 @@ function cardDoMarco(id) {
 }
 
 // ---------------------------------------------------------------------------
-// Body Detalhe (pc-cards em grelha 2 colunas)
+// Body Detalhe
 // ---------------------------------------------------------------------------
 function painelDetalhe(f) {
   const podeEditar = userOwns(f) || isSggov();
@@ -137,7 +136,7 @@ function pcA(f) {
       <div class="pc-card-head">
         <div class="pc-letter">A</div>
         <div><div class="ttl">Identificação</div><div class="sub">Bloco A</div></div>
-        <span class="ok" style="margin-left:auto">✓ completo</span>
+        <span class="ok">✓ completo</span>
       </div>
       <div class="pc-card-body">
         <div class="pc-kv">
@@ -159,8 +158,8 @@ function pcB(f, podeEditar) {
       <div class="pc-card-head">
         <div class="pc-letter">B</div>
         <div><div class="ttl">Enquadramento</div><div class="sub">Bloco B</div></div>
-        ${completo ? '<span class="ok" style="margin-left:auto">✓ completo</span>' :
-                     `<span class="warn" style="margin-left:auto">⚠ ${len < 200 ? 'síntese curta' : 'origem em falta'}</span>`}
+        ${completo ? '<span class="ok">✓ completo</span>' :
+                     `<span class="warn">⚠ ${len < 200 ? 'síntese curta' : 'origem em falta'}</span>`}
         ${podeEditar ? `<button class="more" id="btnEditarBlocoB">Editar</button>` : ''}
       </div>
       <div class="pc-card-body">
@@ -168,7 +167,7 @@ function pcB(f, podeEditar) {
           <div class="k">Origem</div><div class="v ${!f.tipo_origem ? 'empty' : ''}">${ORIGEM_LBL[f.tipo_origem] || 'Por preencher'}</div>
           <div class="k">Referência</div><div class="v ${!f.referencia_origem ? 'empty' : ''}">${esc(f.referencia_origem || '—')}</div>
           <div class="k">Aval. impacto</div><div class="v">${f.avaliacao_previa === 1 ? '✓ Sim' : f.avaliacao_previa === 0 ? 'Não' : '<span class="empty">Não indicada</span>'}</div>
-          <div class="k">Síntese</div><div class="v ${!f.sintese_problema ? 'empty' : ''}" style="font-size:11.5px;line-height:1.55">${esc((f.sintese_problema || '').slice(0, 280))}${len > 280 ? '…' : ''}${!f.sintese_problema ? ' (mín. 200 c)' : ''}</div>
+          <div class="k">Síntese</div><div class="v ${!f.sintese_problema ? 'empty' : ''}">${esc((f.sintese_problema || '').slice(0, 280))}${len > 280 ? '…' : ''}${!f.sintese_problema ? ' (mín. 200 c)' : ''}</div>
         </div>
       </div>
     </div>
@@ -177,25 +176,22 @@ function pcB(f, podeEditar) {
 
 function pcD1(f, podeEditar) {
   const lista = (f.audicoes || []).filter(a => a.categoria === 'OBRIGATORIA');
-  return audicoesCard(f, lista, podeEditar, 'D₁', 'card-D1',
-    'Audições obrigatórias', 'Entidades exigidas pela lei para este diploma',
-    'OBRIGATORIA');
+  return audicoesCard(lista, podeEditar, 'D₁', 'card-D1',
+    'Audições obrigatórias', 'Exigidas por lei para este diploma', 'OBRIGATORIA');
 }
 
 function pcD2(f, podeEditar) {
   const lista = (f.audicoes || []).filter(a => a.categoria === 'GSEPCM');
-  return audicoesCard(f, lista, podeEditar, 'D₂', 'card-D2',
-    'Audições do GSEPCM', 'Audições discricionárias durante o processo legislativo',
-    'GSEPCM');
+  return audicoesCard(lista, podeEditar, 'D₂', 'card-D2',
+    'Audições do GSEPCM', 'Discricionárias durante o processo', 'GSEPCM');
 }
 
-function audicoesCard(f, lista, podeEditar, letra, id, ttl, sub, categoria) {
+function audicoesCard(lista, podeEditar, letra, id, ttl, sub, categoria) {
   const n = lista.length;
-  const comDecisao = lista.filter(a => a.estado === 'RESPONDEU' && a.decisao_incorporacao).length;
   const pendentes = lista.filter(a => a.estado === 'RESPONDEU' && !a.decisao_incorporacao).length;
-  const badge = n === 0 ? '<span class="count" style="margin-left:auto">vazio</span>'
-              : pendentes > 0 ? `<span class="warn" style="margin-left:auto">⚠ ${pendentes} sem decisão</span>`
-              : `<span class="count" style="margin-left:auto">${n}</span>`;
+  const badge = n === 0 ? '<span class="count">vazio</span>'
+              : pendentes > 0 ? `<span class="warn">⚠ ${pendentes} sem decisão</span>`
+              : `<span class="count">${n}</span>`;
   return `
     <div class="pc-card wide" id="${id}">
       <div class="pc-card-head">
@@ -221,17 +217,17 @@ function audicaoMini(a, podeEditar) {
         <div class="pc-mini-ent">${esc(a.entidade)}</div>
         ${a.base_legal ? `<div class="pc-mini-sub">${esc(a.base_legal)}</div>` : ''}
         <div class="pc-mini-sub">
-          <span class="pc-dec ${esc(decisao)}">${AUDICAO_ESTADO_LBL[a.estado] || a.estado}</span>
+          <span class="pc-dec ${esc(decisao.replace(/[^A-Z_]/g, ''))}">${AUDICAO_ESTADO_LBL[a.estado] || a.estado}</span>
           ${a.forma ? ` · ${FORMA_LBL[a.forma] || a.forma}` : ''}
         </div>
-        ${a.sintese_posicao ? `<div class="pc-quote" style="margin-top:6px">${esc(a.sintese_posicao.slice(0, 220))}${a.sintese_posicao.length > 220 ? '…' : ''}</div>` : ''}
+        ${a.sintese_posicao ? `<div class="pc-quote">${esc(a.sintese_posicao.slice(0, 220))}${a.sintese_posicao.length > 220 ? '…' : ''}</div>` : ''}
       </div>
       ${podeEditar ? `
-        <div style="display:flex;gap:4px;align-items:flex-start">
+        <div class="flex gap-8">
           <button class="btn-icon" data-edit-aud="${a.id}" data-cat="${a.categoria}" title="Editar">✎</button>
-          <button class="btn-icon" data-del-aud="${a.id}" title="Eliminar" style="color:var(--danger)">×</button>
+          <button class="btn-icon" data-del-aud="${a.id}" title="Eliminar">✕</button>
         </div>
-      ` : ''}
+      ` : '<div></div>'}
     </div>
   `;
 }
@@ -247,12 +243,12 @@ function pcD3(f, podeEditar) {
           <div class="ttl">Interações INTEGRA (pré-processo)</div>
           <div class="sub">Contexto histórico — read-only</div>
         </div>
-        <span class="count" style="margin-left:auto">${n}</span>
+        <span class="count">${n}</span>
         ${podeEditar ? `<button class="more" id="btnImportIntegra">+ Importar JSON</button>` : ''}
       </div>
       <div class="pc-card-body">
-        ${n === 0 ? '<div class="pc-empty">Sem interações INTEGRA ingeridas. Use "Importar JSON" para carregar o ficheiro exportado pela UnIT.</div>' :
-          `<div class="pc-mini-sub" style="margin-bottom:8px">${n} ${n === 1 ? 'interação registada' : 'interações registadas'} no INTEGRA antes da entrada em processo legislativo.</div>
+        ${n === 0 ? '<div class="pc-empty">Sem interações INTEGRA ingeridas. Em produção, são lidas automaticamente da pasta OneDrive da UnIT.</div>' :
+          `<div class="pc-mini-sub mb-12">${n} ${n === 1 ? 'interação registada' : 'interações registadas'} no INTEGRA antes da entrada em processo legislativo.</div>
           ${lista.map(i => {
             let p = {}; try { p = typeof i.payload === 'string' ? JSON.parse(i.payload) : (i.payload || {}); } catch {}
             return `<div class="pc-mini">
@@ -260,7 +256,7 @@ function pcD3(f, podeEditar) {
               <div>
                 <div class="pc-mini-ent">${esc(i.entidade || p.entidade || '—')}</div>
                 <div class="pc-mini-sub">gabinete ${esc(i.gabinete_origem)}${p.objeto ? ' · ' + esc(p.objeto) : ''}</div>
-                ${p.sintese ? `<div class="pc-quote" style="margin-top:6px">${esc(p.sintese.slice(0, 200))}${p.sintese.length > 200 ? '…' : ''}</div>` : ''}
+                ${p.sintese ? `<div class="pc-quote">${esc(p.sintese.slice(0, 200))}${p.sintese.length > 200 ? '…' : ''}</div>` : ''}
               </div>
               <div></div>
             </div>`;
@@ -278,9 +274,9 @@ function pcE(f, podeEditar) {
       <div class="pc-card-head">
         <div class="pc-letter">E</div>
         <div><div class="ttl">Consulta pública</div><div class="sub">Bloco E · ConsultaLex</div></div>
-        ${completo ? '<span class="ok" style="margin-left:auto">✓ completo</span>' :
-          (f.cl_link ? '<span class="warn" style="margin-left:auto">⚠ síntese curta</span>'
-                     : '<span class="count" style="margin-left:auto">vazio</span>')}
+        ${completo ? '<span class="ok">✓ completo</span>' :
+          (f.cl_link ? '<span class="warn">⚠ síntese curta</span>'
+                     : '<span class="count">vazio</span>')}
         ${podeEditar ? `<button class="more" id="btnEditarBlocoE">Editar</button>` : ''}
       </div>
       <div class="pc-card-body">
@@ -291,8 +287,8 @@ function pcE(f, podeEditar) {
           </div>
           <div class="k">N.º contributos</div>
           <div class="v ${f.cl_n_contributos == null ? 'empty' : ''}">${f.cl_n_contributos ?? '—'}</div>
-          <div class="k">Síntese e decisão</div>
-          <div class="v ${!f.cl_sintese ? 'empty' : ''}" style="font-size:11.5px;line-height:1.55">${esc((f.cl_sintese || '').slice(0, 320))}${len > 320 ? '…' : ''}${!f.cl_sintese ? ' (mín. 200 c)' : ''}</div>
+          <div class="k">Síntese</div>
+          <div class="v ${!f.cl_sintese ? 'empty' : ''}">${esc((f.cl_sintese || '').slice(0, 320))}${len > 320 ? '…' : ''}${!f.cl_sintese ? ' (mín. 200 c)' : ''}</div>
         </div>
       </div>
     </div>
@@ -307,7 +303,7 @@ function pcHistorico() {
       <div class="pc-card-head">
         <div class="pc-letter f">H</div>
         <div><div class="ttl">Histórico</div><div class="sub">Audit log da FPL</div></div>
-        <span class="count" style="margin-left:auto">${eventos.length}</span>
+        <span class="count">${eventos.length}</span>
       </div>
       <div class="pc-card-body">
         ${eventos.slice(0, 15).map(e => `
@@ -340,7 +336,6 @@ function traducaoTipoEvento(t) {
     M4_VALIDADO: 'M4 · Pré-CM',
     M5_VALIDADO: 'M5 · Publicação',
     APROVADO_CM: 'Aprovado em CM',
-    CORRECAO_PEDIDA: 'Correção pedida (SGGOV)',
   };
   return map[t] || t;
 }
@@ -350,10 +345,8 @@ function traducaoTipoEvento(t) {
 // ---------------------------------------------------------------------------
 function painelCronograma(f) {
   const marcos = MARCOS_ORD.map(id => ({
-    id,
-    lbl: MARCOS_LBL[id],
+    id, lbl: MARCOS_LBL[id],
     em: f[`${id.toLowerCase()}_em`],
-    por: f[`${id.toLowerCase()}_por`],
   }));
   return `
       <div class="painel-body" style="grid-template-columns:1fr">
@@ -363,21 +356,24 @@ function painelCronograma(f) {
             <div><div class="ttl">Cronograma de marcos</div><div class="sub">M0 → M5</div></div>
           </div>
           <div class="pc-card-body">
-            <ol style="list-style:none;padding:0;margin:0">
+            <ol class="crono-lista">
               ${marcos.map(m => `
-                <li style="display:grid;grid-template-columns:56px 1fr;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-hair)">
-                  <div style="width:48px;height:48px;border-radius:50%;background:${m.em ? 'var(--gov-blue)' : 'var(--border-hair)'};color:${m.em ? '#fff' : 'var(--text-faint)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--font-mono)">${m.em ? '✓' : m.id.replace('M', '')}</div>
-                  <div>
-                    <div style="font-size:14px;font-weight:600">${m.id} · ${esc(m.lbl)}</div>
-                    <div class="pc-mini-sub">${m.em ? 'Validado ' + fmtDH(m.em) : 'Por validar'}</div>
+                <li class="${m.em ? 'feito' : 'pendente'}">
+                  <div class="marker">${m.em ? '✓' : m.id.replace('M', '')}</div>
+                  <div class="info">
+                    <div class="lbl">${m.id} · ${esc(m.lbl)}</div>
+                    <div class="data">${m.em ? 'Validado ' + fmtDH(m.em) : 'Por validar'}</div>
                   </div>
                 </li>
               `).join('')}
             </ol>
             ${f.referencia_dr ? `
-              <div class="alert info" style="margin-top:14px">
-                <div><span class="at">Publicação em DR</span>${esc(f.referencia_dr)}</div>
-                ${f.hash_publicacao ? `<div style="margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);word-break:break-all">SHA-256: ${esc(f.hash_publicacao)}</div>` : ''}
+              <div class="alert info mt-12">
+                <div>
+                  <span class="at">Publicação em DR</span>
+                  ${esc(f.referencia_dr)}
+                  ${f.hash_publicacao ? `<div class="mono small muted mt-12" style="word-break:break-all">SHA-256: ${esc(f.hash_publicacao)}</div>` : ''}
+                </div>
               </div>` : ''}
           </div>
         </div>
@@ -390,7 +386,6 @@ function painelCronograma(f) {
 // Bindings
 // ---------------------------------------------------------------------------
 export function bindDetalhePainel() {
-  // Toggle Detalhe ↔ Cronograma
   document.querySelectorAll('.painel-toggle [data-sub]').forEach(b => {
     b.addEventListener('click', () => {
       const sub = b.dataset.sub;
@@ -399,12 +394,10 @@ export function bindDetalhePainel() {
     });
   });
 
-  // Stepper — scroll para o card relacionado
   document.querySelectorAll('.painel-step[data-card-target]').forEach(step => {
     step.addEventListener('click', (e) => {
       if (e.target.closest('.cta')) return;
-      const target = step.dataset.cardTarget;
-      const el = document.getElementById(target);
+      const el = document.getElementById(step.dataset.cardTarget);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         el.classList.add('highlight');
@@ -413,7 +406,6 @@ export function bindDetalhePainel() {
     });
   });
 
-  // Validar marco (botão CTA no stepper)
   document.querySelectorAll('[data-validar-marco]').forEach(b => {
     b.addEventListener('click', async () => {
       const marco = b.dataset.validarMarco;
@@ -421,7 +413,8 @@ export function bindDetalhePainel() {
         const r = await api(`/fpl/${state.fpl.id}/marcos/${marco}/validar`, { method: 'POST', body: {} });
         if (r.ok) {
           toast(`${marco} validado`, 'success');
-          setView('detalhe', { fplId: state.fpl.id });
+          await loadFpl(state.fpl.id);
+          renderRoot();
         } else {
           mostrarPendencias(marco, r.pendencias);
         }
@@ -445,16 +438,7 @@ export function bindDetalhePainel() {
     } catch (e) { toast('Falha: ' + e.message, 'error'); }
   });
 
-  document.getElementById('btnAprovarCM')?.addEventListener('click', async () => {
-    const ref = prompt('Referência do Diário da República (ex.: DR 1.ª série, n.º 123, 2026-06-15):');
-    if (ref === null) return;
-    try {
-      await api(`/fpl/${state.fpl.id}/aprovar-cm`, { method: 'POST', body: { referencia_dr: ref || null } });
-      toast('Aprovado em CM', 'success');
-      setView('detalhe', { fplId: state.fpl.id });
-    } catch (e) { toast('Falha: ' + e.message, 'error'); }
-  });
-
+  document.getElementById('btnAprovarCM')?.addEventListener('click', () => abrirModalAprovarCM());
   document.getElementById('btnEditarBlocoB')?.addEventListener('click', () => abrirEditorBlocoB());
   document.getElementById('btnEditarBlocoE')?.addEventListener('click', () => abrirEditorBlocoE());
   document.getElementById('btnImportIntegra')?.addEventListener('click', () => abrirImportarIntegra());
@@ -475,43 +459,86 @@ export function bindDetalhePainel() {
 }
 
 function mostrarPendencias(marco, pendencias) {
-  const msg = (pendencias || []).map(p => '· ' + p.detalhe).join('\n');
-  toast(`${marco} bloqueado:\n${msg}`, 'error');
+  const lista = (pendencias || []).map(p => `<li>${esc(p.detalhe)}</li>`).join('');
+  openModal(`
+    <div class="modal-head">
+      <div>
+        <h3>${marco} bloqueado</h3>
+        <div class="modal-subtitle">Pendências a resolver antes de validar</div>
+      </div>
+      <button class="btn-icon" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert warning">
+        <div>
+          <span class="at">${pendencias?.length || 0} pendência(s)</span>
+          <ul class="mt-12" style="margin-left:18px">${lista}</ul>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" onclick="closeModal()">Entendido</button>
+    </div>
+  `);
 }
 
 // ---------------------------------------------------------------------------
-// Editores inline
+// Editores em modal
 // ---------------------------------------------------------------------------
+function bindFormSubmit(onSubmit) {
+  const form = document.querySelector('.modal-overlay form');
+  if (!form) return;
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type=submit]');
+    if (btn) btn.disabled = true;
+    try { await onSubmit(new FormData(form)); closeModal(); }
+    catch (err) { toast('Erro: ' + (err.message || ''), 'error'); if (btn) btn.disabled = false; }
+  });
+}
+
 function abrirEditorBlocoB() {
   const f = state.fpl;
-  abrirModalBack(`
-    <h2 style="margin-bottom:14px">Editar Bloco B · Enquadramento</h2>
-    <form>
-      <div class="field"><label>Tipo de origem</label>
-        <select name="tipo_origem">
-          <option value="">—</option>
-          ${Object.entries(ORIGEM_LBL).map(([k, v]) => `<option value="${k}" ${f.tipo_origem === k ? 'selected' : ''}>${v}</option>`).join('')}
-        </select>
+  openModal(`
+    <div class="modal-head">
+      <div>
+        <h3>Editar Bloco B</h3>
+        <div class="modal-subtitle">Enquadramento · Origem e síntese do problema</div>
       </div>
-      <div class="field"><label>Referência da origem</label>
-        <input type="text" name="referencia_origem" value="${esc(f.referencia_origem || '')}" placeholder="Ex.: Diretiva (UE) 2024/884">
+      <button class="btn-icon" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <form id="formB">
+      <div class="modal-body">
+        <div class="field-grid">
+          <div class="field"><label>Tipo de origem</label>
+            <select name="tipo_origem">
+              <option value="">—</option>
+              ${Object.entries(ORIGEM_LBL).map(([k, v]) => `<option value="${k}" ${f.tipo_origem === k ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field"><label>Referência da origem</label>
+            <input type="text" name="referencia_origem" value="${esc(f.referencia_origem || '')}" placeholder="Ex.: Diretiva (UE) 2024/884">
+          </div>
+        </div>
+        <div class="field"><label>Síntese do problema</label>
+          <textarea name="sintese_problema" rows="7" placeholder="Descreva o problema e a solução proposta...">${esc(f.sintese_problema || '')}</textarea>
+          <div class="help">Mínimo 200 caracteres para validar M0.</div>
+        </div>
+        <div class="field"><label>Avaliação prévia de impacto</label>
+          <select name="avaliacao_previa">
+            <option value="">Não indicada</option>
+            <option value="1" ${f.avaliacao_previa === 1 ? 'selected' : ''}>Sim</option>
+            <option value="0" ${f.avaliacao_previa === 0 ? 'selected' : ''}>Não</option>
+          </select>
+        </div>
       </div>
-      <div class="field"><label>Síntese do problema (mín. 200 c)</label>
-        <textarea name="sintese_problema" rows="7">${esc(f.sintese_problema || '')}</textarea>
-      </div>
-      <div class="field"><label>Avaliação prévia de impacto</label>
-        <select name="avaliacao_previa">
-          <option value="">—</option>
-          <option value="1" ${f.avaliacao_previa === 1 ? 'selected' : ''}>Sim</option>
-          <option value="0" ${f.avaliacao_previa === 0 ? 'selected' : ''}>Não</option>
-        </select>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn" data-cancel>Cancelar</button>
-        <button type="submit" class="btn primary">Guardar</button>
+      <div class="modal-foot">
+        <button type="button" class="btn ghost" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar alterações</button>
       </div>
     </form>
-  `, async (fd) => {
+  `);
+  bindFormSubmit(async (fd) => {
     const body = {
       tipo_origem: fd.get('tipo_origem') || null,
       referencia_origem: fd.get('referencia_origem') || null,
@@ -520,30 +547,42 @@ function abrirEditorBlocoB() {
     };
     await api(`/fpl/${f.id}/bloco-b`, { method: 'PATCH', body });
     toast('Bloco B atualizado', 'success');
-    setView('detalhe', { fplId: f.id });
+    await loadFpl(f.id);
+    renderRoot();
   });
 }
 
 function abrirEditorBlocoE() {
   const f = state.fpl;
-  abrirModalBack(`
-    <h2 style="margin-bottom:14px">Editar Bloco E · Consulta pública</h2>
-    <form>
-      <div class="field"><label>Link ConsultaLex</label>
-        <input type="url" name="cl_link" value="${esc(f.cl_link || '')}" placeholder="https://consulta.lex.pt/processos/...">
+  openModal(`
+    <div class="modal-head">
+      <div>
+        <h3>Editar Bloco E</h3>
+        <div class="modal-subtitle">Consulta pública · ConsultaLex</div>
       </div>
-      <div class="field"><label>N.º de contributos recebidos</label>
-        <input type="number" name="cl_n_contributos" min="0" value="${f.cl_n_contributos ?? ''}">
+      <button class="btn-icon" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <form id="formE">
+      <div class="modal-body">
+        <div class="field"><label>Link ConsultaLex</label>
+          <input type="url" name="cl_link" value="${esc(f.cl_link || '')}" placeholder="https://consulta.lex.pt/processos/...">
+          <div class="help">URL público da consulta na ConsultaLex.</div>
+        </div>
+        <div class="field"><label>N.º de contributos recebidos</label>
+          <input type="number" name="cl_n_contributos" min="0" value="${f.cl_n_contributos ?? ''}">
+        </div>
+        <div class="field"><label>Síntese e decisão sobre incorporação</label>
+          <textarea name="cl_sintese" rows="9" placeholder="O que disseram os contributos? O que foi incorporado? O que não foi e porquê?">${esc(f.cl_sintese || '')}</textarea>
+          <div class="help">Mínimo 200 caracteres. Texto humano — é o que o cidadão vai ler.</div>
+        </div>
       </div>
-      <div class="field"><label>Síntese e decisão de incorporação (mín. 200 c)</label>
-        <textarea name="cl_sintese" rows="9">${esc(f.cl_sintese || '')}</textarea>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn" data-cancel>Cancelar</button>
-        <button type="submit" class="btn primary">Guardar</button>
+      <div class="modal-foot">
+        <button type="button" class="btn ghost" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar alterações</button>
       </div>
     </form>
-  `, async (fd) => {
+  `);
+  bindFormSubmit(async (fd) => {
     const n = fd.get('cl_n_contributos');
     const body = {
       cl_link: fd.get('cl_link') || null,
@@ -552,20 +591,38 @@ function abrirEditorBlocoE() {
     };
     await api(`/fpl/${f.id}/bloco-e`, { method: 'PATCH', body });
     toast('Bloco E atualizado', 'success');
-    setView('detalhe', { fplId: f.id });
+    await loadFpl(f.id);
+    renderRoot();
   });
 }
 
-function abrirModalBack(html, onSubmit) {
-  const back = document.createElement('div');
-  back.className = 'modal-back';
-  back.innerHTML = `<div class="modal lg" role="dialog" aria-modal="true">${html}</div>`;
-  document.body.appendChild(back);
-  back.querySelector('[data-cancel]')?.addEventListener('click', () => back.remove());
-  back.addEventListener('click', e => { if (e.target === back) back.remove(); });
-  back.querySelector('form')?.addEventListener('submit', async e => {
-    e.preventDefault();
-    try { await onSubmit(new FormData(e.currentTarget)); back.remove(); }
-    catch (err) { toast('Erro: ' + (err.message || ''), 'error'); }
+function abrirModalAprovarCM() {
+  const f = state.fpl;
+  openModal(`
+    <div class="modal-head">
+      <div>
+        <h3>Marcar FPL como aprovada em CM</h3>
+        <div class="modal-subtitle">Após esta acção, a FPL transita para "Aprovado" e fica pronta para M5</div>
+      </div>
+      <button class="btn-icon" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <form id="formCM">
+      <div class="modal-body">
+        <div class="field"><label>Referência do Diário da República (opcional, mas obrigatória para M5)</label>
+          <input type="text" name="referencia_dr" placeholder="Ex.: DR 1.ª série, n.º 123, 2026-06-15">
+          <div class="help">Pode preencher agora ou mais tarde, antes de validar M5.</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn ghost" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn primary">Confirmar aprovação</button>
+      </div>
+    </form>
+  `);
+  bindFormSubmit(async (fd) => {
+    await api(`/fpl/${f.id}/aprovar-cm`, { method: 'POST', body: { referencia_dr: fd.get('referencia_dr') || null } });
+    toast('FPL aprovada em CM', 'success');
+    await loadFpl(f.id);
+    renderRoot();
   });
 }

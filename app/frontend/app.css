@@ -1062,8 +1062,149 @@ button.tab.active { color: var(--gov-blue); border-bottom-color: var(--gov-blue)
 /* ───── 10. Helpers ───── */
 .muted { color: var(--text-muted); }
 .small { font-size: var(--fs-sm); }
+.mono  { font-family: var(--font-mono); }
 .mt-12 { margin-top: var(--sp-3); } .mb-12 { margin-bottom: var(--sp-3); }
 .flex  { display: flex; } .gap-8 { gap: var(--sp-2); } .gap-12 { gap: var(--sp-3); }
 .spacer { flex: 1; }
 .divider { height: 1px; background: var(--border); margin: var(--sp-3) 0; }
 .txt-right { text-align: right; }
+
+/* ───── 11. Patches v2.0 (polish) ───── */
+/* Modais: subtítulo, botão de fecho e helpers de form */
+.modal-subtitle { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; font-weight: 500; letter-spacing: .2px; }
+.btn-icon {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  width: 28px; height: 28px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; transition: background .12s, color .12s;
+  font-size: 14px; padding: 0;
+}
+.btn-icon:hover { background: var(--bg-soft); color: var(--text); }
+.btn-icon:focus-visible { outline: 2px solid var(--gov-blue); outline-offset: 2px; }
+
+/* Help text dos campos */
+.field .help { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.45; }
+.field .help.ok { color: var(--success); font-weight: 600; }
+.field .help.bad { color: var(--danger); font-weight: 600; }
+
+/* Listas de FPL — cards clicáveis com hover */
+.lista-fpl { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-3); }
+.lista-fpl .fpl-row {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 14px 18px; cursor: pointer;
+  display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center;
+  transition: transform .12s, box-shadow .12s, border-color .12s;
+}
+.lista-fpl .fpl-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(10, 49, 97, .08);
+  border-color: var(--gov-blue);
+}
+.lista-fpl .fpl-row .num { font-family: var(--font-mono); font-weight: 700; font-size: 12px; color: var(--text); }
+.lista-fpl .fpl-row .ttl { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; margin-top: 4px; }
+.lista-fpl .fpl-row .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.lista-fpl .fpl-row .sigla { font-size: 11.5px; color: var(--text-muted); }
+
+/* Mini-cronograma de 5 marcos */
+.mini-crono { display: flex; gap: 4px; align-items: center; }
+.mini-crono .pt {
+  width: 24px; height: 24px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 10px; font-weight: 700;
+  font-family: var(--font-mono); border: 2px solid transparent;
+}
+.mini-crono .pt.done    { background: var(--gov-blue); color: #fff; }
+.mini-crono .pt.current { background: var(--gold); color: #fff; }
+.mini-crono .pt.todo    { background: var(--border-hair); color: var(--text-faint); border-color: var(--border); }
+
+/* Card de "próxima ação" no dashboard */
+.proxima-acao-row {
+  display: grid; grid-template-columns: 46px 1fr auto; gap: 14px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border-hair); cursor: pointer;
+  align-items: center; transition: background .12s;
+}
+.proxima-acao-row:last-child { border-bottom: none; }
+.proxima-acao-row:hover { background: var(--bg-soft); }
+.proxima-acao-row .marco {
+  width: 42px; height: 42px; border-radius: 6px; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-family: var(--font-mono); font-size: 13px;
+}
+.proxima-acao-row .marco.normal   { background: var(--gov-blue); }
+.proxima-acao-row .marco.pronto   { background: var(--success); }
+.proxima-acao-row .marco.aguardar { background: var(--text-muted); }
+.proxima-acao-row .corpo { min-width: 0; }
+.proxima-acao-row .corpo .ttl { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.proxima-acao-row .corpo .meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.proxima-acao-row .corpo .verbo { font-size: 12px; margin-top: 6px; font-weight: 600; }
+.proxima-acao-row .verbo.normal   { color: var(--gov-blue); }
+.proxima-acao-row .verbo.pronto   { color: var(--success); }
+.proxima-acao-row .verbo.aguardar { color: var(--text-muted); }
+.proxima-acao-row .chev { color: var(--text-faint); font-size: 18px; }
+
+/* Admin: separadores */
+.admin-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: var(--sp-4); }
+.admin-tabs button {
+  padding: 11px 18px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+  border: none; background: none; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color .12s, border-color .12s;
+}
+.admin-tabs button:hover { color: var(--text); }
+.admin-tabs button.active { color: var(--gov-blue); font-weight: 700; border-bottom-color: var(--gov-blue); }
+
+/* Cronograma vertical (sub-vista) */
+.crono-lista { list-style: none; padding: 0; margin: 0; }
+.crono-lista li {
+  display: grid; grid-template-columns: 56px 1fr; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border-hair);
+}
+.crono-lista li:last-child { border-bottom: none; }
+.crono-lista .marker {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-family: var(--font-mono); font-size: 14px;
+  background: var(--border-hair); color: var(--text-faint);
+}
+.crono-lista li.feito .marker { background: var(--gov-blue); color: #fff; }
+.crono-lista .info { display: flex; flex-direction: column; justify-content: center; }
+.crono-lista .info .lbl { font-size: 14px; font-weight: 600; color: var(--text); }
+.crono-lista .info .data { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
+
+/* pc-card: ações no head (botão "Editar" alinhado à direita sem margem absurda) */
+.pc-card-head .more {
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  font-size: 11.5px; color: var(--gov-blue); font-weight: 600; padding: 4px 8px;
+  margin-left: 8px; border-radius: 4px; transition: background .12s;
+}
+.pc-card-head .more:hover { background: var(--gov-blue-light, rgba(59, 102, 196, .08)); text-decoration: none; }
+
+/* Highlight do card-target após clicar no stepper */
+@keyframes cardHighlight {
+  0%   { box-shadow: 0 0 0 3px var(--gold); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.pc-card.highlight { animation: cardHighlight 1.2s ease-out; }
+
+/* Tabelas dentro de cards — densas e legíveis */
+.tbl .mono.small { font-size: 11px; }
+.tbl td { vertical-align: middle; }
+
+/* Grelha 2-colunas usada no dashboard SGGOV e em zonas do admin */
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+@media (max-width: 980px) { .grid-2col { grid-template-columns: 1fr; } }
+
+/* Admin: separadores (sobreposição de cor activa) */
+.tab-button {
+  padding: 11px 18px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+  border: none; background: none; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color .12s;
+}
+.tab-button:hover { color: var(--text); }
+.tab-button.active { color: var(--gov-blue); font-weight: 700; border-bottom-color: var(--gov-blue); }
+
+/* Resultado da verificação de integridade */
+.integ-row { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; padding: 10px 14px; border-bottom: 1px solid var(--border-hair); align-items: center; font-size: 13px; }
+.integ-row:last-child { border-bottom: none; }
+.integ-row.divergente { background: rgba(229, 53, 56, .06); }
+.integ-row .ok-pill { color: var(--success); font-weight: 700; font-size: 11px; }
+.integ-row .ko-pill { color: var(--danger); font-weight: 700; font-size: 11px; }
+.integ-row .hash { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); word-break: break-all; }

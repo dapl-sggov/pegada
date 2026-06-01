@@ -1,4 +1,4 @@
-// views/lista.js — Lista de FPL com pesquisa, filtros, chips e mini-cronograma.
+// views/lista.js — Lista de FPL: cards com mini-cronograma.
 
 import { state, isSggov, gabSigla } from '../state.js';
 import { ESTADOS_LBL, TIPOS } from '../constants.js';
@@ -13,7 +13,8 @@ export async function viewLista() {
   await loadGabinetes();
   const f = state.filtrosLista;
   const filtradas = aplicarFiltros(state.fpls, f);
-  const ordenadas = aplicarOrdenacao(filtradas, state.listaSort);
+  const ordenadas = [...filtradas].sort((a, b) =>
+    (b.data_criacao || '').localeCompare(a.data_criacao || ''));
 
   const ESTADOS = Object.keys(ESTADOS_LBL);
   const filtroAtivo = !!(f.q || f.estado || f.gabinete || f.tipo);
@@ -28,7 +29,7 @@ export async function viewLista() {
       ${isSggov() ? '' : '<button class="btn primary" data-nav="nova">+ Nova FPL</button>'}
     </div>
 
-    <div class="filtros-bar" role="search" aria-label="Filtros e pesquisa">
+    <div class="filtros-bar" role="search" aria-label="Filtros">
       <div class="filtros-grid">
         <div class="filtro-campo grow">
           <input id="fListaQ" type="search" placeholder="Pesquisar por número, título, gabinete…"
@@ -61,50 +62,50 @@ export async function viewLista() {
     `).join('')}</div>` : ''}
 
     ${ordenadas.length === 0 ? `
-      <div class="card-empty" style="margin-top:14px">${filtroAtivo ? 'Nenhuma FPL corresponde aos filtros.' : 'Sem FPL. Crie a primeira.'}</div>
+      <div class="card-empty mt-12">${filtroAtivo ? 'Nenhuma FPL corresponde aos filtros.' : 'Sem FPL. Crie a primeira.'}</div>
     ` : `
-      <div class="lista-fpl" style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
-        ${ordenadas.map(renderLinhaFpl).join('')}
+      <div class="lista-fpl">
+        ${ordenadas.map(renderFplRow).join('')}
       </div>
     `}
   `;
 }
 
-function renderLinhaFpl(f) {
+function renderFplRow(f) {
   return `
-    <div class="card" onclick="setView('detalhe',{fplId:'${f.id}'})" style="cursor:pointer;padding:0;transition:transform .12s,box-shadow .12s" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(10,49,97,.08)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-      <div style="display:grid;grid-template-columns:1fr auto;gap:14px;padding:14px 18px;align-items:center">
-        <div style="min-width:0">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
-            <span style="font-family:var(--font-mono);font-weight:700;font-size:12px">${esc(f.numero_processo)}</span>
-            ${tag(f.tipo_diploma)}
-            ${badge(f.estado)}
-            <span style="font-size:11.5px;color:var(--text-muted)">${gabSigla(f.gabinete_id)}</span>
-          </div>
-          <div style="font-size:14px;font-weight:500;color:var(--text);line-height:1.3">${esc(f.titulo_curto || f.titulo)}</div>
+    <div class="fpl-row" onclick="setView('detalhe',{fplId:'${f.id}'})" role="link" tabindex="0">
+      <div>
+        <div class="top">
+          <span class="num">${esc(f.numero_processo)}</span>
+          ${tag(f.tipo_diploma)}
+          ${badge(f.estado)}
+          <span class="sigla">${gabSigla(f.gabinete_id)}</span>
         </div>
-        <div>${renderMiniCronograma(f)}</div>
+        <div class="ttl">${esc(f.titulo_curto || f.titulo)}</div>
       </div>
+      ${renderMiniCronograma(f)}
     </div>
   `;
 }
 
 function renderMiniCronograma(f) {
-  const cur = proximoMarcoSimples(f);
+  const cur = proximoMarco(f);
   return `
-    <div style="display:flex;gap:4px;align-items:center" title="Estado dos marcos">
+    <div class="mini-crono" title="Estado dos marcos">
       ${MARCOS_VISTA.map(m => {
         const done = !!f[`${m.toLowerCase()}_em`];
         const isCur = m === cur;
-        const cor = done ? 'var(--gov-blue)' : isCur ? 'var(--gold)' : 'var(--border-hair)';
-        const txt = done ? '#fff' : isCur ? '#fff' : 'var(--text-faint)';
-        return `<div title="${m}${done ? ' · ' + fmtData(f[`${m.toLowerCase()}_em`]) : isCur ? ' · a validar' : ' · por validar'}" style="width:24px;height:24px;border-radius:50%;background:${cor};color:${txt};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-mono)">${m.replace('M', '')}</div>`;
+        const cls = done ? 'done' : isCur ? 'current' : 'todo';
+        const tooltip = done
+          ? `${m} · validado ${fmtData(f[`${m.toLowerCase()}_em`])}`
+          : isCur ? `${m} · a validar` : `${m} · por validar`;
+        return `<span class="pt ${cls}" title="${tooltip}">${m.replace('M', '')}</span>`;
       }).join('')}
     </div>
   `;
 }
 
-function proximoMarcoSimples(f) {
+function proximoMarco(f) {
   if (!f.m0_em) return 'M0';
   if (f.estado === 'EM_RSE' && !f.m2_em) return 'M2';
   if (f.estado === 'EM_CONSULTA_PUBLICA' && !f.m3_em) return 'M3';
@@ -125,17 +126,6 @@ function aplicarFiltros(fpls, f) {
       if (!hay.includes(q)) return false;
     }
     return true;
-  });
-}
-
-function aplicarOrdenacao(fpls, sort) {
-  const { col, dir } = sort;
-  const m = dir === 'asc' ? 1 : -1;
-  return [...fpls].sort((a, b) => {
-    let av = a[col] ?? '', bv = b[col] ?? '';
-    if (av < bv) return -1 * m;
-    if (av > bv) return  1 * m;
-    return 0;
   });
 }
 
@@ -168,6 +158,13 @@ export function bindLista() {
       e.stopPropagation();
       state.filtrosLista[btn.dataset.clear] = '';
       renderRoot();
+    });
+  });
+
+  // Suporte Enter/Space para fpl-row (acessibilidade)
+  document.querySelectorAll('.fpl-row[role="link"]').forEach(row => {
+    row.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); }
     });
   });
 }
