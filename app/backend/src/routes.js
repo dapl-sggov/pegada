@@ -1,102 +1,81 @@
-// routes.js — Endpoints REST. Handlers assíncronos (driver dual de BD).
-// O wrapper `ah` propaga erros assíncronos para o error handler do Express.
+// routes.js — Endpoints REST mínimos.
 
 import { Router } from 'express';
-import {
-  verifyPassword, signToken, setSessionCookie, clearSessionCookie,
-  requireAuth, requireRole, userHasGabineteScope, autenticarUtilizador,
-  setupTotp, activateTotp, disableTotp, verificarTotp,
-  iniciarFederacao, consumirEstadoFederacao, loginPorNif,
-} from './auth.js';
-import { db } from './db.js';
 import config from './config.js';
+import { db } from './db.js';
+import {
+  loginMock, entraStartUrl, entraCallback, logout,
+  requireAuth, requireRole, userHasGabineteScope,
+} from './auth.js';
 import * as fpl from './fpl.js';
-import * as rtri from './rtri.js';
 import * as anx from './anexos.js';
-import * as notif from './notificacoes.js';
-import * as cl from './consultalex.js';
-import * as exp from './export.js';
-import * as cmp from './comprovativo.js';
-import * as dre from './dre.js';
+import * as canon from './canonico.js';
+import { gerarFichaPublica } from './ficha_publica.js';
+import { correrBackup } from './backup.js';
 import { rateLimitLogin, registarTentativaLogin, contaBloqueada, CSRF_NAMES } from './security.js';
-import { uuid, jsonStringify } from './util.js';
-import { parseMultipart } from './anexos.js';
+import { uuid } from './util.js';
 
 const router = Router();
-
-// Wrapper para handlers assíncronos — encaminha rejeições para o error handler.
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// Helper: carrega FPL + verifica escopo. Devolve a FPL ou termina a resposta.
 async function fplComEscopo(req, res) {
   const f = await fpl.getFpl(req.params.id);
   if (!f) { res.status(404).json({ error: 'FPL não encontrada' }); return null; }
-  if (!userHasGabineteScope(req.user, f.gabinete_id)) { res.status(403).json({ error: 'Sem permissão' }); return null; }
+  if (!userHasGabineteScope(req.user, f.gabinete_id)) {
+    res.status(403).json({ error: 'Sem permissão' }); return null;
+  }
   return f;
 }
 
 // ========================= AUTH =========================
 router.post('/auth/login', rateLimitLogin, ah(async (req, res) => {
-  const { email, password, totp_token } = req.body || {};
-  if (!email || !password) return res.status(400).json({ error: 'Email e password obrigatórios' });
-  const blq = await contaBloqueada(email);
-  if (blq) {
-    return res.status(423).json({ error: `Conta temporariamente bloqueada por excesso de tentativas. Desbloqueia em ${new Date(blq.desbloqueia_em).toLocaleString('pt-PT')}.` });
+  const { email } = req.body || {};
+  if (config.auth.driver !== 'mock') {
+    return res.status(400).json({ error: 'Login direto disponível apenas em modo mock. Use /auth/entra/start.' });
   }
-  const u = await autenticarUtilizador(email, password);
-  if (!u) {
-    await registarTentativaLogin(email, req.ip, false);
-    return res.status(401).json({ error: 'Credenciais inválidas' });
+  const blq = await contaBloqueada((email || '').toLowerCase());
+  if (blq) return res.status(423).json({ error: `Conta bloqueada. Desbloqueia em ${new Date(blq.desbloqueia_em).toLocaleString('pt-PT')}.` });
+  const r = await loginMock(email, req, res);
+  if (r.erro) {
+    await registarTentativaLogin((email || '').toLowerCase(), req.ip, false);
+    return res.status(r.status).json({ error: r.erro });
   }
-  if (u.totp_ativo) {
-    if (!totp_token) return res.status(401).json({ error: 'Código 2FA obrigatório', requires_2fa: true });
-    if (!(await verificarTotp(u.id, totp_token))) {
-      await registarTentativaLogin(email, req.ip, false);
-      return res.status(401).json({ error: 'Código 2FA inválido', requires_2fa: true });
-    }
-  }
-  await registarTentativaLogin(email, req.ip, true);
-  setSessionCookie(res, signToken(u));
-  const papeis = await db.all('SELECT papel, gabinete_id FROM atribuicao_papel WHERE utilizador_id = ?', [u.id]);
-  res.json({ id: u.id, email: u.email, nome: u.nome_completo, papeis, totp_ativo: !!u.totp_ativo });
+  await registarTentativaLogin(email.toLowerCase(), req.ip, true);
+  res.json(r.utilizador);
 }));
 
-router.post('/auth/logout', (req, res) => { clearSessionCookie(res); res.json({ ok: true }); });
+router.post('/auth/logout', ah(async (req, res) => {
+  await logout(req, res);
+  res.json({ ok: true });
+}));
 
 router.get('/auth/me', requireAuth, ah(async (req, res) => {
-  const u = await db.get('SELECT totp_ativo FROM utilizador WHERE id = ?', [req.user.id]);
   res.json({
     id: req.user.id, email: req.user.email, nome: req.user.nome,
-    papeis: req.user.papeis, totp_ativo: !!u?.totp_ativo, csrf_token: req.csrfToken,
+    papeis: req.user.papeis, csrf_token: req.csrfToken,
+    auth_driver: config.auth.driver,
   });
 }));
 
 router.get('/auth/csrf', (req, res) => res.json({ token: req.csrfToken, header: CSRF_NAMES.header }));
 
-// ----- 2FA TOTP -----
-router.post('/auth/totp/setup', requireAuth, ah(async (req, res) => res.json(await setupTotp(req.user.id))));
-router.post('/auth/totp/activate', requireAuth, ah(async (req, res) => {
-  const { token } = req.body || {};
-  if (!token) return res.status(400).json({ error: 'Token TOTP obrigatório' });
-  if (!(await activateTotp(req.user.id, token))) return res.status(400).json({ error: 'Token TOTP inválido — verifique o relógio do dispositivo' });
-  res.json({ ok: true });
-}));
-router.post('/auth/totp/disable', requireAuth, ah(async (req, res) => { await disableTotp(req.user.id); res.json({ ok: true }); }));
-
-// ----- Federação simulada -----
-router.get('/auth/federacao/start', (req, res) => {
-  const state = iniciarFederacao(req.query.redirect || '/');
-  res.json({ state, consent_url: `/federacao-simulada.html?state=${state}` });
+// Entra ID (stub)
+router.get('/auth/entra/start', (req, res) => {
+  const state = uuid();
+  const url = entraStartUrl(state);
+  if (!url) return res.status(503).json({ error: 'Entra ID não configurado.' });
+  // Em produção, persistir o state numa cookie httpOnly curta para validação no callback.
+  res.cookie('fpl_entra_state', state, { httpOnly: true, sameSite: 'lax', maxAge: 5 * 60_000, secure: config.auth.cookieSecure });
+  res.redirect(url);
 });
-router.post('/auth/federacao/callback', ah(async (req, res) => {
-  const { state, nif } = req.body || {};
-  if (!consumirEstadoFederacao(state)) return res.status(400).json({ error: 'Estado de federação inválido ou expirado' });
-  const u = await loginPorNif(nif);
-  if (!u) return res.status(403).json({ error: 'NIF não está associado a nenhum utilizador autorizado' });
-  await registarTentativaLogin(u.email, req.ip, true);
-  setSessionCookie(res, signToken(u));
-  const papeis = await db.all('SELECT papel, gabinete_id FROM atribuicao_papel WHERE utilizador_id = ?', [u.id]);
-  res.json({ id: u.id, email: u.email, nome: u.nome_completo, papeis });
+
+router.get('/auth/entra/callback', ah(async (req, res) => {
+  try {
+    await entraCallback(req.query.code, req.query.state, req, res);
+    res.redirect('/');
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+  }
 }));
 
 // ========================= Gabinetes =========================
@@ -116,12 +95,10 @@ router.get('/fpl', requireAuth, ah(async (req, res) => {
 }));
 
 router.post('/fpl', requireAuth, ah(async (req, res) => {
-  const { tipo_diploma, titulo, titulo_curto, gabinete_id, coproponentes, regime_simplificado } = req.body || {};
-  if (!tipo_diploma || !titulo || !gabinete_id) return res.status(400).json({ error: 'Campos obrigatórios: tipo_diploma, titulo, gabinete_id' });
-  if (!userHasGabineteScope(req.user, gabinete_id)) return res.status(403).json({ error: 'Sem permissão para criar FPL para este gabinete' });
-  try {
-    res.status(201).json(await fpl.criarFpl({ tipo_diploma, titulo, titulo_curto, gabinete_id, coproponentes, regime_simplificado }, req.user, req));
-  } catch (e) { res.status(400).json({ error: e.message }); }
+  const { tipo_diploma, titulo, titulo_curto, gabinete_id, coproponentes } = req.body || {};
+  if (!tipo_diploma || !titulo || !gabinete_id) return res.status(400).json({ error: 'tipo_diploma, titulo, gabinete_id obrigatórios' });
+  if (!userHasGabineteScope(req.user, gabinete_id)) return res.status(403).json({ error: 'Sem permissão para este gabinete' });
+  res.status(201).json(await fpl.criarFpl({ tipo_diploma, titulo, titulo_curto, gabinete_id, coproponentes }, req.user, req));
 }));
 
 router.get('/fpl/:id', requireAuth, ah(async (req, res) => {
@@ -139,97 +116,63 @@ router.patch('/fpl/:id/bloco-e', requireAuth, ah(async (req, res) => {
   res.json(await fpl.atualizarBlocoE(req.params.id, req.body || {}, req.user, req));
 }));
 
-router.post('/fpl/:id/bloco-c', requireAuth, ah(async (req, res) => {
+// Audições (D.1 + D.2)
+router.post('/fpl/:id/audicoes', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
-  try { res.status(201).json({ id: await fpl.adicionarEntradaBlocoC(req.params.id, req.body, req.user, req) }); }
+  try { res.status(201).json({ id: await fpl.adicionarAudicao(req.params.id, req.body, req.user, req) }); }
   catch (e) { res.status(e.code || 400).json({ error: e.message, errors: e.errors }); }
 }));
 
-router.post('/fpl/:id/bloco-d', requireAuth, ah(async (req, res) => {
+router.patch('/fpl/:id/audicoes/:aid', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
-  try { res.status(201).json({ id: await fpl.adicionarEntradaBlocoD(req.params.id, req.body, req.user, req) }); }
+  try { res.json(await fpl.atualizarAudicao(req.params.id, req.params.aid, req.body, req.user, req)); }
   catch (e) { res.status(e.code || 400).json({ error: e.message, errors: e.errors }); }
 }));
 
-router.patch('/fpl/:id/bloco-d/:eid', requireAuth, ah(async (req, res) => {
+router.delete('/fpl/:id/audicoes/:aid', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
-  try { res.json(await fpl.atualizarEntradaBlocoD(req.params.id, req.params.eid, req.body, req.user, req)); }
-  catch (e) { res.status(e.code || 400).json({ error: e.message, errors: e.errors }); }
+  try { res.json(await fpl.eliminarAudicao(req.params.id, req.params.aid, req.user, req)); }
+  catch (e) { res.status(e.code || 400).json({ error: e.message }); }
 }));
 
+// D.3 — Ingestão JSON INTEGRA
+router.post('/fpl/:id/integra', requireAuth, ah(async (req, res) => {
+  const f = await fplComEscopo(req, res); if (!f) return;
+  try { res.json(await fpl.ingerirIntegra(req.params.id, req.body, req.user, req)); }
+  catch (e) { res.status(e.code || 400).json({ error: e.message }); }
+}));
+
+// Marcos
 router.post('/fpl/:id/marcos/:marco/validar', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
-  const result = await fpl.validarMarcoFpl(req.params.id, req.params.marco, req.user, req, {
-    declaracao_assinada: !!req.body?.declaracao_assinada,
-    declaracao_texto: req.body?.declaracao_texto,
-  });
-  if (!result.ok) return res.status(422).json({ error: 'Validação falhou', pendencias: result.pendencias });
-  res.json(result);
+  const r = await fpl.validarMarcoFpl(req.params.id, req.params.marco, req.user, req);
+  if (!r.ok) return res.status(422).json({ error: 'Validação falhou', pendencias: r.pendencias });
+  res.json(r);
 }));
 
-// Aprovação em Conselho de Ministros (pré-condição de M5)
 router.post('/fpl/:id/aprovar-cm', requireAuth, requireRole('GSEPCM', 'SGGOV_ADMIN'), ah(async (req, res) => {
   try { res.json(await fpl.aprovarEmCM(req.params.id, req.body?.referencia_dr, req.user, req)); }
   catch (e) { res.status(e.code || 400).json({ error: e.message }); }
 }));
 
-// DRE: registo manual de publicação (qualquer autenticado com escopo da FPL)
-router.post('/fpl/:id/dre/registar', requireAuth, ah(async (req, res) => {
-  const f = await fplComEscopo(req, res); if (!f) return;
-  try { res.json(await dre.registarPublicacaoManual(req.params.id, req.body || {}, req.user)); }
-  catch (e) { res.status(e.code || 400).json({ error: e.message }); }
+router.post('/fpl/:id/correcao', requireAuth, requireRole('SGGOV_QA', 'SGGOV_ADMIN'), ah(async (req, res) => {
+  res.json(await fpl.pedirCorrecao(req.params.id, req.body || {}, req.user, req));
 }));
 
-// DRE: trigger manual de polling (admin SGGOV)
-router.post('/admin/dre/polling', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (_req, res) => {
-  res.json(await dre.polling());
-}));
-
+// Versões e eventos
 router.get('/fpl/:id/versoes', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
   res.json(await fpl.listarVersoes(req.params.id));
 }));
-
-// Snapshot de uma versão concreta — usado pelo diff viewer do frontend.
 router.get('/fpl/:id/versoes/:vid', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
-  const v = await db.get(
-    `SELECT id, numero, autor_id, timestamp, marco_validado, descricao, snapshot
-     FROM versao_fpl WHERE id = ? AND fpl_id = ?`, [req.params.vid, req.params.id]);
+  const v = await fpl.getVersao(req.params.id, req.params.vid);
   if (!v) return res.status(404).json({ error: 'Versão não encontrada' });
-  let snapshot = null;
-  try { snapshot = v.snapshot ? JSON.parse(v.snapshot) : null; } catch { snapshot = v.snapshot; }
-  res.json({ ...v, snapshot });
+  res.json(v);
 }));
-
 router.get('/fpl/:id/eventos', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
   res.json(await fpl.listarEventos(req.params.id));
-}));
-
-// ========================= Comprovativo criptográfico =========================
-router.get('/fpl/:id/comprovativos', requireAuth, ah(async (req, res) => {
-  const f = await fplComEscopo(req, res); if (!f) return;
-  res.json(await cmp.listarComprovativos(req.params.id));
-}));
-
-router.get('/comprovativos/:jti', requireAuth, ah(async (req, res) => {
-  const c = await cmp.getComprovativo(req.params.jti);
-  if (!c) return res.status(404).json({ error: 'Comprovativo não encontrado' });
-  res.json(c);
-}));
-
-// Verificação de um JWS (uso de auditoria — a verificação corrente do
-// SmartLegis é offline e não chama este endpoint).
-router.post('/comprovativos/verificar', requireAuth, ah(async (req, res) => {
-  const { jws } = req.body || {};
-  if (!jws) return res.status(400).json({ error: 'Campo "jws" obrigatório' });
-  res.json(await cmp.verificarComprovativo(jws));
-}));
-
-// JWKS — chaves públicas consumidas pelo SmartLegis (público, só leitura)
-router.get('/.well-known/fpl-jwks.json', ah(async (req, res) => {
-  res.json(await cmp.getJwks());
 }));
 
 // ========================= Anexos =========================
@@ -237,245 +180,76 @@ router.get('/fpl/:id/anexos', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
   res.json(await anx.listarAnexos(req.params.id, req.query.bloco));
 }));
-
 router.post('/fpl/:id/anexos', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
   try {
-    const { fields, files } = await parseMultipart(req);
+    const { fields, files } = await anx.parseMultipart(req);
     res.status(201).json(await anx.uploadAnexo({
-      fplId: req.params.id, bloco: fields.bloco || 'D', entradaId: fields.entrada_id || null,
-      visibilidade: fields.visibilidade || 'INTERNO', file: files[0], user: req.user,
+      fplId: req.params.id, bloco: fields.bloco || null, entradaId: fields.entrada_id || null,
+      file: files[0], user: req.user,
     }));
   } catch (e) { res.status(e.code || 400).json({ error: e.message }); }
 }));
-
 router.get('/anexos/:aid', requireAuth, ah(async (req, res) => {
   const a = await anx.getAnexo(req.params.aid);
-  if (!a) return res.status(404).json({ error: 'Anexo não encontrado' });
-  const f = await fpl.getFpl(a.fpl_id);
-  const isPublic = a.visibilidade === 'PUBLICO' && f?.estado_workflow === 'PUBLICADO';
-  if (!isPublic && !userHasGabineteScope(req.user, f?.gabinete_id)) return res.status(403).json({ error: 'Sem permissão' });
-  await anx.streamAnexo(a, res);
-}));
-
-router.delete('/anexos/:aid', requireAuth, ah(async (req, res) => {
-  const a = await anx.getAnexo(req.params.aid);
-  if (!a) return res.status(404).json({ error: 'Anexo não encontrado' });
+  if (!a) return res.status(404).json({ error: 'Não encontrado' });
   const f = await fpl.getFpl(a.fpl_id);
   if (!userHasGabineteScope(req.user, f?.gabinete_id)) return res.status(403).json({ error: 'Sem permissão' });
-  try { res.json(await anx.eliminarAnexo(req.params.aid, req.user)); }
-  catch (e) { res.status(e.code || 400).json({ error: e.message }); }
+  await anx.streamAnexo(a, res);
+}));
+router.delete('/anexos/:aid', requireAuth, ah(async (req, res) => {
+  const a = await anx.getAnexo(req.params.aid);
+  if (!a) return res.status(404).json({ error: 'Não encontrado' });
+  const f = await fpl.getFpl(a.fpl_id);
+  if (!userHasGabineteScope(req.user, f?.gabinete_id)) return res.status(403).json({ error: 'Sem permissão' });
+  res.json(await anx.eliminarAnexo(req.params.aid));
 }));
 
-// ========================= RTRI =========================
-router.get('/rtri/entidades', requireAuth, ah(async (req, res) => {
-  res.json(await rtri.pesquisarRtri(req.query.q || '', parseInt(req.query.limit || '10', 10)));
-}));
-router.get('/rtri/entidades/all', requireAuth, ah(async (req, res) => res.json(await rtri.listarTodas())));
-router.get('/rtri/entidades/:rtriId', requireAuth, ah(async (req, res) => {
-  const e = await rtri.obterEntidade(req.params.rtriId);
-  if (!e) return res.status(404).json({ error: 'Não encontrada' });
-  res.json(e);
-}));
-router.post('/rtri/sincronizar', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA'), ah(async (req, res) => {
-  res.json(await rtri.sincronizarRtri());
-}));
-
-// ========================= Auditoria QA =========================
-router.post('/fpl/:id/auditoria', requireAuth, requireRole('SGGOV_QA', 'SGGOV_ADMIN'), ah(async (req, res) => {
-  const f = await fpl.getFpl(req.params.id);
-  if (!f) return res.status(404).json({ error: 'FPL não encontrada' });
-  const { pontuacao, observacoes, pedido_correcao, descricao_correcao } = req.body || {};
-  if (typeof pontuacao !== 'number' || pontuacao < 0 || pontuacao > 100) {
-    return res.status(400).json({ error: 'Pontuação 0-100 obrigatória' });
-  }
-  const id = uuid();
-  // Quando há pedido de correção, preservamos o estado em que a FPL estava
-  // para o restaurar quando a correção for concluída (em vez de assumir
-  // EM_CONSULTA_PUBLICA cegamente — a auditoria pode ter sido pedida com
-  // a FPL ainda em EM_RSE, antes da CP).
-  const estadoAnterior = pedido_correcao ? f.estado_workflow : null;
-  await db.run(
-    `INSERT INTO auditoria_qa (id, fpl_id, auditor_id, pontuacao, observacoes, pedido_correcao, descricao_correcao, estado_workflow_anterior)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, req.params.id, req.user.id, pontuacao, observacoes || null, pedido_correcao ? 1 : 0, descricao_correcao || null, estadoAnterior]
-  );
-  await db.run(
-    `INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload, ip_origem, user_agent)
-     VALUES (?, ?, 'AUDITORIA_QA_CRIADA', ?, ?, ?, ?)`,
-    [uuid(), req.params.id, req.user.id, jsonStringify({ pontuacao, pedido_correcao: !!pedido_correcao, estado_anterior: estadoAnterior }),
-     req.ip || null, req.headers['user-agent'] || null]
-  );
-  const dest = await notif.destinatariosGabinete(f.gabinete_id);
-  if (pedido_correcao) {
-    await db.run("UPDATE fpl SET estado_workflow = 'EM_REVISAO_QA' WHERE id = ?", [req.params.id]);
-    // os comprovativos válidos passam a SUBSTITUIDO — a FPL terá de ser revalidada
-    await cmp.substituirComprovativosFpl(req.params.id, 'Pedido de correção da auditoria SGGOV');
-    await notif.notificar({ tipo: 'AUDITORIA_PEDIDO_CORRECAO', destinatarios: dest, fpl: f, ctx: { pontuacao, descricao: descricao_correcao || '(sem descrição)' } });
-  } else {
-    await notif.notificar({ tipo: 'AUDITORIA_CONCLUIDA', destinatarios: dest, fpl: f, ctx: { pontuacao } });
-  }
-  res.status(201).json({ id });
-}));
-
-router.patch('/fpl/:id/auditoria/:aid', requireAuth, ah(async (req, res) => {
-  const f = await fpl.getFpl(req.params.id);
-  if (!f) return res.status(404).json({ error: 'FPL não encontrada' });
-  const a = await db.get('SELECT * FROM auditoria_qa WHERE id = ? AND fpl_id = ?', [req.params.aid, req.params.id]);
-  if (!a) return res.status(404).json({ error: 'Auditoria não encontrada' });
-  const isQa = req.user.papeis.some(p => ['SGGOV_QA', 'SGGOV_ADMIN'].includes(p.papel));
-  const isOwner = userHasGabineteScope(req.user, f.gabinete_id);
-  const { estado_correcao } = req.body || {};
-  if (estado_correcao === 'EM_CURSO' && isOwner) {
-    await db.run("UPDATE auditoria_qa SET estado_correcao = 'EM_CURSO' WHERE id = ?", [req.params.aid]);
-    await db.run(`INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload) VALUES (?, ?, 'CORRECAO_INICIADA', ?, ?)`,
-      [uuid(), req.params.id, req.user.id, jsonStringify({ auditoria_id: req.params.aid })]);
-  } else if (estado_correcao === 'SUBMETIDA' && isOwner) {
-    await db.run("UPDATE auditoria_qa SET estado_correcao = 'SUBMETIDA' WHERE id = ?", [req.params.aid]);
-    // Restaura o estado que a FPL tinha quando a auditoria foi pedida.
-    // Fallback para EM_CONSULTA_PUBLICA se o campo estiver vazio (auditorias
-    // criadas antes da migração de schema).
-    const estadoRetorno = a.estado_workflow_anterior || 'EM_CONSULTA_PUBLICA';
-    await db.run("UPDATE fpl SET estado_workflow = ? WHERE id = ? AND estado_workflow = 'EM_REVISAO_QA'", [estadoRetorno, req.params.id]);
-    await notif.notificar({ tipo: 'CORRECAO_SUBMETIDA', destinatarios: await notif.destinatariosPorPapel('SGGOV_QA'), fpl: f });
-  } else if (estado_correcao === 'CONCLUIDA' && isQa) {
-    await db.run("UPDATE auditoria_qa SET estado_correcao = 'CONCLUIDA' WHERE id = ?", [req.params.aid]);
-    const estadoRetorno = a.estado_workflow_anterior || 'EM_CONSULTA_PUBLICA';
-    await db.run("UPDATE fpl SET estado_workflow = ? WHERE id = ? AND estado_workflow = 'EM_REVISAO_QA'", [estadoRetorno, req.params.id]);
-    await db.run(`INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload) VALUES (?, ?, 'CORRECAO_APROVADA', ?, ?)`,
-      [uuid(), req.params.id, req.user.id, jsonStringify({ auditoria_id: req.params.aid, estado_restaurado: estadoRetorno })]);
-  } else {
-    return res.status(400).json({ error: 'Operação não permitida com o seu papel' });
-  }
-  res.json({ ok: true });
-}));
-
-router.get('/fpl/:id/auditoria', requireAuth, ah(async (req, res) => {
-  const f = await fpl.getFpl(req.params.id);
-  if (!f) return res.status(404).json({ error: 'FPL não encontrada' });
-  const isSggov = req.user.papeis.some(p => ['SGGOV_QA', 'SGGOV_ADMIN'].includes(p.papel));
-  if (!isSggov && !userHasGabineteScope(req.user, f.gabinete_id)) return res.status(403).json({ error: 'Sem permissão' });
-  res.json(await db.all(
-    `SELECT a.*, u.nome_completo as auditor_nome FROM auditoria_qa a JOIN utilizador u ON u.id = a.auditor_id
-     WHERE a.fpl_id = ? ORDER BY a.data_auditoria DESC`, [req.params.id]
-  ));
-}));
-
-// ========================= Notificações =========================
-router.get('/notificacoes', requireAuth, ah(async (req, res) => {
-  res.json({
-    items: await notif.listarMinhas(req.user.id, { limit: 50 }),
-    nao_lidas: await notif.contarNaoLidas(req.user.id),
-  });
-}));
-router.post('/notificacoes/:id/lida', requireAuth, ah(async (req, res) => { await notif.marcarLida(req.params.id, req.user.id); res.json({ ok: true }); }));
-router.post('/notificacoes/lidas-todas', requireAuth, ah(async (req, res) => { await notif.marcarTodasLidas(req.user.id); res.json({ ok: true }); }));
-
-// SSE de notificações em tempo real. Mantém uma ligação por utilizador
-// (via cookie de sessão) e empurra eventos `nova` quando o subscriber
-// publica em `notif.subscribe(userId, fn)`. Em ambiente confinado RING
-// há reverse-proxy compatível com SSE; fora disso o frontend cai para
-// polling automaticamente.
-router.get('/notificacoes/stream', requireAuth, ah(async (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache, no-transform');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no'); // Nginx
-  res.flushHeaders?.();
-  res.write(': ping\n\n');
-
-  const off = notif.subscribe(req.user.id, (n) => {
-    try { res.write(`event: nova\ndata: ${JSON.stringify(n)}\n\n`); } catch {}
-  });
-  // `.unref()` permite ao processo Node terminar mesmo com a ligação SSE
-  // aberta — necessário para que `node --test` não fique pendurado quando
-  // a request fica "viva" entre testes.
-  const ka = setInterval(() => { try { res.write('event: ping\ndata: {}\n\n'); } catch {} }, 20_000);
-  ka.unref?.();
-
-  req.on('close', () => { off(); clearInterval(ka); });
-}));
-router.get('/admin/outbox', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => res.json(await notif.listarOutbox({ limit: 200 }))));
-router.post('/admin/outbox/processar', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => res.json({ enviados: await notif.processarOutbox() })));
-
-// ========================= Webhook Consulta.Lex =========================
-router.post('/hooks/consulta-lex', ah((req, res) => cl.processarWebhook(req, res)));
-router.post('/fpl/:id/consulta-lex/import-csv', requireAuth, ah(async (req, res) => {
+// ========================= JSON canónico / Ficha pública =========================
+router.get('/fpl/:id/canonico', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
-  const { cl_ref, csv } = req.body || {};
-  if (!cl_ref || !csv) return res.status(400).json({ error: 'cl_ref e csv obrigatórios' });
-  try { res.json(await cl.importarCsv(req.params.id, cl_ref, csv, req.user)); }
-  catch (e) { res.status(e.code || 400).json({ error: e.message }); }
+  const c = await canon.toCanonico(req.params.id);
+  res.json(c);
 }));
-router.get('/fpl/:id/contributos-cl', requireAuth, ah(async (req, res) => {
+
+router.get('/fpl/:id/ficha-publica', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;
-  res.json(await cl.listarContributos(req.params.id));
+  const html = await gerarFichaPublica(req.params.id);
+  res.type('html').send(html);
 }));
 
-// ========================= Exportação p/ Portal do Governo =========================
-// (acessível a partir da RING, por papéis SGGOV — a app não serve a face pública)
-router.get('/export/fpl', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'), ah(async (req, res) => {
-  res.json(await exp.listarPublicadas({ gabinete: req.query.gabinete, tipo: req.query.tipo, q: req.query.q }));
-}));
-router.get('/export/fpl/:id', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'), ah(async (req, res) => {
-  const p = await exp.pacoteFpl(req.params.id);
-  if (!p) return res.status(404).json({ error: 'FPL não encontrada ou ainda não publicada' });
-  res.json(p);
-}));
-router.get('/export/lote', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'), ah(async (req, res) => {
-  res.json(await exp.loteDesde(req.query.desde || null));
-}));
-router.get('/export/datasets/fpl.json', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'), ah(async (req, res) => {
-  res.json(await exp.datasetJson());
-}));
-router.get('/export/datasets/fpl.csv', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'), ah(async (req, res) => {
-  res.type('text/csv').send(await exp.datasetCsv());
-}));
-router.get('/export/datasets/fpl.jsonld', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'), ah(async (req, res) => {
-  res.json(await exp.datasetJsonLd());
+// Versão pública (sem autenticação) — apenas para FPLs PUBLICADAS.
+router.get('/publico/ficha/:id', ah(async (req, res) => {
+  const f = await fpl.getFpl(req.params.id);
+  if (!f || f.estado !== 'PUBLICADO') return res.status(404).type('html').send('<h1>Ficha não publicada.</h1>');
+  res.type('html').send(await gerarFichaPublica(req.params.id));
 }));
 
-// ========================= Dashboard SGGOV =========================
+router.get('/export/canonicos', requireAuth, requireRole('SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'), ah(async (req, res) => {
+  res.json(await canon.listarCanonicos({
+    estado: req.query.estado, gabinete_id: req.query.gabinete_id, desde: req.query.desde,
+  }));
+}));
+
+router.post('/import/canonico', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => {
+  try { res.json(await canon.fromCanonico(req.body, req.user)); }
+  catch (e) { res.status(400).json({ error: e.message }); }
+}));
+
+// ========================= Dashboard =========================
 router.get('/admin/dashboard', requireAuth, requireRole('SGGOV_QA', 'SGGOV_ADMIN', 'GSEPCM'), ah(async (req, res) => {
   const total = (await db.get('SELECT COUNT(*) as n FROM fpl')).n;
-  const por_estado = await db.all('SELECT estado_workflow as estado, COUNT(*) as n FROM fpl GROUP BY estado_workflow');
-  const publicadas = (await db.get("SELECT COUNT(*) as n FROM fpl WHERE estado_workflow = 'PUBLICADO'")).n;
-  const em_revisao = (await db.get("SELECT COUNT(*) as n FROM fpl WHERE estado_workflow = 'EM_REVISAO_QA'")).n;
-  const comprovativos = (await db.get('SELECT COUNT(*) as n FROM comprovativo')).n;
-  // Top gabinetes com `id` para drill-down do dashboard (não só sigla)
+  const por_estado = await db.all('SELECT estado, COUNT(*) as n FROM fpl GROUP BY estado');
   const top_gabinetes = await db.all(
     `SELECT g.id, g.sigla, COUNT(f.id) as n FROM fpl f JOIN gabinete g ON g.id = f.gabinete_id
-     GROUP BY g.id, g.sigla ORDER BY n DESC LIMIT 5`
+     GROUP BY g.id, g.sigla ORDER BY n DESC LIMIT 8`
   );
-  const top_entidades = await db.all(
-    `SELECT entidade_designacao as entidade, rtri_id, COUNT(*) as n FROM entrada_bloco_d
-     WHERE entidade_designacao IS NOT NULL GROUP BY entidade_designacao, rtri_id ORDER BY n DESC LIMIT 10`
-  );
-  const aud = await db.get('SELECT AVG(pontuacao) as m, COUNT(*) as n FROM auditoria_qa');
+  res.json({ total, por_estado, top_gabinetes });
+}));
 
-  // Timeline mensal (últimos 12 meses) com marcos bloqueantes emitidos.
-  // Novo desenho: M0 · M1 · M4 · M5 (M2/M3 são informativos da CP).
-  // Lê de `versao_fpl.marco_validado` que é populado a cada validação.
-  const timelineRows = await db.all(`
-    SELECT substr(timestamp, 1, 7) as mes, marco_validado as marco, COUNT(*) as n
-    FROM versao_fpl
-    WHERE marco_validado IN ('M0','M1','M4','M5')
-      AND timestamp >= ?
-    GROUP BY mes, marco_validado
-    ORDER BY mes
-  `, [new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString().slice(0, 7) + '-01']);
-  const mesesMap = new Map();
-  for (const r of timelineRows) {
-    if (!mesesMap.has(r.mes)) mesesMap.set(r.mes, { mes: r.mes, M0: 0, M1: 0, M4: 0, M5: 0 });
-    mesesMap.get(r.mes)[r.marco] = r.n;
-  }
-  const timeline_marcos = [...mesesMap.values()];
-
-  res.json({
-    total, publicadas, em_revisao, comprovativos, por_estado,
-    top_gabinetes, top_entidades, timeline_marcos,
-    auditorias: { media: aud?.m || 0, total: aud?.n || 0 },
-  });
+// ========================= Backup manual =========================
+router.post('/admin/backup', requireAuth, requireRole('SGGOV_ADMIN'), ah(async (req, res) => {
+  res.json(await correrBackup());
 }));
 
 export default router;

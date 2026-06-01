@@ -1,5 +1,4 @@
-// data.js — Funções de carregamento que populam o `state`.
-// São chamadas pelas vistas; nenhuma renderização aqui.
+// data.js — Carregamentos para o `state`.
 
 import { api } from './api.js';
 import { state, isSggov } from './state.js';
@@ -18,8 +17,6 @@ export async function loadFpl(id) {
   state.versoes = await api(`/fpl/${id}/versoes`).catch(() => []);
   state.eventos = await api(`/fpl/${id}/eventos`).catch(() => []);
   state.anexos = await api(`/fpl/${id}/anexos`).catch(() => []);
-  state.auditorias = await api(`/fpl/${id}/auditoria`).catch(() => []);
-  state.comprovativos = await api(`/fpl/${id}/comprovativos`).catch(() => []);
 }
 
 export async function loadDashboard() {

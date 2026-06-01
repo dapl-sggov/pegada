@@ -1,158 +1,98 @@
-// anexos.js — Upload (multipart manual), object storage (fs/MinIO), SHA-256,
-// scan antivírus simulado, visibilidade. API assíncrona.
+// anexos.js — Anexos no filesystem local.
+// Sem S3, sem MinIO. Pasta única configurada em config.storage.dir.
 
+import fs from 'node:fs';
+import path from 'node:path';
 import crypto from 'node:crypto';
-import { db } from './db.js';
-import { storage } from './storage.js';
 import config from './config.js';
-import { uuid, jsonStringify } from './util.js';
+import { db } from './db.js';
+import { uuid } from './util.js';
 
-const MAX_BYTES = config.storage.maxBytes;
-const ALLOWED_MIME = new Set([
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-]);
-const EXT_FROM_MIME = {
-  'application/pdf': 'pdf',
-  'application/msword': 'doc',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-  'application/vnd.ms-excel': 'xls',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
-};
-const SUSPICIOUS_PATTERNS = [
-  /EICAR-STANDARD-ANTIVIRUS-TEST-FILE/i,
-  /<script[^>]*>[\s\S]*?alert\(/i,
-];
+function garantirDir(d) { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); }
 
-/** Parser multipart/form-data minimalista (1 ficheiro + campos auxiliares). */
-export function parseMultipart(req) {
-  return new Promise((resolve, reject) => {
-    const ct = req.headers['content-type'] || '';
-    const m = /boundary=(?:"([^"]+)"|([^;]+))/.exec(ct);
-    if (!m) return reject(new Error('Sem boundary multipart'));
-    const boundary = '--' + (m[1] || m[2]).trim();
-    const chunks = [];
-    let total = 0;
-    req.on('data', c => {
-      total += c.length;
-      if (total > MAX_BYTES + 4096) {
-        req.destroy();
-        return reject(Object.assign(new Error('Excede tamanho máximo'), { code: 413 }));
-      }
-      chunks.push(c);
-    });
-    req.on('end', () => {
-      try {
-        const buf = Buffer.concat(chunks);
-        const fields = {}; const files = [];
-        const boundaryBuf = Buffer.from(boundary);
-        let pos = buf.indexOf(boundaryBuf);
-        while (pos !== -1) {
-          let start = pos + boundaryBuf.length;
-          if (buf.slice(start, start + 2).equals(Buffer.from('--'))) break;
-          start += 2;
-          const headersEnd = buf.indexOf(Buffer.from('\r\n\r\n'), start);
-          if (headersEnd < 0) break;
-          const headers = buf.slice(start, headersEnd).toString('utf8');
-          const next = buf.indexOf(boundaryBuf, headersEnd + 4);
-          const bodyEnd = next < 0 ? buf.length : next - 2;
-          const body = buf.slice(headersEnd + 4, bodyEnd);
-          const cd = /Content-Disposition: form-data; name="([^"]+)"(?:; filename="([^"]*)")?/.exec(headers);
-          const ct2 = /Content-Type: ([^\r\n]+)/.exec(headers);
-          if (cd) {
-            if (cd[2] !== undefined) {
-              files.push({ field: cd[1], filename: cd[2], mime: (ct2 ? ct2[1].trim() : 'application/octet-stream'), data: body });
-            } else {
-              fields[cd[1]] = body.toString('utf8');
-            }
-          }
-          pos = next;
-        }
-        resolve({ fields, files });
-      } catch (e) { reject(e); }
-    });
-    req.on('error', reject);
-  });
-}
-
-function scanForViruses(buf) {
-  const slice = buf.slice(0, Math.min(buf.length, 1024 * 1024)).toString('utf8');
-  for (const pat of SUSPICIOUS_PATTERNS) if (pat.test(slice)) return 'INFETADO';
-  return 'LIMPO';
-}
-
-export async function listarAnexos(fplId, blocoFilter = null) {
-  let sql = `SELECT a.*, u.nome_completo AS upload_por_nome
-             FROM anexo a JOIN utilizador u ON u.id = a.upload_por WHERE a.fpl_id = ?`;
+export async function listarAnexos(fplId, bloco) {
+  let sql = 'SELECT * FROM anexo WHERE fpl_id = ?';
   const params = [fplId];
-  if (blocoFilter) { sql += ' AND a.bloco = ?'; params.push(blocoFilter); }
-  sql += ' ORDER BY a.upload_em DESC';
+  if (bloco) { sql += ' AND bloco = ?'; params.push(bloco); }
+  sql += ' ORDER BY upload_em DESC';
   return db.all(sql, params);
+}
+
+export async function uploadAnexo({ fplId, bloco, entradaId, file, user }) {
+  if (!file) throw Object.assign(new Error('Ficheiro em falta'), { code: 400 });
+  if (file.size > config.storage.maxBytes) {
+    throw Object.assign(new Error(`Tamanho excede ${config.storage.maxBytes} bytes`), { code: 413 });
+  }
+  garantirDir(config.storage.dir);
+  const sha = crypto.createHash('sha256').update(file.buffer).digest('hex');
+  const id = uuid();
+  const storagePath = path.join(config.storage.dir, `${id}_${file.originalname}`);
+  fs.writeFileSync(storagePath, file.buffer);
+  await db.run(
+    `INSERT INTO anexo (id, fpl_id, bloco, entrada_id, nome_original, mime_type,
+                        tamanho_bytes, sha256, storage_path, upload_por)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, fplId, bloco || null, entradaId || null, file.originalname,
+     file.mimetype || 'application/octet-stream', file.size, sha, storagePath, user.id]
+  );
+  return { id, sha256: sha, nome: file.originalname, tamanho: file.size };
 }
 
 export async function getAnexo(id) {
   return db.get('SELECT * FROM anexo WHERE id = ?', [id]);
 }
 
-export async function uploadAnexo({ fplId, bloco, entradaId, visibilidade, file, user }) {
-  if (!file) throw Object.assign(new Error('Ficheiro obrigatório'), { code: 400 });
-  if (file.data.length === 0) throw Object.assign(new Error('Ficheiro vazio'), { code: 400 });
-  if (file.data.length > MAX_BYTES) throw Object.assign(new Error('Ficheiro excede o tamanho máximo'), { code: 413 });
-  if (!ALLOWED_MIME.has(file.mime)) {
-    throw Object.assign(new Error(`Tipo MIME não permitido (${file.mime}). Aceite-se PDF, DOC(X), XLS(X).`), { code: 415 });
-  }
-  if (!['A', 'B', 'C', 'D', 'E'].includes(bloco)) {
-    throw Object.assign(new Error('Bloco inválido'), { code: 400 });
-  }
-  const sha256 = crypto.createHash('sha256').update(file.data).digest('hex');
-  const ext = EXT_FROM_MIME[file.mime] || 'bin';
-  const id = uuid();
-  const storageKey = `${id}.${ext}`;
-  await storage.put(storageKey, file.data, file.mime);
-  const avStatus = scanForViruses(file.data);
-  await db.run(
-    `INSERT INTO anexo (id, fpl_id, bloco, entrada_id, nome_original, mime_type, tamanho_bytes,
-                        sha256, storage_path, visibilidade, upload_por, antivirus_status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, fplId, bloco, entradaId || null, file.filename || 'anexo', file.mime, file.data.length,
-     sha256, storageKey, (visibilidade === 'PUBLICO' ? 'PUBLICO' : 'INTERNO'), user.id, avStatus]
-  );
-  await db.run(
-    `INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload) VALUES (?, ?, 'ANEXO_CARREGADO', ?, ?)`,
-    [uuid(), fplId, user.id, jsonStringify({ anexo_id: id, nome: file.filename, bytes: file.data.length, mime: file.mime, sha256, antivirus_status: avStatus, bloco })]
-  );
-  if (avStatus === 'INFETADO') {
-    return { id, antivirus_status: avStatus, warning: 'Antivírus detetou padrão suspeito; ficheiro em quarentena.' };
-  }
-  return { id, antivirus_status: avStatus };
+export async function streamAnexo(a, res) {
+  if (!fs.existsSync(a.storage_path)) return res.status(404).end();
+  res.setHeader('Content-Type', a.mime_type || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(a.nome_original)}"`);
+  fs.createReadStream(a.storage_path).pipe(res);
 }
 
-export async function streamAnexo(anexo, res) {
-  if (anexo.antivirus_status === 'INFETADO') {
-    return res.status(403).json({ error: 'Ficheiro em quarentena (antivírus)' });
-  }
-  const buf = await storage.get(anexo.storage_path);
-  if (!buf) return res.status(404).json({ error: 'Ficheiro não disponível' });
-  res.setHeader('Content-Type', anexo.mime_type);
-  res.setHeader('Content-Length', anexo.tamanho_bytes);
-  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(anexo.nome_original)}"`);
-  res.setHeader('X-Content-SHA256', anexo.sha256);
-  res.send(buf);
-}
-
-export async function eliminarAnexo(anexoId, user) {
-  const a = await getAnexo(anexoId);
+export async function eliminarAnexo(id) {
+  const a = await getAnexo(id);
   if (!a) throw Object.assign(new Error('Anexo não encontrado'), { code: 404 });
-  await storage.del(a.storage_path);
-  await db.run('DELETE FROM anexo WHERE id = ?', [anexoId]);
-  await db.run(
-    `INSERT INTO evento_auditoria (id, fpl_id, tipo_evento, autor_id, payload) VALUES (?, ?, 'ANEXO_ELIMINADO', ?, ?)`,
-    [uuid(), a.fpl_id, user.id, jsonStringify({ anexo_id: anexoId, nome: a.nome_original })]
-  );
+  try { fs.unlinkSync(a.storage_path); } catch {}
+  await db.run('DELETE FROM anexo WHERE id = ?', [id]);
   return { ok: true };
 }
 
-export const ANEXO_LIMITES = { MAX_BYTES, ALLOWED_MIME: [...ALLOWED_MIME] };
+// Parser simples de multipart (sem deps): aceita 1 ficheiro por request.
+export async function parseMultipart(req) {
+  const ctype = req.headers['content-type'] || '';
+  const m = ctype.match(/boundary=(.+)$/);
+  if (!m) throw Object.assign(new Error('multipart/form-data esperado'), { code: 400 });
+  const boundary = '--' + m[1];
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
+  const buf = Buffer.concat(chunks);
+  const parts = [];
+  let i = 0;
+  while (i < buf.length) {
+    const start = buf.indexOf(boundary, i);
+    if (start < 0) break;
+    const next = buf.indexOf(boundary, start + boundary.length);
+    if (next < 0) break;
+    const part = buf.slice(start + boundary.length, next);
+    parts.push(part);
+    i = next;
+  }
+  const fields = {}; const files = [];
+  for (const p of parts) {
+    const headEnd = p.indexOf('\r\n\r\n');
+    if (headEnd < 0) continue;
+    const head = p.slice(0, headEnd).toString('utf8');
+    let body = p.slice(headEnd + 4);
+    if (body.slice(-2).toString() === '\r\n') body = body.slice(0, -2);
+    const cd = head.match(/Content-Disposition:[^\n]*name="([^"]+)"(?:; filename="([^"]+)")?/i);
+    if (!cd) continue;
+    const name = cd[1]; const filename = cd[2];
+    if (filename) {
+      const ct = head.match(/Content-Type:\s*([^\r\n]+)/i)?.[1] || 'application/octet-stream';
+      files.push({ fieldName: name, originalname: filename, mimetype: ct, size: body.length, buffer: body });
+    } else {
+      fields[name] = body.toString('utf8');
+    }
+  }
+  return { fields, files };
+}

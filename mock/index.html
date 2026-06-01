@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="FPL — Pegada Legislativa do Governo. Apresentação do projeto, da proposta de RCM e da demonstração interativa.">
+<meta name="description" content="FPL — Pegada Legislativa do Governo. Apresentação do projeto e da demonstração interativa.">
 <meta name="theme-color" content="#0c1729">
 <title>FPL — Pegada Legislativa do Governo</title>
 <style>
@@ -174,7 +174,7 @@
 
 <section id="contexto">
   <h2>Contexto</h2>
-  <p class="secao-sub">A Lei n.º 5-A/2026 fixou a obrigação. A presente proposta de RCM define como o Governo a cumpre.</p>
+  <p class="secao-sub">A Lei n.º 5-A/2026 fixou a obrigação. O FPL Ponte é o instrumento técnico que permite à SGGOV cumpri-la enquanto a funcionalidade não é incorporada no SmartLegis.</p>
 
   <div class="feat-grid">
     <div class="feat">
@@ -184,73 +184,64 @@
     </div>
     <div class="feat">
       <div class="ico blue">📜</div>
-      <h3>RCM n.º 143/2021 — projeto-piloto</h3>
-      <p>Projeto-piloto de pegada legislativa via Registo de Pegada Legislativa (RPL), executado entre abril 2022 e fevereiro 2024. Identificou três fatores críticos: cumprimento bloqueante no sistema, pontos focais formados, e acompanhamento ativo da SGGOV.</p>
+      <h3>Projeto-piloto 2022–2024</h3>
+      <p>O Registo de Pegada Legislativa (RPL) executado pela SGGOV entre abril 2022 e fevereiro 2024 identificou três fatores críticos para o sucesso: cumprimento bloqueante no sistema, pontos focais formados, e acompanhamento ativo da SGGOV.</p>
     </div>
     <div class="feat">
       <div class="ico green">🛡</div>
       <h3>Estratégia Nacional Anticorrupção</h3>
-      <p>O presente regime concretiza a Agenda Anticorrupção do Governo (junho 2024), passando do regime experimental para um regime operacional definitivo, integrado no procedimento legislativo desmaterializado.</p>
+      <p>O presente regime concretiza a Agenda Anticorrupção do Governo (junho 2024), passando do regime experimental para um regime operacional definitivo, integrado na tramitação corrente dos diplomas.</p>
     </div>
   </div>
 </section>
 
 <section id="funciona">
   <h2>Como funciona</h2>
-  <p class="secao-sub">Cada projeto de diploma tem uma <strong>Ficha de Pegada Legislativa (FPL)</strong> — registo único integrado na tramitação desmaterializada. A FPL atravessa seis marcos. Quatro são bloqueantes e emitem comprovativo criptográfico.</p>
+  <p class="secao-sub">Cada projeto de diploma tem uma <strong>Ficha de Pegada Legislativa (FPL)</strong>. A FPL atravessa cinco marcos ao longo do ciclo: abertura, abertura da consulta pública, encerramento da CP, pré-CM e publicação.</p>
 
   <div class="timeline">
-    <div class="marco bloq">
+    <div class="marco">
       <div class="dot">M0</div>
       <div class="lbl">Abertura</div>
-      <div class="sub">Bloco A · B preenchidos</div>
-      <div class="bloq-tag">⚿ bloqueante</div>
-    </div>
-    <div class="marco bloq">
-      <div class="dot">M1</div>
-      <div class="lbl">Pré-RSE</div>
-      <div class="sub">Antes da Reunião de Sec. Estado</div>
-      <div class="bloq-tag">⚿ bloqueante</div>
+      <div class="sub">Identificação + síntese</div>
     </div>
     <div class="marco">
       <div class="dot">M2</div>
-      <div class="lbl">Pós-RSE · Abre CP</div>
-      <div class="sub">Abertura da consulta pública</div>
+      <div class="lbl">Abertura CP</div>
+      <div class="sub">Link ConsultaLex registado</div>
     </div>
     <div class="marco">
       <div class="dot">M3</div>
       <div class="lbl">Encerramento CP</div>
-      <div class="sub">Síntese dos contributos</div>
+      <div class="sub">Síntese e decisão de incorporação</div>
     </div>
-    <div class="marco bloq">
+    <div class="marco">
       <div class="dot">M4</div>
       <div class="lbl">Pré-CM</div>
-      <div class="sub">Antes do Conselho de Ministros</div>
-      <div class="bloq-tag">⚿ bloqueante</div>
+      <div class="sub">Audições com decisão e justificação</div>
     </div>
-    <div class="marco bloq">
+    <div class="marco">
       <div class="dot">M5</div>
       <div class="lbl">Publicação</div>
-      <div class="sub">Após publicação em DR</div>
-      <div class="bloq-tag">⚿ bloqueante</div>
+      <div class="sub">Referência DR + hash SHA-256</div>
     </div>
   </div>
 
   <div class="feat-grid" style="margin-top:24px">
     <div class="feat">
-      <div class="ico gold">⚿</div>
-      <h3>Comprovativo criptográfico</h3>
-      <p>Cada marco bloqueante emite um JWS Ed25519 assinado. O SmartLegis verifica-o com a chave pública partilhada — sem comprovativo, a tramitação fica bloqueada. Sem dependência síncrona entre sistemas.</p>
+      <div class="ico gold">📋</div>
+      <h3>Blocos da FPL</h3>
+      <p>A · Identificação · B · Enquadramento · D.1 · Audições obrigatórias · D.2 · Audições GSEPCM · D.3 · Interações INTEGRA (UnIT) · E · Consulta pública. A divisão D.1/D.2/D.3 reflete a separação entre interações durante o processo legislativo (D.1, D.2) e pré-processo (D.3).</p>
     </div>
     <div class="feat">
-      <div class="ico blue">📋</div>
-      <h3>Sete blocos por FPL</h3>
-      <p>A · Identificação · B · Origem e motivação · C · Contributos internos · D · <strong>Interações externas (núcleo)</strong> · E · Consulta pública · F · Declaração · G · Auditoria QA SGGOV.</p>
+      <div class="ico blue">🔗</div>
+      <h3>JSON canónico</h3>
+      <p>Schema <code>fpl-ponte/v1</code> é o formato único de troca. Toda a FPL pode ser exportada, importada, ou entregue a um sucessor (SmartLegis, Plataforma IntGov) num só ficheiro JSON estável e versionado.</p>
     </div>
     <div class="feat">
       <div class="ico green">↗</div>
-      <h3>Exportação para o Portal do Governo</h3>
-      <p>Após M5, a FPL é exportada automaticamente em formatos abertos (JSON, CSV, JSON-LD com vocabulário OCDE 2024) para o Portal do Governo, ao lado da Agenda Pública dos membros do Governo.</p>
+      <h3>Ficha pública estática</h3>
+      <p>Quando a FPL é publicada (M5), o sistema gera um HTML estático autocontido com hash SHA-256 que pode ser depositado no Portal do Governo. Sem deploy automático, sem dependências externas.</p>
     </div>
   </div>
 </section>
@@ -270,14 +261,14 @@
 
 <section id="documentos">
   <h2>Documentos do projeto</h2>
-  <p class="secao-sub">Toda a documentação técnica, jurídica e operacional. A proposta de RCM é a peça-chave para a apresentação ao Conselho de Ministros.</p>
+  <p class="secao-sub">Documentação técnica e operacional. Sistema deliberadamente leve, dimensionado para ser substituído pelo SmartLegis ou pela Plataforma IntGov até 2027.</p>
 
   <div class="doc-list">
-    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/00_Proposta_RCM_Modelo.md" class="doc feat-doc" target="_blank" rel="noopener">
-      <div class="doc-ico">📜</div>
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/14_Pedido_DSTD.md" class="doc feat-doc" target="_blank" rel="noopener">
+      <div class="doc-ico">📋</div>
       <div class="doc-meta">
-        <h4>Proposta de Resolução do Conselho de Ministros</h4>
-        <p>Minuta da RCM que operacionaliza a Lei n.º 5-A/2026 no procedimento legislativo governamental — substitui a RCM n.º 143/2021, define a FPL, o regime de submissão bloqueante e a governação pelo grupo de coordenação SGGOV.</p>
+        <h4>Pedido formal à DSTD</h4>
+        <p>Pedido de provisionamento e integrações para o go-live: VM, Entra ID, ConsultaLex, acesso à pasta OneDrive da UnIT (INTEGRA). Calendário até julho 2026.</p>
       </div>
     </a>
 
@@ -285,47 +276,23 @@
       <div class="doc-ico">🏛</div>
       <div class="doc-meta">
         <h4>Arquitetura técnica</h4>
-        <p>Backend Node.js + PostgreSQL · máquina de estados M0–M5 · modelo de dados · API REST · degradação graciosa.</p>
-      </div>
-    </a>
-
-    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/12_Especificacao_Comprovativo_SmartLegis.md" class="doc" target="_blank" rel="noopener">
-      <div class="doc-ico">⚿</div>
-      <div class="doc-meta">
-        <h4>Comprovativo criptográfico — contrato com SmartLegis</h4>
-        <p>Especificação técnica do JWS Ed25519 emitido em cada marco bloqueante. Verificável offline pelo SmartLegis com chave pública partilhada.</p>
-      </div>
-    </a>
-
-    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/10_DPIA.md" class="doc" target="_blank" rel="noopener">
-      <div class="doc-ico">🔒</div>
-      <div class="doc-meta">
-        <h4>DPIA — Avaliação de Impacto sobre Proteção de Dados</h4>
-        <p>Análise de impacto RGPD, base legal, categorias de dados, fluxos, riscos e mitigações. Para submissão à CNPD.</p>
-      </div>
-    </a>
-
-    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/11_Threat_Model_Sistema.md" class="doc" target="_blank" rel="noopener">
-      <div class="doc-ico">🛡</div>
-      <div class="doc-meta">
-        <h4>Modelo de ameaças sistémico</h4>
-        <p>STRIDE por elemento da arquitetura · ameaças e mitigações de autenticação, autorização, comprovativo, BD, frontend.</p>
+        <p>Node.js 22 + SQLite · máquina de estados M0–M5 · modelo de dados (12 tabelas) · JSON canónico <code>fpl-ponte/v1</code> · 1500 LOC, 2 dependências.</p>
       </div>
     </a>
 
     <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/06_Operacao.md" class="doc" target="_blank" rel="noopener">
       <div class="doc-ico">⚙</div>
       <div class="doc-meta">
-        <h4>Runbook de operação</h4>
-        <p>Implantação na RING, observabilidade Prometheus, segurança operacional, rotação de chaves, checklist de go-live.</p>
+        <h4>Manual de operação</h4>
+        <p>Comandos de admin, monitorização, backup diário para SharePoint, recuperação, saída para o sucessor. Segurança: TLS, CSRF, rate-limit, bloqueio de conta.</p>
       </div>
     </a>
 
-    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/13_Contratos_Integracao_Externa.md" class="doc" target="_blank" rel="noopener">
-      <div class="doc-ico">🔌</div>
+    <a href="https://github.com/dapl-sggov/pegada/blob/main/docs/14a_Questionario_OnePager.md" class="doc" target="_blank" rel="noopener">
+      <div class="doc-ico">📄</div>
       <div class="doc-meta">
-        <h4>Contratos de integração externa</h4>
-        <p>Adapters LDAP/AD, RTRI (AR), Consulta.Lex (HMAC), SMTP, DRE — modos mock e produção, sem refactor.</p>
+        <h4>One-pager institucional</h4>
+        <p>Resumo executivo do projeto para apresentação rápida à liderança SGGOV e à DSTD.</p>
       </div>
     </a>
 
@@ -333,7 +300,7 @@
       <div class="doc-ico">⌥</div>
       <div class="doc-meta">
         <h4>Repositório completo (código-fonte)</h4>
-        <p>Backend + frontend + demo + testes + workflows. Licenciado sob EUPL-1.2.</p>
+        <p>Backend + frontend + demo + testes + workflows. Licenciado sob EUPL-1.2. Histórico arquitetónico em <code>docs/_arquivo/</code>.</p>
       </div>
     </a>
   </div>
@@ -345,24 +312,20 @@
 
   <div class="calendar">
     <div class="cal-row">
-      <div class="data">Maio 2026</div>
-      <div class="info"><strong>Validação interna SGGOV.</strong><span>Revisão jurídica da minuta de RCM pelo Departamento Jurídico. Validação técnica da arquitetura e da DPIA pelo EPD da SGGOV.</span></div>
-    </div>
-    <div class="cal-row">
       <div class="data">Junho 2026</div>
-      <div class="info"><strong>Submissão à CNPD e à reunião preparatória do CM.</strong><span>DPIA submetida à CNPD para parecer prévio. Reunião conjunta com a equipa do SmartLegis para fechar o contrato técnico do comprovativo.</span></div>
+      <div class="info"><strong>Reunião com a DSTD.</strong><span>Provisão da VM, registo da aplicação no Entra ID Gov, acordo sobre o acesso à pasta OneDrive da UnIT e ao subdomínio gov.pt.</span></div>
     </div>
     <div class="cal-row">
-      <div class="data">Julho 2026</div>
-      <div class="info"><strong>Aprovação em Conselho de Ministros.</strong><span>Designação de pontos focais por cada gabinete (15 dias). Início da formação dos PF dos ministérios-piloto.</span></div>
+      <div class="data">Junho–Julho 2026</div>
+      <div class="info"><strong>Instalação e piloto.</strong><span>Instalação na VM da DSTD. Smoke test integrado. Piloto com 3 gabinetes (MAEN, MS, MJ).</span></div>
     </div>
     <div class="cal-row">
-      <div class="data">Ago–Set 2026</div>
-      <div class="info"><strong>Modo "sombra" e auditoria externa.</strong><span>Operação em modo sombra com 2 ministérios. Auditoria externa de acessibilidade WCAG 2.2 AA. Pen-test externo.</span></div>
+      <div class="data">27 julho 2026</div>
+      <div class="info"><strong>Entrada em vigor da Lei n.º 5-A/2026.</strong><span>Roll-out total — sistema disponível a todos os gabinetes ministeriais e à SGGOV.</span></div>
     </div>
     <div class="cal-row">
-      <div class="data">Outubro 2026</div>
-      <div class="info"><strong>Go-live em produção.</strong><span>Aplicação aberta a todos os gabinetes. Primeira FPL publicada no Portal do Governo. SmartLegis verifica os primeiros comprovativos.</span></div>
+      <div class="data">2027</div>
+      <div class="info"><strong>Transição para o sucessor.</strong><span>O FPL Ponte é arquivado quando o SmartLegis ou a Plataforma IntGov receberem a funcionalidade. Saída via export único do JSON canónico.</span></div>
     </div>
   </div>
 </section>
@@ -374,7 +337,7 @@
     <div>
       <strong>FPL — Pegada Legislativa do Governo</strong><br>
       Secretaria-Geral do Governo · República Portuguesa<br>
-      v1.2 · Maio 2026 · Documento de trabalho
+      v2.0 · Junho 2026 · Documento de trabalho
     </div>
     <div style="text-align:right">
       <a href="https://github.com/dapl-sggov/pegada">Repositório no GitHub</a> ·

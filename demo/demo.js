@@ -556,11 +556,11 @@ function renderLogin() {
       </div>
       <div class="entrada-tagline">
         <h2>Documentar quem influencia a lei.</h2>
-        <p>Em execução do art.º 4.º da Lei n.º 5-A/2026 e da RCM da Pegada Legislativa, todos os diplomas do Governo passam a registar — bloco a bloco — quem foi ouvido, o que foi dito, e o que foi acolhido.</p>
+        <p>Em execução da Lei n.º 5-A/2026, todos os diplomas do Governo passam a registar — bloco a bloco — quem foi ouvido durante o processo legislativo, o que foi dito, e o que foi acolhido.</p>
         <ul class="entrada-feat">
-          <li><span class="ico">⚿</span><span><strong>Comprovativos criptográficos</strong> em cada marco bloqueante (M0, M1, M4, M5)</span></li>
+          <li><span class="ico">📋</span><span><strong>Cinco marcos</strong> ao longo do ciclo (M0, M2, M3, M4, M5)</span></li>
           <li><span class="ico">▤</span><span><strong>Painel + cronograma</strong> da tramitação de cada FPL</span></li>
-          <li><span class="ico">↗</span><span><strong>Exportação automática</strong> para o Portal do Governo após M5</span></li>
+          <li><span class="ico">↗</span><span><strong>Ficha pública</strong> gerada após M5 com hash de integridade</span></li>
         </ul>
       </div>
       <div class="entrada-foot">
@@ -1891,7 +1891,7 @@ function blocoF(f) {
       <div class="field"><label>Declaração M1 (Pré-RSE)</label><div class="v">${f.m1?`✓ Assinada em ${fmtDH(f.m1)}`:'<span class="empty">Pendente</span>'}</div></div>
       <div class="field"><label>Declaração M4 (Pré-CM)</label><div class="v">${f.m4?`✓ Assinada em ${fmtDH(f.m4)}`:'<span class="empty">Pendente</span>'}</div></div>
     </div>
-    <div class="alert info mt-16" style="margin-bottom:0"><span class="at">Lembrete legal</span>A submissão de declaração comprovadamente falsa é sujeita ao regime previsto na RCM.</div>`);
+    <div class="alert info mt-16" style="margin-bottom:0"><span class="at">Lembrete legal</span>A submissão de declaração comprovadamente falsa é sujeita ao regime jurídico aplicável à Pegada Legislativa.</div>`);
 }
 function blocoCMP(f) {
   const cmps = f.comprovativos||[];

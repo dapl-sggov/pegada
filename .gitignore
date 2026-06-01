@@ -2,8 +2,9 @@
 node_modules/
 package-lock.json
 
-# Base de dados local + anexos
+# Base de dados local + anexos + backup
 app/data/
+app/backend/data/
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal

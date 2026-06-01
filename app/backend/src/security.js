@@ -1,94 +1,88 @@
-// security.js — Hardening: rate limiting (via cache partilhada), CSRF
-// (double-submit cookie), security headers, bloqueio de conta após N falhas.
-// API assíncrona; rate-limit usa Redis em produção (in-memory em dev).
+// security.js — Hardening mínimo: cabeçalhos, CSRF, rate-limit in-memory,
+// bloqueio de conta por tentativas. Sem Redis.
 
 import crypto from 'node:crypto';
 import { db, cutoffISO } from './db.js';
-import { cache } from './cache.js';
 import config from './config.js';
 import { uuid } from './util.js';
 
 // ---------------------------------------------------------------------------
-// Security headers
+// Cabeçalhos
 // ---------------------------------------------------------------------------
 export function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  // SAMEORIGIN (não DENY) permite embeber páginas internas em iframes
-  // de outras páginas internas — necessário para a galeria de mockups e
-  // pré-visualização lado-a-lado. Continua a bloquear clickjacking externo.
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
     "script-src 'self'",
-    // Permite event handlers HTML inline (onclick, etc.) usados pela UI.
-    // O conteúdo dos atributos é gerado server-side via `esc()` em todo
-    // o frontend — não há injeção possível de strings de utilizadores.
-    // TODO v2.0: migrar para event delegation (data-action="...") e remover.
     "script-src-attr 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:", "font-src 'self' data:", "connect-src 'self'",
-    // 'self' (não 'none') permite embeber páginas internas em iframes
-    // internas. Bloqueia clickjacking de origens externas.
-    "frame-ancestors 'self'", "form-action 'self'", "base-uri 'self'", "object-src 'none'",
+    "img-src 'self' data:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "frame-ancestors 'self'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
   ].join('; '));
   if (config.isProd) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
-  // Respostas autenticadas não devem ser cacheadas por intermediários
   if (req.path.startsWith('/api/')) {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Cache-Control', 'no-store');
   }
   next();
 }
 
 // ---------------------------------------------------------------------------
-// Rate limiting — contadores na cache partilhada (Redis ou in-memory)
+// Rate limiting in-memory (chega para uma instância)
 // ---------------------------------------------------------------------------
-async function hit(key, max, windowSec) {
-  const n = await cache.incr('rl:' + key, windowSec);
-  if (n > max) {
-    const ttl = await cache.ttl('rl:' + key);
-    return { allowed: false, retryAfter: ttl > 0 ? ttl : windowSec };
+const buckets = new Map(); // key → {n, reset}
+
+function bump(key, max, windowMs) {
+  const now = Date.now();
+  const b = buckets.get(key);
+  if (!b || b.reset < now) {
+    buckets.set(key, { n: 1, reset: now + windowMs });
+    return { allowed: true };
   }
+  b.n += 1;
+  if (b.n > max) return { allowed: false, retryAfter: Math.ceil((b.reset - now) / 1000) };
   return { allowed: true };
 }
 
-export function rateLimit({ max = 100, windowMs = 60_000, keyFn = req => req.ip }) {
-  const windowSec = Math.ceil(windowMs / 1000);
-  return async (req, res, next) => {
-    try {
-      const r = await hit(keyFn(req), max, windowSec);
-      if (!r.allowed) {
-        res.setHeader('Retry-After', String(r.retryAfter));
-        return res.status(429).json({ error: 'Demasiados pedidos. Tente novamente em breve.', retry_after_s: r.retryAfter });
-      }
-    } catch { /* cache indisponível: não bloqueia o serviço */ }
+// Limpeza periódica
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of buckets) if (v.reset < now) buckets.delete(k);
+}, 60_000).unref?.();
+
+export function rateLimit({ max = 240, windowMs = 60_000, keyFn = req => req.ip || 'anon' }) {
+  return (req, res, next) => {
+    const r = bump('rl:' + keyFn(req), max, windowMs);
+    if (!r.allowed) {
+      res.setHeader('Retry-After', String(r.retryAfter));
+      return res.status(429).json({ error: 'Demasiados pedidos.', retry_after_s: r.retryAfter });
+    }
     next();
   };
 }
 
-export async function rateLimitLogin(req, res, next) {
-  // Em ambiente de teste o rate-limit é desativado para não interferir com a
-  // execução paralela dos testes (mesmo IP, vários utilizadores).
+export function rateLimitLogin(req, res, next) {
   if (process.env.NODE_ENV === 'test' || process.env.RATE_LIMIT_DISABLE === '1') return next();
-  try {
-    const email = (req.body?.email || '').toLowerCase();
-    const r1 = await hit('login:ip:' + req.ip, 20, 300);
-    const r2 = await hit('login:email:' + email, 5, 300);
-    if (!r1.allowed || !r2.allowed) {
-      return res.status(429).json({ error: 'Demasiadas tentativas. Tente novamente em 5 minutos.' });
-    }
-  } catch { /* idem */ }
+  const email = (req.body?.email || '').toLowerCase();
+  const r1 = bump('login:ip:' + (req.ip || 'anon'), 20, 5 * 60_000);
+  const r2 = bump('login:email:' + email, 5, 5 * 60_000);
+  if (!r1.allowed || !r2.allowed) {
+    return res.status(429).json({ error: 'Demasiadas tentativas. Tente em 5 minutos.' });
+  }
   next();
 }
 
 // ---------------------------------------------------------------------------
-// Tentativas de login + bloqueio de conta
+// Tentativas de login + bloqueio
 // ---------------------------------------------------------------------------
 const MAX_LOGIN_FAILS = 8;
 const LOCK_MINUTES = 30;
@@ -98,7 +92,6 @@ export async function registarTentativaLogin(email, ip, sucesso) {
     'INSERT INTO tentativa_login (id, email, ip, sucesso) VALUES (?, ?, ?, ?)',
     [uuid(), email, ip || null, sucesso ? 1 : 0]
   );
-  // limpa antigas (retenção configurável)
   await db.run('DELETE FROM tentativa_login WHERE timestamp < ?', [cutoffISO({ days: config.retention.tentativasLoginDias })]);
   if (sucesso) {
     await db.run('DELETE FROM conta_bloqueada WHERE email = ?', [email]);
@@ -114,7 +107,7 @@ export async function registarTentativaLogin(email, ip, sucesso) {
       `INSERT INTO conta_bloqueada (email, desbloqueia_em, motivo)
        VALUES (?, ?, ?)
        ON CONFLICT (email) DO UPDATE SET desbloqueia_em = excluded.desbloqueia_em, motivo = excluded.motivo, bloqueada_em = CURRENT_TIMESTAMP`,
-      [email, desbloqueia, `${MAX_LOGIN_FAILS} tentativas falhadas em 30 min`]
+      [email, desbloqueia, `${MAX_LOGIN_FAILS} tentativas falhadas`]
     );
   }
 }
@@ -141,7 +134,7 @@ export function ensureCsrfToken(req, res, next) {
     token = crypto.randomBytes(24).toString('base64url');
     res.cookie(CSRF_COOKIE, token, {
       httpOnly: false, sameSite: 'lax', secure: config.auth.cookieSecure,
-      maxAge: 8 * 60 * 60 * 1000, path: '/',
+      maxAge: 8 * 3600_000, path: '/',
     });
   }
   req.csrfToken = token;
@@ -150,14 +143,12 @@ export function ensureCsrfToken(req, res, next) {
 
 export function requireCsrf(req, res, next) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-  if (req.path.startsWith('/auth/login')) return next();
+  if (req.path.startsWith('/auth/login') || req.path.startsWith('/auth/entra')) return next();
   if (req.path.startsWith('/publico/')) return next();
-  if (req.path.startsWith('/export/')) return next(); // leitura por papéis SGGOV
-  if (req.path.startsWith('/hooks/')) return next();   // autenticação por chave própria
   const cookie = req.cookies?.[CSRF_COOKIE];
   const header = req.headers[CSRF_HEADER];
   if (!cookie || !header || cookie !== header) {
-    return res.status(403).json({ error: 'CSRF token inválido ou em falta. Recarregue a página.' });
+    return res.status(403).json({ error: 'CSRF token inválido ou em falta.' });
   }
   next();
 }

@@ -1,44 +1,49 @@
-// auth.js — Autenticação, sessões e RBAC.
+// auth.js — Autenticação.
 //
-// Modelo de duas camadas (Memorando Executivo, Princípio 1 · RCM v2 n.º 11.1):
-//   1. acesso à RING mediado por VPN (fora do âmbito desta aplicação)
-//   2. autenticação aplicacional contra o diretório interno dos serviços
+// Dois drivers:
 //
-// O adapter de diretório tem dois drivers (config.auth.diretorio.driver):
-//   • local — utilizadores na base de dados, password bcrypt (dev/protótipo)
-//   • ldap  — diretório real (LDAP/AD) — a ativar em produção, sem refactor
+//   • mock   — DEV. Fluxo /api/auth/login com email simples; lê o utilizador
+//              da tabela `utilizador` (populada pelo seed). Sem password.
+//              Adequado para correr o sistema em desenvolvimento e demos.
 //
-// API assíncrona (driver dual SQLite/PostgreSQL).
+//   • entra  — PRODUÇÃO. OIDC/OAuth2 contra Entra ID (Microsoft 365 do
+//              Governo). Stub: a UnIT/DSTD têm de fornecer tenantId,
+//              clientId, clientSecret, redirectUri. Quando isso estiver
+//              em mão, basta preencher loginEntra() abaixo.
+//
+// Em ambos os modos, a sessão é representada por um cookie httpOnly com um
+// ID aleatório que aponta para uma linha em `sessao`. Sem JWT.
 
-import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { db } from './db.js';
 import config from './config.js';
-import { uuid } from './util.js';
-import { generateSecret, totpUri, verifyTotp } from './totp.js';
-import { autenticarDiretorio, sincronizarUtilizador } from './diretorio.js';
-import { hashPassword, verifyPassword } from './auth-helpers.js';
+import { uuid, nowISO } from './util.js';
 
-export { hashPassword, verifyPassword };
+const COOKIE = config.auth.cookieName;
 
-const JWT_SECRET = config.auth.jwtSecret;
-const JWT_TTL = config.auth.jwtTtl;
-const COOKIE_NAME = config.auth.cookieName;
-
-export function signToken(user) {
-  return jwt.sign(
-    { sub: user.id, email: user.email, nome: user.nome_completo },
-    JWT_SECRET, { expiresIn: JWT_TTL }
+// ---------------------------------------------------------------------------
+// Gestão de sessão (cookie + tabela)
+// ---------------------------------------------------------------------------
+async function criarSessao(userId, req) {
+  const id = crypto.randomBytes(24).toString('base64url');
+  const expira = new Date(Date.now() + config.auth.sessionTtlHours * 3600_000).toISOString();
+  await db.run(
+    `INSERT INTO sessao (id, utilizador_id, criada_em, expira_em, ip, user_agent)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [id, userId, nowISO(), expira, req?.ip || null, req?.headers?.['user-agent'] || null]
   );
+  return id;
 }
-export function setSessionCookie(res, token) {
-  res.cookie(COOKIE_NAME, token, {
+
+export function setSessionCookie(res, sid) {
+  res.cookie(COOKIE, sid, {
     httpOnly: true, sameSite: 'lax', secure: config.auth.cookieSecure,
-    maxAge: 8 * 60 * 60 * 1000, path: '/',
+    maxAge: config.auth.sessionTtlHours * 3600_000, path: '/',
   });
 }
+
 export function clearSessionCookie(res) {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
+  res.clearCookie(COOKIE, { path: '/' });
 }
 
 async function getUserPapeis(userId) {
@@ -46,40 +51,27 @@ async function getUserPapeis(userId) {
 }
 
 // ---------------------------------------------------------------------------
-// Adapter de diretório interno
-// ---------------------------------------------------------------------------
-/**
- * Autentica um utilizador. Devolve o registo de utilizador ou null.
- * Driver `local`: valida a password (bcrypt) contra a base de dados.
- * Driver `ldap`: valida contra o diretório interno e sincroniza o utilizador
- *   local (provisionamento "just-in-time"). Implementação a ligar quando o
- *   acesso ao diretório estiver disponível — a interface não muda.
- */
-export async function autenticarUtilizador(email, password) {
-  const dirUser = await autenticarDiretorio(email, password);
-  if (!dirUser) return null;
-  // No driver `local` o registo já existe — sincronizarUtilizador é idempotente.
-  // Nos drivers `ldap`/`http` faz provisionamento just-in-time + papéis.
-  return sincronizarUtilizador(dirUser);
-}
-
-// ---------------------------------------------------------------------------
-// Middlewares
+// Middleware
 // ---------------------------------------------------------------------------
 export async function authMiddleware(req, res, next) {
-  const token = req.cookies?.[COOKIE_NAME];
-  if (!token) return next();
+  const sid = req.cookies?.[COOKIE];
+  if (!sid) return next();
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    const u = await db.get('SELECT id, email, nome_completo, ativo FROM utilizador WHERE id = ?', [payload.sub]);
-    if (u && u.ativo) {
-      req.user = {
-        id: u.id, email: u.email, nome: u.nome_completo,
-        papeis: await getUserPapeis(u.id),
-      };
+    const s = await db.get('SELECT * FROM sessao WHERE id = ?', [sid]);
+    if (s && new Date(s.expira_em) > new Date()) {
+      const u = await db.get('SELECT id, email, nome_completo, ativo FROM utilizador WHERE id = ?', [s.utilizador_id]);
+      if (u && u.ativo) {
+        req.user = {
+          id: u.id, email: u.email, nome: u.nome_completo,
+          papeis: await getUserPapeis(u.id),
+        };
+        req._sid = sid;
+      }
+    } else if (s) {
+      await db.run('DELETE FROM sessao WHERE id = ?', [sid]);
     }
   } catch {
-    // token inválido/expirado: segue como anónimo
+    // sessão inválida — segue como anónimo
   }
   next();
 }
@@ -93,7 +85,7 @@ export function requireRole(...allowed) {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ error: 'Não autenticado' });
     const has = req.user.papeis.some(p => allowed.includes(p.papel));
-    if (!has) return res.status(403).json({ error: 'Sem permissão para esta operação', papeis_requeridos: allowed });
+    if (!has) return res.status(403).json({ error: 'Sem permissão', papeis_requeridos: allowed });
     next();
   };
 }
@@ -105,68 +97,116 @@ export function userHasGabineteScope(user, gabineteId) {
 }
 
 // ---------------------------------------------------------------------------
-// Gestão de utilizadores (usada pelo seed)
+// Driver `mock` — login DEV/demo
 // ---------------------------------------------------------------------------
-export async function createUser({ email, nome_completo, password, nif }) {
-  const id = uuid();
-  const hash = await hashPassword(password);
-  await db.run(
-    'INSERT INTO utilizador (id, email, nome_completo, password_hash, nif) VALUES (?, ?, ?, ?, ?)',
-    [id, email, nome_completo, hash, nif || null]
+export async function loginMock(email, req, res) {
+  if (!email) return { erro: 'Email obrigatório', status: 400 };
+  const u = await db.get('SELECT * FROM utilizador WHERE email = ? AND ativo = 1', [email.toLowerCase()]);
+  if (!u) return { erro: 'Utilizador desconhecido (mock)', status: 401 };
+  const sid = await criarSessao(u.id, req);
+  setSessionCookie(res, sid);
+  const papeis = await getUserPapeis(u.id);
+  return {
+    utilizador: { id: u.id, email: u.email, nome: u.nome_completo, papeis },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Driver `entra` — OIDC/Microsoft 365 do Governo (STUB)
+// ---------------------------------------------------------------------------
+//
+// Fluxo completo a implementar quando a DSTD fornecer:
+//   • ENTRA_TENANT_ID     — tenant gov.pt
+//   • ENTRA_CLIENT_ID     — clientId da aplicação registada
+//   • ENTRA_CLIENT_SECRET — secret (preferível: credential certificate)
+//   • ENTRA_REDIRECT_URI  — URI registada (https://<host>/auth/entra/callback)
+//
+// O fluxo será o standard OIDC Authorization Code:
+//   1. GET /auth/entra/start  → redirect para login.microsoftonline.com
+//   2. callback                → troca code por tokens, valida id_token,
+//                                provisiona utilizador local just-in-time,
+//                                atribui papéis por mapping (config.auth.entra.adminMap)
+//                                ou pelo domínio do email (@maen.gov.pt → PONTO_FOCAL)
+//   3. cria sessão            → setSessionCookie e redirect para /
+//
+// Por agora os endpoints existem e devolvem 501 — quando os parâmetros
+// estiverem prontos, esta função é preenchida e o endpoint passa a funcionar.
+
+export function entraStartUrl(state) {
+  const e = config.auth.entra;
+  if (!e.tenantId || !e.clientId) return null;
+  const params = new URLSearchParams({
+    client_id: e.clientId,
+    response_type: 'code',
+    redirect_uri: e.redirectUri,
+    response_mode: 'query',
+    scope: 'openid profile email User.Read',
+    state,
+  });
+  return `https://login.microsoftonline.com/${e.tenantId}/oauth2/v2.0/authorize?${params}`;
+}
+
+export async function entraCallback(/* code, state, req, res */) {
+  // TODO: trocar code por tokens via POST a /oauth2/v2.0/token, validar
+  // id_token JWT (kid/JWKS), extrair email/nome, provisionar utilizador,
+  // criar sessão. Stub deliberado.
+  throw Object.assign(
+    new Error('Integração Entra ID por finalizar — aguardar config DSTD.'),
+    { status: 501 }
   );
-  return id;
-}
-export async function assignRole(userId, papel, gabineteId = null) {
-  await db.run(
-    `INSERT INTO atribuicao_papel (utilizador_id, papel, gabinete_id)
-     VALUES (?, ?, ?) ON CONFLICT DO NOTHING`,
-    [userId, papel, gabineteId]
-  );
 }
 
 // ---------------------------------------------------------------------------
-// TOTP (2FA) — obrigatório para papéis sensíveis (config.auth.totpRequiredRoles)
+// Provisionamento JIT (usado pelo entraCallback quando estiver pronto)
 // ---------------------------------------------------------------------------
-export async function setupTotp(userId) {
-  const secret = generateSecret();
-  await db.run('UPDATE utilizador SET totp_secret = ?, totp_ativo = 0 WHERE id = ?', [secret, userId]);
-  const u = await db.get('SELECT email FROM utilizador WHERE id = ?', [userId]);
-  return { secret, uri: totpUri(u.email, 'FPL Ponte', secret) };
+export async function provisionarUtilizador({ email, nome }) {
+  email = String(email).toLowerCase();
+  let u = await db.get('SELECT * FROM utilizador WHERE email = ?', [email]);
+  if (!u) {
+    const id = uuid();
+    await db.run(
+      `INSERT INTO utilizador (id, email, nome_completo, ativo) VALUES (?, ?, ?, 1)`,
+      [id, email, nome || email]
+    );
+    u = await db.get('SELECT * FROM utilizador WHERE id = ?', [id]);
+    // Atribui papel inicial pelo mapping ou pelo domínio
+    const papel = papelInicialParaEmail(email);
+    if (papel) {
+      await db.run(
+        `INSERT INTO atribuicao_papel (utilizador_id, papel, gabinete_id) VALUES (?, ?, ?)
+         ON CONFLICT DO NOTHING`,
+        [u.id, papel.papel, papel.gabinete_id]
+      );
+    }
+  }
+  return u;
 }
-export async function activateTotp(userId, token) {
-  const u = await db.get('SELECT totp_secret FROM utilizador WHERE id = ?', [userId]);
-  if (!u?.totp_secret || !verifyTotp(u.totp_secret, token)) return false;
-  await db.run('UPDATE utilizador SET totp_ativo = 1 WHERE id = ?', [userId]);
-  return true;
-}
-export async function disableTotp(userId) {
-  await db.run('UPDATE utilizador SET totp_secret = NULL, totp_ativo = 0 WHERE id = ?', [userId]);
-}
-export async function verificarTotp(userId, token) {
-  const u = await db.get('SELECT totp_secret, totp_ativo FROM utilizador WHERE id = ?', [userId]);
-  if (!u?.totp_ativo || !u.totp_secret) return false;
-  return verifyTotp(u.totp_secret, token);
+
+async function papelInicialParaEmail(email) {
+  // 1) Mapping explícito em ENTRA_ADMIN_MAP
+  const map = (config.auth.entra.adminMap || '').split(';').map(s => s.trim()).filter(Boolean);
+  for (const item of map) {
+    const [mail, papel] = item.split(':').map(s => s?.trim());
+    if (mail && papel && mail.toLowerCase() === email) {
+      return { papel, gabinete_id: null };
+    }
+  }
+  // 2) Por domínio: @<sigla>.gov.pt → PONTO_FOCAL desse gabinete
+  const m = email.match(/^[^@]+@([a-z]+)\.gov\.pt$/i);
+  if (m) {
+    const sigla = m[1].toLowerCase();
+    const gab = await db.get('SELECT id FROM gabinete WHERE LOWER(sigla) = ?', [sigla]);
+    if (gab) return { papel: 'PONTO_FOCAL', gabinete_id: gab.id };
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
-// Federação simulada (mantida para compatibilidade com o frontend v0.2;
-// na arquitetura definitiva, a autenticação é via diretório interno + VPN)
+// Logout
 // ---------------------------------------------------------------------------
-const federacaoStates = new Map();
-export function iniciarFederacao(redirectTo = '/') {
-  const state = crypto.randomBytes(16).toString('hex');
-  federacaoStates.set(state, { ts: Date.now(), redirectTo });
-  for (const [k, v] of federacaoStates) if (Date.now() - v.ts > 5 * 60_000) federacaoStates.delete(k);
-  return state;
-}
-export function consumirEstadoFederacao(state) {
-  const r = federacaoStates.get(state);
-  if (!r) return null;
-  federacaoStates.delete(state);
-  return (Date.now() - r.ts > 5 * 60_000) ? null : r;
-}
-export async function loginPorNif(nif) {
-  return db.get('SELECT * FROM utilizador WHERE nif = ? AND ativo = 1', [nif]) || null;
+export async function logout(req, res) {
+  if (req._sid) await db.run('DELETE FROM sessao WHERE id = ?', [req._sid]);
+  clearSessionCookie(res);
 }
 
-export { COOKIE_NAME };
+export { COOKIE as COOKIE_NAME };

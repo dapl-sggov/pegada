@@ -11,7 +11,7 @@ import { inicializarTema } from './tema.js';
 import { parseHash } from './router.js';
 // Side-effect imports: registam window.* handlers usados por inline onclick
 import './notifications.js';
-import './wizard-bloco-d.js';
+import './wizard-audicoes.js';
 import './diff-viewer.js';
 
 export async function bootApp() {
