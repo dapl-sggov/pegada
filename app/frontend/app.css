@@ -502,6 +502,75 @@ body.painel { background: var(--p-bg); }
 .crono-lista .info .lbl { font-size: 14px; font-weight: 600; color: var(--p-text); }
 .crono-lista .info .data { font-size: 11.5px; color: var(--p-text-mute); margin-top: 2px; font-family: var(--p-mono); }
 
+/* ───── 9b. Cronograma — calendário mensal (vista alternativa do painel) ─────
+   Usado pela vista "Cronograma" do painel de detalhe. Layout: calendário à
+   esquerda + lista de próximos prazos à direita. Tudo sobre tokens --p-*. */
+.crono-wrap {
+  flex: 1; overflow: hidden; display: grid;
+  grid-template-columns: 1fr 326px; background: var(--p-bg);
+}
+.crono-cal { padding: 18px 24px; overflow: auto; }
+.crono-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.crono-nav { display: flex; gap: 6px; }
+.crono-nav button {
+  width: 32px; height: 32px; border-radius: var(--r); background: var(--p-surface);
+  border: 1px solid var(--p-border); color: var(--p-text-mid); font-size: 15px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.crono-nav button:hover { background: var(--p-surface-alt); border-color: var(--p-text-faint); }
+.crono-month {
+  font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
+  color: var(--gov-dark); letter-spacing: -.02em;
+}
+:root[data-tema="escuro"] .crono-month { color: var(--ink); }
+.crono-legend { margin-left: auto; display: flex; gap: 14px; font-size: 11px; color: var(--p-text-mute); align-items: center; }
+.crono-legend span { display: inline-flex; align-items: center; }
+.crono-legend i { width: 8px; height: 8px; border-radius: 99px; margin-right: 5px; display: inline-block; }
+
+.crono-weekhead {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+  font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--p-text-mute); font-weight: 700; margin-bottom: 6px; padding: 0 2px;
+}
+.crono-weekhead div { text-align: right; padding: 0 6px; }
+.crono-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 6px; min-height: 480px; }
+.crono-cell {
+  background: var(--p-surface); border: 1px solid #e3e6ea; border-radius: var(--r);
+  padding: 6px 7px; overflow: hidden; display: flex; flex-direction: column; gap: 3px;
+}
+:root[data-tema="escuro"] .crono-cell { border-color: var(--p-border); }
+.crono-cell.today { background: var(--p-gold-bg); border: 1.5px solid var(--p-gold); }
+.crono-cell.dim { opacity: .35; }
+.crono-num { font-size: 11.5px; font-weight: 600; color: var(--p-text-mid); text-align: right; font-family: var(--p-mono); }
+.crono-cell.today .crono-num { color: var(--p-gold); font-weight: 700; }
+.crono-ev {
+  font-size: 10.5px; padding: 2px 6px; border-radius: 3px; line-height: 1.25;
+  font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer; border-left: 3px solid var(--p-text-faint);
+  background: #f3f3f5; color: var(--p-text-mid);
+}
+.crono-ev.k-M0, .crono-ev.k-M1, .crono-ev.k-M2 { background: var(--gov-light); color: var(--gov); border-left-color: var(--p-blue); }
+.crono-ev.k-M3, .crono-ev.k-M4 { background: var(--p-gold-bg); color: #7a5400; border-left-color: var(--p-gold); }
+.crono-ev.k-M5, .crono-ev.k-DR { background: var(--p-success-bg); color: #0a4520; border-left-color: var(--p-success); }
+.crono-ev.k-INTER { background: #f3f3f5; color: var(--p-text-mid); border-left-color: var(--p-text-faint); }
+.crono-ev.k-RSE, .crono-ev.k-CM { background: var(--p-danger-bg); color: #7c1c08; border-left-color: var(--p-red); }
+.crono-ev.k-CP { background: #eef0f3; color: var(--p-text-mid); border-left-color: var(--p-text-mute); }
+
+.crono-side { background: var(--p-surface); border-left: 1px solid var(--p-border); overflow: auto; padding: 20px 18px; }
+.crono-side-hdr { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--p-text-mute); font-weight: 700; margin-bottom: 14px; }
+.up-row { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--p-border-hair); }
+.up-date { color: #fff; border-radius: var(--r); text-align: center; padding: 6px 4px; height: fit-content; }
+.up-month { font-size: 9.5px; letter-spacing: 1.2px; text-transform: uppercase; opacity: .85; font-weight: 700; }
+.up-day { font-size: 17px; font-weight: 700; line-height: 1; margin-top: 1px; font-family: var(--p-mono); }
+.up-title { font-size: 13px; font-weight: 600; color: var(--p-text); line-height: 1.3; }
+.up-sub { font-size: 11.5px; color: var(--p-text-mute); margin-top: 3px; line-height: 1.45; }
+.up-sub strong { color: var(--p-text); }
+.up-tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .4px; padding: 1px 6px; border-radius: 3px; background: transparent; border: 1px solid var(--p-text-faint); color: var(--p-text-mute); margin-right: 6px; }
+.up-tag.k-M3, .up-tag.k-M4 { color: var(--p-gold); border-color: var(--p-gold); }
+.up-tag.k-M5, .up-tag.k-DR { color: var(--p-success); border-color: var(--p-success); }
+.up-tag.k-RSE, .up-tag.k-CM { color: var(--p-red); border-color: var(--p-red); }
+.up-extra { font-size: 11px; color: var(--p-text-mute); }
+
 /* ───── 10. KPIs / Cards / Tabelas / Filtros / Chips / Alertas ───── */
 .page-head {
   display: flex; align-items: flex-start; justify-content: space-between;
@@ -828,6 +897,8 @@ body.painel { background: var(--p-bg); }
   .painel-body { grid-template-columns: minmax(0, 1fr); }
   .field-grid { grid-template-columns: 1fr; }
   .role-grid { grid-template-columns: 1fr; }
+  .crono-wrap { grid-template-columns: 1fr; }
+  .crono-side { border-left: none; border-top: 1px solid var(--p-border); }
 }
 @media (max-width: 900px) {
   .painel-side { display: none; }

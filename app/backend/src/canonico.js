@@ -108,15 +108,17 @@ export async function toCanonico(fplId) {
         cl_link: f.cl_link,
         cl_n_contributos: f.cl_n_contributos,
         cl_sintese: f.cl_sintese,
+        cl_inicio: f.cl_inicio,
+        cl_fim: f.cl_fim,
       }),
     },
 
     marcos: semNullos({
-      M0: f.m0_em ? semNullos({ em: f.m0_em, por: f.m0_por }) : null,
-      M2: f.m2_em ? { em: f.m2_em } : null,
-      M3: f.m3_em ? { em: f.m3_em } : null,
-      M4: f.m4_em ? semNullos({ em: f.m4_em, por: f.m4_por }) : null,
-      M5: f.m5_em ? semNullos({ em: f.m5_em, por: f.m5_por }) : null,
+      M0: (f.m0_em || f.m0_prevista) ? semNullos({ em: f.m0_em, por: f.m0_por, prevista: f.m0_prevista }) : null,
+      M2: (f.m2_em || f.m2_prevista) ? semNullos({ em: f.m2_em, prevista: f.m2_prevista }) : null,
+      M3: (f.m3_em || f.m3_prevista) ? semNullos({ em: f.m3_em, prevista: f.m3_prevista }) : null,
+      M4: (f.m4_em || f.m4_prevista) ? semNullos({ em: f.m4_em, por: f.m4_por, prevista: f.m4_prevista }) : null,
+      M5: (f.m5_em || f.m5_prevista) ? semNullos({ em: f.m5_em, por: f.m5_por, prevista: f.m5_prevista }) : null,
     }),
 
     publicacao: f.referencia_dr || f.m5_em ? semNullos({

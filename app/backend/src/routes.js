@@ -116,6 +116,66 @@ router.patch('/fpl/:id/bloco-e', requireAuth, ah(async (req, res) => {
   res.json(await fpl.atualizarBlocoE(req.params.id, req.body || {}, req.user, req));
 }));
 
+// Cronograma: datas previstas dos marcos + período da CP
+router.patch('/fpl/:id/datas', requireAuth, ah(async (req, res) => {
+  const f = await fplComEscopo(req, res); if (!f) return;
+  res.json(await fpl.atualizarDatas(req.params.id, req.body || {}, req.user, req));
+}));
+
+// Agenda consolidada — todos os próximos prazos das FPLs do utilizador.
+// Devolve eventos ordenados cronologicamente (passados e futuros), com
+// origem (M0..M5, CP, RSE, CM, DR, audição), data, FPL e tipo.
+router.get('/agenda', requireAuth, ah(async (req, res) => {
+  const isSggov = req.user.papeis.some(p => ['SGGOV_ADMIN', 'SGGOV_QA', 'GSEPCM'].includes(p.papel));
+  const gabIds = req.user.papeis.map(p => p.gabinete_id).filter(Boolean);
+  let fpls;
+  if (isSggov) {
+    fpls = await db.all(`SELECT * FROM fpl WHERE estado != 'ARQUIVADO'`);
+  } else if (gabIds.length) {
+    const placeholders = gabIds.map(() => '?').join(',');
+    fpls = await db.all(`SELECT * FROM fpl WHERE gabinete_id IN (${placeholders}) AND estado != 'ARQUIVADO'`, gabIds);
+  } else {
+    fpls = [];
+  }
+  const eventos = [];
+  for (const f of fpls) {
+    const ref = { fpl_id: f.id, numero: f.numero_processo, titulo: f.titulo_curto || f.titulo };
+    // Marcos reais (validados) — passados
+    if (f.m0_em) eventos.push({ ...ref, kind: 'M0', tipo: 'real', data: f.m0_em.slice(0, 10), titulo_ev: 'M0 · Abertura' });
+    if (f.m2_em) eventos.push({ ...ref, kind: 'M2', tipo: 'real', data: f.m2_em.slice(0, 10), titulo_ev: 'M2 · Abertura CP' });
+    if (f.m3_em) eventos.push({ ...ref, kind: 'M3', tipo: 'real', data: f.m3_em.slice(0, 10), titulo_ev: 'M3 · Encerramento CP' });
+    if (f.m4_em) eventos.push({ ...ref, kind: 'M4', tipo: 'real', data: f.m4_em.slice(0, 10), titulo_ev: 'M4 · Pré-CM' });
+    if (f.m5_em) eventos.push({ ...ref, kind: 'M5', tipo: 'real', data: f.m5_em.slice(0, 10), titulo_ev: 'M5 · Publicação' });
+    // Marcos previstos (só os que ainda não foram validados)
+    if (f.m0_prevista && !f.m0_em) eventos.push({ ...ref, kind: 'M0', tipo: 'prev', data: f.m0_prevista, titulo_ev: 'M0 · Abertura (prevista)' });
+    if (f.m2_prevista && !f.m2_em) eventos.push({ ...ref, kind: 'M2', tipo: 'prev', data: f.m2_prevista, titulo_ev: 'M2 · Abertura CP (prevista)' });
+    if (f.m3_prevista && !f.m3_em) eventos.push({ ...ref, kind: 'M3', tipo: 'prev', data: f.m3_prevista, titulo_ev: 'M3 · Encerramento CP (previsto)' });
+    if (f.m4_prevista && !f.m4_em) eventos.push({ ...ref, kind: 'M4', tipo: 'prev', data: f.m4_prevista, titulo_ev: 'M4 · Pré-CM (previsto)' });
+    if (f.m5_prevista && !f.m5_em) eventos.push({ ...ref, kind: 'M5', tipo: 'prev', data: f.m5_prevista, titulo_ev: 'M5 · Publicação (prevista)' });
+    // Período CP
+    if (f.cl_inicio) eventos.push({ ...ref, kind: 'CP', tipo: 'periodo', data: f.cl_inicio, titulo_ev: 'Abre Consulta Pública' });
+    if (f.cl_fim) eventos.push({ ...ref, kind: 'CP', tipo: 'periodo', data: f.cl_fim, titulo_ev: 'Encerra Consulta Pública' });
+  }
+  // Audições com datas associadas (pedido e resposta)
+  let audicoes;
+  if (isSggov) {
+    audicoes = await db.all(`SELECT a.*, f.numero_processo, f.titulo_curto, f.titulo FROM audicao a JOIN fpl f ON f.id = a.fpl_id WHERE f.estado != 'ARQUIVADO'`);
+  } else if (gabIds.length) {
+    const ph = gabIds.map(() => '?').join(',');
+    audicoes = await db.all(`SELECT a.*, f.numero_processo, f.titulo_curto, f.titulo FROM audicao a JOIN fpl f ON f.id = a.fpl_id WHERE f.gabinete_id IN (${ph}) AND f.estado != 'ARQUIVADO'`, gabIds);
+  } else {
+    audicoes = [];
+  }
+  for (const a of audicoes) {
+    const ref = { fpl_id: a.fpl_id, numero: a.numero_processo, titulo: a.titulo_curto || a.titulo };
+    if (a.data_pedido) eventos.push({ ...ref, kind: a.categoria === 'OBRIGATORIA' ? 'INTER' : 'INTER', tipo: 'audicao', data: a.data_pedido, titulo_ev: `Audição ${a.categoria === 'OBRIGATORIA' ? 'obrigatória' : 'GSEPCM'} · ${a.entidade}` });
+    if (a.data_resposta && a.data_resposta !== a.data_pedido) eventos.push({ ...ref, kind: 'INTER', tipo: 'audicao', data: a.data_resposta, titulo_ev: `Resposta · ${a.entidade}` });
+  }
+  // Ordena cronologicamente
+  eventos.sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+  res.json({ eventos, total: eventos.length });
+}));
+
 // Audições (D.1 + D.2)
 router.post('/fpl/:id/audicoes', requireAuth, ah(async (req, res) => {
   const f = await fplComEscopo(req, res); if (!f) return;

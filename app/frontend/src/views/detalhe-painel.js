@@ -341,45 +341,165 @@ function traducaoTipoEvento(t) {
 }
 
 // ---------------------------------------------------------------------------
-// Cronograma
+// Cronograma — calendário mensal + lista lateral de agenda consolidada
 // ---------------------------------------------------------------------------
+// Estado local da vista: offset de mês relativo ao actual.
+let _cronoOffset = 0;
+// Cache de agenda consolidada (carrega assincronamente quando se entra na vista).
+let _agendaCache = { ts: 0, eventos: [] };
+
+const MESES_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+                  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const DIAS_PT = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+
+function eventosDaFpl(f) {
+  // Constrói eventos para esta FPL, indexáveis por data 'YYYY-MM-DD'
+  const ev = [];
+  const ref = { fpl_id: f.id, numero: f.numero_processo };
+  for (const id of MARCOS_ORD) {
+    const lo = id.toLowerCase();
+    const real = f[`${lo}_em`];
+    const prev = f[`${lo}_prevista`];
+    if (real) ev.push({ ...ref, kind: id, tipo: 'real', data: real.slice(0, 10), titulo_ev: `${id} · ${MARCOS_LBL[id]}` });
+    if (prev && !real) ev.push({ ...ref, kind: id, tipo: 'prev', data: prev, titulo_ev: `${id} · ${MARCOS_LBL[id]} (prev.)` });
+  }
+  if (f.cl_inicio) ev.push({ ...ref, kind: 'CP', tipo: 'periodo', data: f.cl_inicio, titulo_ev: 'Abre CP' });
+  if (f.cl_fim) ev.push({ ...ref, kind: 'CP', tipo: 'periodo', data: f.cl_fim, titulo_ev: 'Encerra CP' });
+  for (const a of (f.audicoes || [])) {
+    if (a.data_pedido) ev.push({ ...ref, kind: 'INTER', tipo: 'audicao', data: a.data_pedido, titulo_ev: `Audição · ${a.entidade}` });
+    if (a.data_resposta && a.data_resposta !== a.data_pedido) ev.push({ ...ref, kind: 'INTER', tipo: 'audicao', data: a.data_resposta, titulo_ev: `Resposta · ${a.entidade}` });
+  }
+  return ev;
+}
+
+function buildCalendarGrid(year, month, eventos) {
+  // month 0-11. Devolve array de células (6 semanas × 7 dias = 42)
+  // com flags { day, ym, dim, today, eventos:[] }
+  const first = new Date(year, month, 1);
+  // Semana começa Segunda (ISO). getDay: 0=dom..6=sab → offset:
+  const dowSeg = (first.getDay() + 6) % 7;
+  const start = new Date(year, month, 1 - dowSeg);
+  const today = todayISO();
+  const cells = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const ym = isoDate(d);
+    cells.push({
+      day: d.getDate(),
+      ym,
+      dim: d.getMonth() !== month,
+      today: ym === today,
+      eventos: eventos.filter(e => e.data === ym),
+    });
+  }
+  return cells;
+}
+
+// Helpers de data evitando timezone shifts
+function todayISO() {
+  const d = new Date();
+  return isoDate(d);
+}
+function isoDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
 function painelCronograma(f) {
-  const marcos = MARCOS_ORD.map(id => ({
-    id, lbl: MARCOS_LBL[id],
-    em: f[`${id.toLowerCase()}_em`],
-  }));
+  const podeEditar = userOwns(f) || isSggov();
+  const now = new Date();
+  now.setMonth(now.getMonth() + _cronoOffset);
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const eventos = eventosDaFpl(f);
+  const cells = buildCalendarGrid(year, month, eventos);
+  const monthLabel = MESES_PT[month] + ' ' + year;
+
+  // Lista lateral: agenda consolidada (carregada async via /api/agenda)
+  // Por agora mostra os eventos da FPL actual + placeholder para os consolidados
+  const proximos = _agendaCache.eventos.filter(e => e.data && e.data >= todayISO()).slice(0, 30);
+
   return `
-      <div class="painel-body" style="grid-template-columns:1fr">
-        <div class="pc-card wide">
-          <div class="pc-card-head">
-            <div class="pc-letter">⏱</div>
-            <div><div class="ttl">Cronograma de marcos</div><div class="sub">M0 → M5</div></div>
+      <div class="crono-wrap">
+        <div class="crono-cal">
+          <div class="crono-toolbar">
+            <div class="crono-nav">
+              <button id="cronoPrev" title="Mês anterior">‹</button>
+              <button id="cronoHoje" title="Hoje" style="width:auto;padding:0 10px;font-size:11px;font-weight:600">Hoje</button>
+              <button id="cronoNext" title="Mês seguinte">›</button>
+            </div>
+            <div class="crono-month">${esc(monthLabel)}</div>
+            <div class="crono-legend">
+              <span><i style="background:var(--p-blue)"></i>Marcos</span>
+              <span><i style="background:var(--p-gold)"></i>Previstos</span>
+              <span><i style="background:var(--p-success)"></i>Publicação</span>
+              <span><i style="background:var(--p-red)"></i>CM/RSE</span>
+              <span><i style="background:var(--p-text-mute)"></i>CP</span>
+              <span><i style="background:var(--p-text-faint)"></i>Interações</span>
+            </div>
+            ${podeEditar ? `<button class="btn sm" id="btnEditarDatas" style="margin-left:8px">✎ Editar datas</button>` : ''}
           </div>
-          <div class="pc-card-body">
-            <ol class="crono-lista">
-              ${marcos.map(m => `
-                <li class="${m.em ? 'feito' : 'pendente'}">
-                  <div class="marker">${m.em ? '✓' : m.id.replace('M', '')}</div>
-                  <div class="info">
-                    <div class="lbl">${m.id} · ${esc(m.lbl)}</div>
-                    <div class="data">${m.em ? 'Validado ' + fmtDH(m.em) : 'Por validar'}</div>
-                  </div>
-                </li>
-              `).join('')}
-            </ol>
-            ${f.referencia_dr ? `
-              <div class="alert info mt-12">
-                <div>
-                  <span class="at">Publicação em DR</span>
-                  ${esc(f.referencia_dr)}
-                  ${f.hash_publicacao ? `<div class="mono small muted mt-12" style="word-break:break-all">SHA-256: ${esc(f.hash_publicacao)}</div>` : ''}
+          <div class="crono-weekhead">
+            ${DIAS_PT.map(d => `<div>${d}</div>`).join('')}
+          </div>
+          <div class="crono-grid">
+            ${cells.map(c => `
+              <div class="crono-cell ${c.dim ? 'dim' : ''} ${c.today ? 'today' : ''}">
+                <div class="crono-num">${c.day}</div>
+                ${c.eventos.slice(0, 4).map(ev => {
+                  const tipo = ev.tipo === 'prev' ? ' (prev.)' : '';
+                  return `<div class="crono-ev k-${esc(ev.kind)}" title="${esc(ev.titulo_ev)}${tipo}">${esc(ev.titulo_ev)}</div>`;
+                }).join('')}
+                ${c.eventos.length > 4 ? `<div class="crono-num" style="text-align:left;color:var(--p-gold)">+${c.eventos.length - 4}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="crono-side">
+          <div class="crono-side-hdr">Agenda consolidada</div>
+          ${proximos.length === 0 ? `
+            <div class="pc-empty">
+              ${_agendaCache.ts === 0 ? 'A carregar agenda...' : 'Sem próximos prazos.'}
+            </div>
+          ` : proximos.map(ev => {
+            const d = new Date(ev.data + 'T12:00:00');
+            const mes = MESES_PT[d.getMonth()].slice(0, 3).toUpperCase();
+            const dia = String(d.getDate()).padStart(2, '0');
+            const corClasse = ev.kind === 'M5' || ev.kind === 'DR' ? 'k-M5' :
+                              ev.kind === 'M3' || ev.kind === 'M4' ? 'k-M4' :
+                              ev.kind === 'CP' ? 'k-CP' : 'k-M0';
+            return `<div class="up-row">
+              <div class="up-date" style="background:${corDoKind(ev.kind)}">
+                <div class="up-month">${mes}</div>
+                <div class="up-day">${dia}</div>
+              </div>
+              <div>
+                <div class="up-title">${esc(ev.titulo_ev)}</div>
+                <div class="up-sub">
+                  <span class="up-tag ${corClasse}">${esc(ev.kind)}</span>
+                  <a onclick="setView('detalhe',{fplId:'${ev.fpl_id}'})" style="cursor:pointer">${esc(ev.numero)}</a>
+                  ${ev.fpl_id === f.id ? '<strong> · esta FPL</strong>' : ''}
                 </div>
-              </div>` : ''}
-          </div>
+              </div>
+            </div>`;
+          }).join('')}
         </div>
       </div>
     </div>
   `;
+}
+
+function corDoKind(k) {
+  if (k === 'M5' || k === 'DR') return 'var(--p-success)';
+  if (k === 'M3' || k === 'M4') return 'var(--p-gold)';
+  if (k === 'RSE' || k === 'CM') return 'var(--p-red)';
+  if (k === 'CP') return 'var(--p-text-mute)';
+  if (k === 'INTER') return 'var(--p-text-faint)';
+  return 'var(--p-blue)';
 }
 
 // ---------------------------------------------------------------------------
@@ -405,6 +525,26 @@ export function bindDetalhePainel() {
       }
     });
   });
+
+  // Cronograma — navegação mensal
+  document.getElementById('cronoPrev')?.addEventListener('click', () => {
+    _cronoOffset -= 1;
+    renderRoot();
+  });
+  document.getElementById('cronoNext')?.addEventListener('click', () => {
+    _cronoOffset += 1;
+    renderRoot();
+  });
+  document.getElementById('cronoHoje')?.addEventListener('click', () => {
+    _cronoOffset = 0;
+    renderRoot();
+  });
+  document.getElementById('btnEditarDatas')?.addEventListener('click', () => abrirEditorDatas());
+
+  // Carregar agenda consolidada apenas quando estamos na vista de cronograma
+  if (document.querySelector('.crono-wrap')) {
+    carregarAgenda();
+  }
 
   document.querySelectorAll('[data-validar-marco]').forEach(b => {
     b.addEventListener('click', async () => {
@@ -480,6 +620,17 @@ function mostrarPendencias(marco, pendencias) {
       <button class="btn primary" onclick="closeModal()">Entendido</button>
     </div>
   `);
+}
+
+async function carregarAgenda() {
+  try {
+    const r = await api('/agenda');
+    _agendaCache = { ts: Date.now(), eventos: r.eventos || [] };
+    // Re-renderizar apenas se ainda estamos na vista cronograma
+    if (document.querySelector('.crono-wrap')) renderRoot();
+  } catch (e) {
+    _agendaCache = { ts: Date.now(), eventos: [] };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -622,6 +773,69 @@ function abrirModalAprovarCM() {
   bindFormSubmit(async (fd) => {
     await api(`/fpl/${f.id}/aprovar-cm`, { method: 'POST', body: { referencia_dr: fd.get('referencia_dr') || null } });
     toast('FPL aprovada em CM', 'success');
+    await loadFpl(f.id);
+    renderRoot();
+  });
+}
+
+function abrirEditorDatas() {
+  const f = state.fpl;
+  const dateInput = (name, lbl, valor, help) => `
+    <div class="field">
+      <label>${esc(lbl)}</label>
+      <input type="date" name="${name}" value="${esc(valor || '')}">
+      ${help ? `<div class="help">${esc(help)}</div>` : ''}
+    </div>
+  `;
+  openModal(`
+    <div class="modal-head">
+      <div>
+        <h3>Editar datas do cronograma</h3>
+        <div class="modal-subtitle">Datas previstas dos marcos + período da Consulta Pública</div>
+      </div>
+      <button class="btn-icon" onclick="closeModal()" aria-label="Fechar">✕</button>
+    </div>
+    <form id="formDatas">
+      <div class="modal-body">
+        <div class="alert info">
+          <div>
+            <span class="at">Como funcionam estas datas</span>
+            As datas previstas dos marcos M0–M5 servem para planeamento — aparecem
+            no calendário a dourado e só são substituídas pelas datas reais quando
+            o marco é validado. O período da CP aparece como evento no calendário.
+          </div>
+        </div>
+
+        <h4 style="font-family:var(--sans);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);margin:18px 0 8px">Marcos previstos</h4>
+        <div class="field-grid">
+          ${dateInput('m0_prevista', 'M0 · Abertura', f.m0_prevista, f.m0_em ? '✓ já validado a ' + (f.m0_em || '').slice(0, 10) : '')}
+          ${dateInput('m2_prevista', 'M2 · Abertura CP', f.m2_prevista, f.m2_em ? '✓ já validado a ' + (f.m2_em || '').slice(0, 10) : '')}
+          ${dateInput('m3_prevista', 'M3 · Encerramento CP', f.m3_prevista, f.m3_em ? '✓ já validado a ' + (f.m3_em || '').slice(0, 10) : '')}
+          ${dateInput('m4_prevista', 'M4 · Pré-CM', f.m4_prevista, f.m4_em ? '✓ já validado a ' + (f.m4_em || '').slice(0, 10) : '')}
+          ${dateInput('m5_prevista', 'M5 · Publicação', f.m5_prevista, f.m5_em ? '✓ já validado a ' + (f.m5_em || '').slice(0, 10) : '')}
+        </div>
+
+        <h4 style="font-family:var(--sans);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);margin:18px 0 8px">Período da Consulta Pública</h4>
+        <div class="field-grid">
+          ${dateInput('cl_inicio', 'Início CP', f.cl_inicio)}
+          ${dateInput('cl_fim', 'Fim CP', f.cl_fim)}
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn ghost" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar datas</button>
+      </div>
+    </form>
+  `);
+  bindFormSubmit(async (fd) => {
+    const body = {};
+    for (const k of ['m0_prevista', 'm2_prevista', 'm3_prevista', 'm4_prevista', 'm5_prevista', 'cl_inicio', 'cl_fim']) {
+      body[k] = fd.get(k) || null;
+    }
+    await api(`/fpl/${f.id}/datas`, { method: 'PATCH', body });
+    toast('Datas atualizadas', 'success');
+    // Reset cache de agenda para refletir as novas datas
+    _agendaCache = { ts: 0, eventos: [] };
     await loadFpl(f.id);
     renderRoot();
   });

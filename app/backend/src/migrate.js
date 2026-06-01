@@ -189,9 +189,35 @@ CREATE TABLE IF NOT EXISTS conta_bloqueada (
 );
 `;
 
+// Migrações incrementais — só ALTER TABLE ADD COLUMN para SQLite (idempotente).
+// Falhas com "duplicate column name" são ignoradas (coluna já existe).
+const MIGRATIONS = [
+  // 2026-06 — datas previstas dos marcos M0/M2/M3/M4/M5 (ponto focal define)
+  // + datas reais do período da consulta pública (cl_inicio, cl_fim).
+  // Usadas no cronograma calendário para mostrar planeamento e marcos no calendário.
+  'ALTER TABLE fpl ADD COLUMN cl_inicio TEXT',
+  'ALTER TABLE fpl ADD COLUMN cl_fim TEXT',
+  'ALTER TABLE fpl ADD COLUMN m0_prevista TEXT',
+  'ALTER TABLE fpl ADD COLUMN m2_prevista TEXT',
+  'ALTER TABLE fpl ADD COLUMN m3_prevista TEXT',
+  'ALTER TABLE fpl ADD COLUMN m4_prevista TEXT',
+  'ALTER TABLE fpl ADD COLUMN m5_prevista TEXT',
+];
+
+async function aplicarMigracoes() {
+  for (const sql of MIGRATIONS) {
+    try { await db.exec(sql); }
+    catch (e) {
+      // SQLite reporta "duplicate column name: X" se coluna já existe — ignorar
+      if (!/duplicate column|already exists/i.test(e.message)) throw e;
+    }
+  }
+}
+
 export async function migrate() {
   await initDb();
   await db.exec(SCHEMA);
+  await aplicarMigracoes();
   return { driver: 'sqlite', tabelas: (SCHEMA.match(/CREATE TABLE/g) || []).length };
 }
 

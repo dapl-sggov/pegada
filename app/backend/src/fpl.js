@@ -106,6 +106,24 @@ export async function atualizarBlocoB(id, fields, user, req) {
   return getFpl(id);
 }
 
+/**
+ * Atualiza datas do cronograma — previsões dos marcos + período da CP.
+ * Permite ao ponto focal definir quando prevê validar cada marco e
+ * quando o período da consulta pública decorre. Campos em formato 'YYYY-MM-DD'.
+ */
+export async function atualizarDatas(id, fields, user, req) {
+  const allowed = ['cl_inicio', 'cl_fim', 'm0_prevista', 'm2_prevista', 'm3_prevista', 'm4_prevista', 'm5_prevista'];
+  const sets = [], params = [];
+  for (const k of allowed) if (fields[k] !== undefined) { sets.push(`${k} = ?`); params.push(fields[k] || null); }
+  if (sets.length) {
+    params.push(id);
+    await db.run(`UPDATE fpl SET ${sets.join(', ')} WHERE id = ?`, params);
+    await novaVersao(id, user.id, null, 'Cronograma atualizado');
+    await logEvento({ fplId: id, tipo: 'CRONOGRAMA_ATUALIZADO', autorId: user.id, payload: fields, req });
+  }
+  return getFpl(id);
+}
+
 export async function atualizarBlocoE(id, fields, user, req) {
   const allowed = ['cl_link', 'cl_n_contributos', 'cl_sintese'];
   const sets = [], params = [];
